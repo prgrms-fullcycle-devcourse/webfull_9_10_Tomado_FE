@@ -1,0 +1,78 @@
+/* Utility helpers */
+
+/* Radius alias */
+@utility r-0 {
+    border-radius: 0;
+}
+
+@utility r-1 {
+    border-radius: 4px;
+}
+
+@utility r-2 {
+    border-radius: 8px;
+}
+
+@utility r-3 {
+    border-radius: 12px;
+}
+
+@utility r-4 {
+    border-radius: 16px;
+}
+
+@utility r-full {
+    border-radius: 9999px;
+}
+
+/* Flexbox helpers */
+@utility center-flex {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@utility flex-between {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+@utility grid-center {
+    display: grid;
+    place-items: center;
+}
+
+@utility absolute-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Text helpers */
+@utility text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@utility no-select {
+    user-select: none;
+}
+
+@utility touch-feedback {
+    transition:
+        transform 0.1s ease,
+        opacity 0.1s ease;
+}
+
+/* Scrollbar helpers */
+@utility scrollbar-hidden {
+    scrollbar-width: none;
+}
+
+/* Safe area helpers */
+@utility safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+}
