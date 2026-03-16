@@ -1,0 +1,29 @@
+name: BugFix
+description: 버그 수정
+title: "[BugFix] "
+labels: ["🐞 BugFix"]
+
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 문제 상황
+      description: 어떤 문제가 발생했나요?
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 재현 방법
+      description: 문제를 재현하는 방법을 작성해주세요.
+      placeholder: |
+        1.
+        2.
+        3.
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 기대 결과
+      description: 정상적으로 동작한다면 어떤 결과가 나와야 하나요?
