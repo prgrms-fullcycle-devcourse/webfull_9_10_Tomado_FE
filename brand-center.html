@@ -1,0 +1,1987 @@
+<!doctype html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Toma:do — Brand Center</title>
+        <link rel="stylesheet" href="/src/styles/index.css" />
+        <style>
+            /* ── Reset & Base ── */
+            *,
+            *::before,
+            *::after {
+                box-sizing: border-box;
+                margin: 0;
+                padding: 0;
+            }
+
+            :root {
+                --shadow-sm: 0 4px 14px rgba(23, 28, 35, 0.06);
+                --shadow-md: 0 10px 30px rgba(23, 28, 35, 0.08);
+                --radius-sm: 10px;
+                --radius-md: 14px;
+                --radius-lg: 20px;
+                --white: #fafafa;
+                --black: #0d1117;
+                --gray-50: #eef1f5;
+                --gray-100: #dee3eb;
+                --gray-200: #b9c4d7;
+                --gray-300: #98aac4;
+                --gray-400: #7c8fab;
+                --gray-500: #64748b;
+                --gray-600: #505d70;
+                --gray-700: #3b4554;
+                --gray-800: #272f39;
+                --gray-900: #171c23;
+                --tomato-50: #feedec;
+                --tomato-100: #fedad8;
+                --tomato-200: #fcb1aa;
+                --tomato-300: #fc877a;
+                --tomato-400: #fb5331;
+                --tomato-500: #d53e17;
+                --tomato-600: #aa2f10;
+                --tomato-700: #812209;
+                --tomato-800: #5e1605;
+                --tomato-900: #3a0a02;
+                --yellow-50: #ffeee2;
+                --yellow-100: #ffdfca;
+                --yellow-200: #ffbc7d;
+                --yellow-300: #f59e0b;
+                --yellow-400: #d08608;
+                --yellow-500: #ad6e05;
+                --yellow-600: #885603;
+                --yellow-700: #684002;
+                --yellow-800: #492c01;
+                --yellow-900: #2a1700;
+                --blue-50: #eef0fe;
+                --blue-100: #dee1fc;
+                --blue-200: #bdc3f9;
+                --blue-300: #97a3f6;
+                --blue-400: #7386f3;
+                --blue-500: #4968ef;
+                --blue-600: #264ed4;
+                --blue-700: #1b3aa1;
+                --blue-800: #112877;
+                --blue-900: #07164a;
+                --green-50: #d2ffdb;
+                --green-100: #a8febb;
+                --green-200: #2cf376;
+                --green-300: #27dd6a;
+                --green-400: #22c55e;
+                --green-500: #1aa34d;
+                --green-600: #12813b;
+                --green-700: #0b5f2a;
+                --green-800: #05401a;
+                --green-900: #02260c;
+
+                /* Semantic */
+                --sp-surface-subtle: #feedec;
+                --sp-surface-lighter: #fedad8;
+                --sp-surface-default: #fb5331;
+                --sp-surface-darker: #d53e17;
+                --sp-border-subtle: #feedec;
+                --sp-border-lighter: #fedad8;
+                --sp-border-default: #fb5331;
+                --sp-border-darker: #d53e17;
+                --sp-text-subtle: #fedad8;
+                --sp-text-lighter: #fcb1aa;
+                --sp-text-default: #fb5331;
+                --sp-text-darker: #d53e17;
+
+                --ss-surface-subtle: #eef0fe;
+                --ss-surface-lighter: #bdc3f9;
+                --ss-surface-default: #4968ef;
+                --ss-surface-darker: #1b3aa1;
+                --ss-border-subtle: #dee1fc;
+                --ss-border-lighter: #bdc3f9;
+                --ss-border-default: #4968ef;
+                --ss-border-darker: #1b3aa1;
+                --ss-text-subtle: #dee1fc;
+                --ss-text-lighter: #bdc3f9;
+                --ss-text-default: #4968ef;
+                --ss-text-darker: #1b3aa1;
+
+                --sn-surface-subtle: #ffeee2;
+                --sn-surface-lighter: #ffbc7d;
+                --sn-surface-default: #f59e0b;
+                --sn-surface-darker: #d08608;
+                --sn-border-subtle: #ffeee2;
+                --sn-border-lighter: #ffbc7d;
+                --sn-border-default: #f59e0b;
+                --sn-border-darker: #d08608;
+                --sn-text-subtle: #ffeee2;
+                --sn-text-lighter: #ffbc7d;
+                --sn-text-default: #f59e0b;
+                --sn-text-darker: #d08608;
+
+                --spos-surface-subtle: #d2ffdb;
+                --spos-surface-lighter: #a8febb;
+                --spos-surface-default: #22c55e;
+                --spos-surface-darker: #1aa34d;
+                --spos-border-subtle: #d2ffdb;
+                --spos-border-lighter: #a8febb;
+                --spos-border-default: #22c55e;
+                --spos-border-darker: #1aa34d;
+                --spos-text-subtle: #a8febb;
+                --spos-text-lighter: #2cf376;
+                --spos-text-default: #22c55e;
+                --spos-text-darker: #1aa34d;
+
+                --neu-surface-white: #fafafa;
+                --neu-surface-subtle: #eef1f5;
+                --neu-surface-default: #dee3eb;
+                --neu-surface-disabled: #b9c4d7;
+                --neu-border-disabled: #b9c4d7;
+                --neu-border-default: #98aac4;
+                --neu-border-darker: #7c8fab;
+                --neu-text-disabled: #7c8fab;
+                --neu-text-caption: #505d70;
+                --neu-text-subtitle: #3b4554;
+                --neu-text-body: #272f39;
+                --neu-text-title: #171c23;
+
+                /* Layout */
+                --sidebar-w: 220px;
+            }
+
+            body {
+                font-family: 'Noto Sans KR', sans-serif;
+                background: var(--color-gray-50);
+                color: var(--color-gray-900);
+                display: flex;
+                min-height: 100vh;
+            }
+
+            /* ══════════════════════════════════════
+       SIDEBAR
+    ══════════════════════════════════════ */
+            .sidebar {
+                width: var(--sidebar-w);
+                min-height: 100vh;
+                background: var(--color-white);
+                border-right: 1px solid var(--color-gray-100);
+                display: flex;
+                flex-direction: column;
+                position: fixed;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                z-index: 200;
+                overflow-y: auto;
+            }
+            .sidebar-logo {
+                padding: 24px 20px 20px;
+                border-bottom: 1px solid var(--color-gray-100);
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+            .sidebar-logo-mark {
+                width: 40px;
+                height: 40px;
+                border-radius: 12px;
+                background: var(--white);
+                border: 1px solid var(--color-gray-100);
+                box-shadow: var(--shadow-sm);
+                display: block;
+                object-fit: contain;
+                padding: 6px;
+                flex-shrink: 0;
+            }
+            .sidebar-logo-copy {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+                min-width: 0;
+            }
+            .sidebar-logo-copy h1 {
+                font-size: 16px;
+                font-weight: 700;
+                color: var(--color-gray-900);
+                letter-spacing: -0.02em;
+                line-height: 1.2;
+            }
+            .sidebar-logo-copy span {
+                font-size: 11px;
+                color: var(--color-gray-500);
+                line-height: 1.3;
+            }
+
+            .nav-group {
+                padding: 20px 0 4px;
+            }
+            .nav-group-label {
+                font-size: 10px;
+                font-weight: 700;
+                color: var(--color-gray-400);
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+                padding: 0 20px 8px;
+                display: block;
+            }
+            .nav-item {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 10px 20px;
+                font-size: 13px;
+                font-weight: 500;
+                color: var(--color-gray-600);
+                cursor: pointer;
+                border-left: 3px solid transparent;
+                transition:
+                    background 0.15s,
+                    color 0.15s,
+                    border-color 0.15s;
+                user-select: none;
+                text-decoration: none;
+            }
+            .nav-item:hover {
+                background: var(--color-gray-50);
+                color: var(--color-gray-900);
+            }
+            .nav-item.active {
+                background: var(--tomato-50);
+                color: var(--tomato-600);
+                border-left-color: var(--tomato-400);
+                font-weight: 700;
+            }
+            .nav-item .nav-dot {
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: currentColor;
+                opacity: 0.4;
+                flex-shrink: 0;
+            }
+            .nav-item.active .nav-dot {
+                opacity: 1;
+            }
+
+            /* Component nav items — hover uses semantic colors */
+            .nav-item[data-comp='Button']:hover {
+                background: var(--sp-surface-subtle);
+                color: var(--sp-text-darker);
+            }
+            .nav-item[data-comp='Input']:hover {
+                background: var(--ss-surface-subtle);
+                color: var(--ss-text-darker);
+            }
+            .nav-item[data-comp='Checkbox']:hover {
+                background: var(--sp-surface-subtle);
+                color: var(--sp-text-darker);
+            }
+            .nav-item[data-comp='Badge']:hover {
+                background: var(--spos-surface-subtle);
+                color: var(--spos-text-darker);
+            }
+            .nav-item[data-comp='Card']:hover {
+                background: var(--ss-surface-subtle);
+                color: var(--ss-text-darker);
+            }
+            .nav-item[data-comp='Modal']:hover {
+                background: var(--sn-surface-subtle);
+                color: var(--sn-text-darker);
+            }
+
+            /* ══════════════════════════════════════
+       MAIN
+    ══════════════════════════════════════ */
+            .main {
+                margin-left: var(--sidebar-w);
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+            }
+            .topbar {
+                background: rgba(255, 255, 255, 0.88);
+                backdrop-filter: blur(12px);
+                border-bottom: 1px solid var(--color-gray-100);
+                padding: 18px 40px;
+                display: flex;
+                align-items: baseline;
+                gap: 12px;
+                position: sticky;
+                top: 0;
+                z-index: 100;
+            }
+            .topbar-title {
+                font-size: 18px;
+                font-weight: 700;
+                color: var(--color-gray-900);
+                letter-spacing: -0.02em;
+            }
+            .topbar-path {
+                font-size: 12px;
+                color: var(--color-gray-500);
+            }
+
+            .content {
+                padding: 40px;
+                max-width: 1060px;
+            }
+
+            /* ── Section ── */
+            .section {
+                margin-bottom: 56px;
+                scroll-margin-top: 80px;
+            }
+            .section-title {
+                font-size: 22px;
+                font-weight: 700;
+                color: var(--color-gray-900);
+                letter-spacing: -0.02em;
+                margin-bottom: 6px;
+            }
+            .section-desc {
+                font-size: 13px;
+                color: var(--color-gray-500);
+                margin-bottom: 24px;
+                line-height: 1.6;
+            }
+
+            /* ── Palette ── */
+            .palette-group {
+                margin-bottom: 28px;
+            }
+            .palette-group-name {
+                font-size: 11px;
+                font-weight: 700;
+                color: var(--color-gray-500);
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                margin-bottom: 10px;
+            }
+            .palette-row {
+                display: flex;
+                gap: 6px;
+                flex-wrap: wrap;
+            }
+            .swatch {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 5px;
+                flex: 1;
+                min-width: 72px;
+            }
+            .swatch-box {
+                width: 100%;
+                height: 64px;
+                border-radius: 10px;
+                border: 1px solid rgba(0, 0, 0, 0.06);
+                cursor: pointer;
+                transition:
+                    transform 0.12s,
+                    box-shadow 0.12s;
+                position: relative;
+            }
+            .swatch-box:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 6px 16px rgba(0, 0, 0, 0.13);
+            }
+            .swatch-box.is-white {
+                border-color: var(--color-gray-100);
+            }
+            .swatch-name {
+                font-size: 11px;
+                color: var(--color-gray-500);
+            }
+            .swatch-hex {
+                font-size: 10px;
+                color: var(--color-gray-400);
+            }
+
+            /* ── Usage swatches ── */
+            .semantic-section {
+                margin-bottom: 44px;
+            }
+            .semantic-header {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-bottom: 16px;
+            }
+            .semantic-header h3 {
+                font-weight: 700;
+                font-size: 15px;
+                color: var(--color-gray-900);
+            }
+            .badge {
+                font-size: 10px;
+                font-weight: 700;
+                padding: 2px 9px;
+                border-radius: 99px;
+                letter-spacing: 0.06em;
+            }
+            .hint {
+                font-size: 11px;
+                color: var(--color-gray-400);
+            }
+
+            .usage-group {
+                margin-bottom: 16px;
+            }
+            .usage-label {
+                font-size: 10px;
+                font-weight: 700;
+                color: var(--color-gray-500);
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+                margin-bottom: 8px;
+            }
+            .usage-row {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+            .usage-card {
+                flex: 1;
+                min-width: 120px;
+                background: var(--white);
+                border: 1px solid var(--color-gray-100);
+                border-radius: 10px;
+                overflow: hidden;
+                cursor: pointer;
+                transition:
+                    box-shadow 0.15s,
+                    transform 0.15s;
+            }
+            .usage-card:hover {
+                box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+                transform: translateY(-2px);
+            }
+            .usage-card-preview {
+                height: 70px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .usage-card-preview .border-box {
+                width: 54px;
+                height: 38px;
+                border-radius: 6px;
+            }
+            .usage-card-preview .text-aa {
+                font-size: 26px;
+                font-weight: 700;
+            }
+            .usage-card-meta {
+                padding: 8px 10px;
+                border-top: 1px solid var(--color-gray-100);
+            }
+            .usage-card-weight {
+                font-size: 11px;
+                font-weight: 700;
+                color: var(--color-gray-700);
+            }
+            .usage-card-token {
+                font-size: 9px;
+                color: var(--color-gray-400);
+                margin-top: 1px;
+                word-break: break-all;
+            }
+            .usage-card-hex {
+                font-size: 10px;
+                color: var(--color-gray-500);
+                margin-top: 2px;
+            }
+
+            /* ── Token Table ── */
+            .table-wrap {
+                overflow-x: auto;
+            }
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                font-size: 12px;
+            }
+            thead th {
+                font-size: 10px;
+                font-weight: 700;
+                color: var(--color-gray-500);
+                text-transform: uppercase;
+                letter-spacing: 0.08em;
+                text-align: left;
+                padding: 9px 12px;
+                background: var(--color-gray-50);
+                border-bottom: 1px solid var(--color-gray-200);
+                white-space: nowrap;
+            }
+            tbody tr {
+                border-bottom: 1px solid var(--color-gray-100);
+            }
+            tbody tr:last-child {
+                border-bottom: none;
+            }
+            tbody td {
+                padding: 9px 12px;
+                vertical-align: middle;
+                color: var(--color-gray-700);
+            }
+            .td-dot {
+                width: 24px;
+                height: 24px;
+                border-radius: 6px;
+                display: inline-block;
+                border: 1px solid rgba(0, 0, 0, 0.06);
+                vertical-align: middle;
+                cursor: pointer;
+                transition: transform 0.1s;
+            }
+            .td-dot:hover {
+                transform: scale(1.2);
+            }
+            code {
+                font-size: 10px;
+                background: var(--color-gray-50);
+                padding: 2px 6px;
+                border-radius: 4px;
+                color: var(--color-gray-600);
+                cursor: pointer;
+            }
+            code:hover {
+                background: var(--color-gray-100);
+            }
+
+            /* ── Component Previews ── */
+            .comp-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+                gap: 16px;
+            }
+            .comp-card {
+                background: var(--white);
+                border: 1px solid var(--color-gray-200);
+                border-radius: 14px;
+                padding: 24px 20px 20px;
+                display: flex;
+                flex-direction: column;
+                gap: 14px;
+                transition:
+                    box-shadow 0.2s,
+                    border-color 0.2s,
+                    transform 0.2s;
+                cursor: default;
+            }
+            .comp-card-name {
+                font-size: 11px;
+                font-weight: 700;
+                color: var(--color-gray-500);
+                text-transform: uppercase;
+                letter-spacing: 0.1em;
+            }
+
+            /* Button */
+            .comp-card[data-comp='Button']:hover {
+                border-color: var(--sp-border-default);
+                box-shadow: 0 4px 16px rgba(255, 91, 121, 0.15);
+            }
+            .demo-btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                padding: 9px 20px;
+                border-radius: 8px;
+                border: none;
+                font-size: 13px;
+                font-weight: 700;
+                cursor: pointer;
+                transition:
+                    background 0.15s,
+                    transform 0.1s;
+            }
+            .demo-btn-primary {
+                background: var(--color-primary);
+                color: var(--color-white);
+            }
+            .demo-btn-primary:hover {
+                background: var(--color-primary-darker);
+                transform: translateY(-1px);
+            }
+            .demo-btn-disabled {
+                background: var(--color-neutral-subtle);
+                color: var(--color-neutral-darker);
+                border: 1.5px solid var(--color-neutral-lighter);
+            }
+            .demo-btn-ghost {
+                background: transparent;
+                color: var(--color-primary-default);
+                border: 1.5px solid var(--color-neutral);
+            }
+            .demo-btn-ghost:hover {
+                background: var(--color-primary-subtle);
+            }
+            .demo-btn-row {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+
+            /* Input */
+            .comp-card[data-comp='Input']:hover {
+                border-color: var(--ss-border-default);
+                box-shadow: 0 4px 16px rgba(95, 189, 252, 0.15);
+            }
+            .demo-input {
+                width: 100%;
+                padding: 9px 12px;
+                border: 1.5px solid var(--neu-border-default);
+                border-radius: 8px;
+                font-family: 'Noto Sans KR', sans-serif;
+                font-size: 13px;
+                color: var(--color-gray-800);
+                background: var(--white);
+                outline: none;
+                transition:
+                    border-color 0.15s,
+                    box-shadow 0.15s;
+            }
+            .demo-input:focus {
+                border-color: var(--ss-border-default);
+                box-shadow: 0 0 0 3px var(--ss-surface-subtle);
+            }
+            .demo-input.error {
+                border-color: var(--sn-border-default);
+                background: var(--sn-surface-subtle);
+            }
+            .demo-input-label {
+                font-size: 11px;
+                color: var(--color-gray-600);
+                margin-bottom: 4px;
+            }
+
+            /* Checkbox */
+            .comp-card[data-comp='Checkbox']:hover {
+                border-color: var(--sp-border-lighter);
+                box-shadow: 0 4px 16px rgba(255, 91, 121, 0.1);
+            }
+            .demo-checkbox-row {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+            .demo-checkbox-item {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                cursor: pointer;
+            }
+            .demo-checkbox-item input[type='checkbox'] {
+                display: none;
+            }
+            .demo-checkbox-box {
+                width: 18px;
+                height: 18px;
+                border-radius: 5px;
+                border: 2px solid var(--neu-border-default);
+                background: var(--white);
+                flex-shrink: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                transition:
+                    background 0.15s,
+                    border-color 0.15s;
+            }
+            .demo-checkbox-item.checked .demo-checkbox-box {
+                background: var(--sp-surface-default);
+                border-color: var(--sp-border-default);
+            }
+            .demo-checkbox-item.checked .demo-checkbox-box::after {
+                content: '';
+                display: block;
+                width: 5px;
+                height: 9px;
+                border: 2px solid var(--white);
+                border-top: none;
+                border-left: none;
+                transform: rotate(45deg) translate(-1px, -1px);
+            }
+            .demo-checkbox-item:hover .demo-checkbox-box {
+                border-color: var(--sp-border-default);
+            }
+            .demo-checkbox-label {
+                font-size: 13px;
+                color: var(--color-gray-700);
+            }
+
+            /* Badge */
+            .comp-card[data-comp='Badge']:hover {
+                border-color: var(--spos-border-default);
+                box-shadow: 0 4px 16px rgba(156, 209, 77, 0.18);
+            }
+            .demo-badge-row {
+                display: flex;
+                gap: 6px;
+                flex-wrap: wrap;
+                align-items: center;
+            }
+            .demo-badge {
+                display: inline-block;
+                padding: 3px 10px;
+                border-radius: 99px;
+                font-family: 'Jura', sans-serif;
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: 0.04em;
+            }
+            .badge-primary {
+                background: var(--sp-surface-lighter);
+                color: var(--sp-text-darker);
+            }
+            .badge-secondary {
+                background: var(--ss-surface-lighter);
+                color: var(--ss-text-darker);
+            }
+            .badge-positive {
+                background: var(--spos-surface-lighter);
+                color: var(--spos-text-darker);
+            }
+            .badge-negative {
+                background: var(--sn-surface-lighter);
+                color: var(--sn-text-darker);
+            }
+            .badge-neutral {
+                background: var(--color-gray-100);
+                color: var(--color-gray-600);
+            }
+
+            /* Card */
+            .comp-card[data-comp='Card']:hover {
+                border-color: var(--ss-border-lighter);
+                box-shadow: 0 4px 16px rgba(95, 189, 252, 0.12);
+            }
+            .demo-card {
+                border-radius: 10px;
+                overflow: hidden;
+                border: 1px solid var(--color-gray-100);
+                background: var(--white);
+            }
+            .demo-card-img {
+                height: 60px;
+                background: linear-gradient(135deg, var(--ss-surface-lighter), var(--sp-surface-lighter));
+            }
+            .demo-card-body {
+                padding: 10px 12px;
+            }
+            .demo-card-title {
+                font-size: 12px;
+                font-weight: 700;
+                color: var(--color-gray-800);
+            }
+            .demo-card-sub {
+                font-size: 11px;
+                color: var(--color-gray-500);
+                margin-top: 2px;
+            }
+
+            /* Modal */
+            .comp-card[data-comp='Modal']:hover {
+                border-color: var(--sn-border-default);
+                box-shadow: 0 4px 16px rgba(255, 166, 94, 0.15);
+            }
+            .demo-modal-mini {
+                border-radius: 10px;
+                border: 1px solid var(--color-gray-200);
+                background: var(--white);
+                padding: 14px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            }
+            .demo-modal-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 8px;
+            }
+            .demo-modal-title {
+                font-size: 12px;
+                font-weight: 700;
+                color: var(--color-gray-900);
+            }
+            .demo-modal-close {
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                background: var(--color-gray-100);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 10px;
+                color: var(--color-gray-500);
+                cursor: pointer;
+            }
+            .demo-modal-body {
+                font-size: 11px;
+                color: var(--color-gray-500);
+                margin-bottom: 10px;
+            }
+            .demo-modal-footer {
+                display: flex;
+                gap: 6px;
+                justify-content: flex-end;
+            }
+            .demo-modal-btn {
+                padding: 5px 12px;
+                border-radius: 6px;
+                border: none;
+                cursor: pointer;
+                font-size: 11px;
+                font-weight: 700;
+            }
+            .demo-modal-btn.cancel {
+                background: var(--color-gray-100);
+                color: var(--color-gray-600);
+            }
+            .demo-modal-btn.confirm {
+                background: var(--sn-surface-default);
+                color: var(--white);
+            }
+
+            /* ── Placeholder Sections ── */
+            .placeholder-section {
+                background: var(--white);
+                border: 1.5px dashed var(--color-gray-200);
+                border-radius: 12px;
+                padding: 48px 32px;
+                text-align: center;
+            }
+            .placeholder-section p {
+                font-size: 13px;
+                color: var(--color-gray-400);
+            }
+
+            /* ── Principles ── */
+            .principles {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 14px;
+            }
+            .principle-card {
+                background: var(--white);
+                border: 1px solid var(--color-gray-100);
+                border-radius: 12px;
+                padding: 18px;
+            }
+            .principle-n {
+                font-size: 28px;
+                font-weight: 700;
+                color: var(--color-gray-100);
+                line-height: 1;
+                margin-bottom: 6px;
+            }
+            .principle-t {
+                font-size: 12px;
+                font-weight: 700;
+                color: var(--color-gray-800);
+                margin-bottom: 5px;
+            }
+            .principle-d {
+                font-size: 11px;
+                color: var(--color-gray-500);
+                line-height: 1.6;
+            }
+
+            .divider {
+                height: 1px;
+                background: var(--color-gray-100);
+                margin: 44px 0;
+            }
+
+            /* ── Toast ── */
+            .toast {
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%) translateY(6px);
+                background: #171c23;
+                color: var(--color-white);
+                font-size: 12px;
+                padding: 7px 18px;
+                border-radius: 8px;
+                opacity: 0;
+                pointer-events: none;
+                transition:
+                    opacity 0.2s,
+                    transform 0.2s;
+                z-index: 9999;
+            }
+            .toast.show {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+
+            /* ── Scrollbar ── */
+            ::-webkit-scrollbar {
+                width: 6px;
+                height: 6px;
+            }
+            ::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            ::-webkit-scrollbar-thumb {
+                background: var(--color-gray-200);
+                border-radius: 3px;
+            }
+        </style>
+    </head>
+    <body>
+        <!-- ══════════════ SIDEBAR ══════════════ -->
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <img class="sidebar-logo-mark" src="/logo.svg" alt="Toma:do logo" />
+                <div class="sidebar-logo-copy">
+                    <h1>Toma:do</h1>
+                    <span>Brand Center</span>
+                </div>
+            </div>
+
+            <nav>
+                <div class="nav-group">
+                    <span class="nav-group-label">Foundations</span>
+                    <a class="nav-item active" href="#colors" onclick="setActive(this)">
+                        <span class="nav-dot"></span>Color
+                    </a>
+                    <a class="nav-item" href="#typography" onclick="setActive(this)">
+                        <span class="nav-dot"></span>Typography
+                    </a>
+                    <a class="nav-item" href="#spacing" onclick="setActive(this)">
+                        <span class="nav-dot"></span>Spacing
+                    </a>
+                    <a class="nav-item" href="#icons" onclick="setActive(this)">
+                        <span class="nav-dot"></span>Logo & Icons
+                    </a>
+                    <a class="nav-item" href="#tokens" onclick="setActive(this)">
+                        <span class="nav-dot"></span>Design Tokens
+                    </a>
+                </div>
+
+                <div class="nav-group">
+                    <span class="nav-group-label">Components</span>
+                    <a class="nav-item" data-comp="Button" href="#comp-button" onclick="setActive(this)"
+                        ><span class="nav-dot"></span>Button</a
+                    >
+                    <a class="nav-item" data-comp="Input" href="#comp-input" onclick="setActive(this)"
+                        ><span class="nav-dot"></span>Input</a
+                    >
+                    <a class="nav-item" data-comp="Checkbox" href="#comp-checkbox" onclick="setActive(this)"
+                        ><span class="nav-dot"></span>Checkbox</a
+                    >
+                    <a class="nav-item" data-comp="Badge" href="#comp-badge" onclick="setActive(this)"
+                        ><span class="nav-dot"></span>Badge</a
+                    >
+                    <a class="nav-item" data-comp="Card" href="#comp-card" onclick="setActive(this)"
+                        ><span class="nav-dot"></span>Card</a
+                    >
+                    <a class="nav-item" data-comp="Modal" href="#comp-modal" onclick="setActive(this)"
+                        ><span class="nav-dot"></span>Modal</a
+                    >
+                </div>
+            </nav>
+        </aside>
+
+        <!-- ══════════════ MAIN ══════════════ -->
+        <div class="main">
+            <div class="topbar">
+                <span class="topbar-title" id="topbar-title">Color</span>
+                <span class="topbar-path" id="topbar-path">Foundations / Color</span>
+            </div>
+
+            <div class="content">
+                <!-- ─── COLORS ─── -->
+                <section class="section" id="colors">
+                    <div class="section-title">Color</div>
+                    <div class="section-desc">
+                        Toma:do에서 사용하는 핵심 컬러 시스템입니다. 스와치, 토큰명, hex 값을 클릭하면 복사됩니다.
+                    </div>
+
+                    <!-- Primitives -->
+                    <div class="palette-group">
+                        <div class="palette-group-name">Base</div>
+                        <div class="palette-row">
+                            <div class="swatch">
+                                <div
+                                    class="swatch-box is-white"
+                                    style="background: #fafafa"
+                                    onclick="copy('#fafafa')"
+                                ></div>
+                                <div class="swatch-name">White</div>
+                                <div class="swatch-hex" onclick="copy('#fafafa')">#fafafa</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #0d1117" onclick="copy('#0d1117')"></div>
+                                <div class="swatch-name">Black</div>
+                                <div class="swatch-hex" onclick="copy('#0d1117')">#0d1117</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="palette-group">
+                        <div class="palette-group-name">Gray</div>
+                        <div class="palette-row">
+                            <div class="swatch">
+                                <div
+                                    class="swatch-box is-white"
+                                    style="background: #eef1f5"
+                                    onclick="copy('#eef1f5')"
+                                ></div>
+                                <div class="swatch-name">50</div>
+                                <div class="swatch-hex" onclick="copy('#eef1f5')">#eef1f5</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #dee3eb" onclick="copy('#dee3eb')"></div>
+                                <div class="swatch-name">100</div>
+                                <div class="swatch-hex" onclick="copy('#dee3eb')">#dee3eb</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #b9c4d7" onclick="copy('#b9c4d7')"></div>
+                                <div class="swatch-name">200</div>
+                                <div class="swatch-hex" onclick="copy('#b9c4d7')">#b9c4d7</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #98aac4" onclick="copy('#98aac4')"></div>
+                                <div class="swatch-name">300</div>
+                                <div class="swatch-hex" onclick="copy('#98aac4')">#98aac4</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #7c8fab" onclick="copy('#7c8fab')"></div>
+                                <div class="swatch-name">400</div>
+                                <div class="swatch-hex" onclick="copy('#7c8fab')">#7c8fab</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #64748b" onclick="copy('#64748b')"></div>
+                                <div class="swatch-name">500</div>
+                                <div class="swatch-hex" onclick="copy('#64748b')">#64748b</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #505d70" onclick="copy('#505d70')"></div>
+                                <div class="swatch-name">600</div>
+                                <div class="swatch-hex" onclick="copy('#505d70')">#505d70</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #3b4554" onclick="copy('#3b4554')"></div>
+                                <div class="swatch-name">700</div>
+                                <div class="swatch-hex" onclick="copy('#3b4554')">#3b4554</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #272f39" onclick="copy('#272f39')"></div>
+                                <div class="swatch-name">800</div>
+                                <div class="swatch-hex" onclick="copy('#272f39')">#272f39</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #171c23" onclick="copy('#171c23')"></div>
+                                <div class="swatch-name">900</div>
+                                <div class="swatch-hex" onclick="copy('#171c23')">#171c23</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="palette-group">
+                        <div class="palette-group-name">Tomato — Primary</div>
+                        <div class="palette-row">
+                            <div class="swatch">
+                                <div
+                                    class="swatch-box is-white"
+                                    style="background: #feedec"
+                                    onclick="copy('#feedec')"
+                                ></div>
+                                <div class="swatch-name">50</div>
+                                <div class="swatch-hex" onclick="copy('#feedec')">#feedec</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #fedad8" onclick="copy('#fedad8')"></div>
+                                <div class="swatch-name">100</div>
+                                <div class="swatch-hex" onclick="copy('#fedad8')">#fedad8</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #fcb1aa" onclick="copy('#fcb1aa')"></div>
+                                <div class="swatch-name">200</div>
+                                <div class="swatch-hex" onclick="copy('#fcb1aa')">#fcb1aa</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #fc877a" onclick="copy('#fc877a')"></div>
+                                <div class="swatch-name">300</div>
+                                <div class="swatch-hex" onclick="copy('#fc877a')">#fc877a</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #fb5331" onclick="copy('#fb5331')"></div>
+                                <div class="swatch-name">400</div>
+                                <div class="swatch-hex" onclick="copy('#fb5331')">#fb5331</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #d53e17" onclick="copy('#d53e17')"></div>
+                                <div class="swatch-name">500</div>
+                                <div class="swatch-hex" onclick="copy('#d53e17')">#d53e17</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #aa2f10" onclick="copy('#aa2f10')"></div>
+                                <div class="swatch-name">600</div>
+                                <div class="swatch-hex" onclick="copy('#aa2f10')">#aa2f10</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #812209" onclick="copy('#812209')"></div>
+                                <div class="swatch-name">700</div>
+                                <div class="swatch-hex" onclick="copy('#812209')">#812209</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #5e1605" onclick="copy('#5e1605')"></div>
+                                <div class="swatch-name">800</div>
+                                <div class="swatch-hex" onclick="copy('#5e1605')">#5e1605</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #3a0a02" onclick="copy('#3a0a02')"></div>
+                                <div class="swatch-name">900</div>
+                                <div class="swatch-hex" onclick="copy('#3a0a02')">#3a0a02</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="palette-group">
+                        <div class="palette-group-name">Yellow — Negative</div>
+                        <div class="palette-row">
+                            <div class="swatch">
+                                <div
+                                    class="swatch-box is-white"
+                                    style="background: #ffeee2"
+                                    onclick="copy('#ffeee2')"
+                                ></div>
+                                <div class="swatch-name">50</div>
+                                <div class="swatch-hex" onclick="copy('#ffeee2')">#ffeee2</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #ffdfca" onclick="copy('#ffdfca')"></div>
+                                <div class="swatch-name">100</div>
+                                <div class="swatch-hex" onclick="copy('#ffdfca')">#ffdfca</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #ffbc7d" onclick="copy('#ffbc7d')"></div>
+                                <div class="swatch-name">200</div>
+                                <div class="swatch-hex" onclick="copy('#ffbc7d')">#ffbc7d</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #f59e0b" onclick="copy('#f59e0b')"></div>
+                                <div class="swatch-name">300</div>
+                                <div class="swatch-hex" onclick="copy('#f59e0b')">#f59e0b</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #d08608" onclick="copy('#d08608')"></div>
+                                <div class="swatch-name">400</div>
+                                <div class="swatch-hex" onclick="copy('#d08608')">#d08608</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #ad6e05" onclick="copy('#ad6e05')"></div>
+                                <div class="swatch-name">500</div>
+                                <div class="swatch-hex" onclick="copy('#ad6e05')">#ad6e05</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #885603" onclick="copy('#885603')"></div>
+                                <div class="swatch-name">600</div>
+                                <div class="swatch-hex" onclick="copy('#885603')">#885603</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #684002" onclick="copy('#684002')"></div>
+                                <div class="swatch-name">700</div>
+                                <div class="swatch-hex" onclick="copy('#684002')">#684002</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #492c01" onclick="copy('#492c01')"></div>
+                                <div class="swatch-name">800</div>
+                                <div class="swatch-hex" onclick="copy('#492c01')">#492c01</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #2a1700" onclick="copy('#2a1700')"></div>
+                                <div class="swatch-name">900</div>
+                                <div class="swatch-hex" onclick="copy('#2a1700')">#2a1700</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="palette-group">
+                        <div class="palette-group-name">Blue</div>
+                        <div class="palette-row">
+                            <div class="swatch">
+                                <div
+                                    class="swatch-box is-white"
+                                    style="background: #eef0fe"
+                                    onclick="copy('#eef0fe')"
+                                ></div>
+                                <div class="swatch-name">50</div>
+                                <div class="swatch-hex" onclick="copy('#eef0fe')">#eef0fe</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #dee1fc" onclick="copy('#dee1fc')"></div>
+                                <div class="swatch-name">100</div>
+                                <div class="swatch-hex" onclick="copy('#dee1fc')">#dee1fc</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #bdc3f9" onclick="copy('#bdc3f9')"></div>
+                                <div class="swatch-name">200</div>
+                                <div class="swatch-hex" onclick="copy('#bdc3f9')">#bdc3f9</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #97a3f6" onclick="copy('#97a3f6')"></div>
+                                <div class="swatch-name">300</div>
+                                <div class="swatch-hex" onclick="copy('#97a3f6')">#97a3f6</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #7386f3" onclick="copy('#7386f3')"></div>
+                                <div class="swatch-name">400</div>
+                                <div class="swatch-hex" onclick="copy('#7386f3')">#7386f3</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #4968ef" onclick="copy('#4968ef')"></div>
+                                <div class="swatch-name">500</div>
+                                <div class="swatch-hex" onclick="copy('#4968ef')">#4968ef</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #264ed4" onclick="copy('#264ed4')"></div>
+                                <div class="swatch-name">600</div>
+                                <div class="swatch-hex" onclick="copy('#264ed4')">#264ed4</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #1b3aa1" onclick="copy('#1b3aa1')"></div>
+                                <div class="swatch-name">700</div>
+                                <div class="swatch-hex" onclick="copy('#1b3aa1')">#1b3aa1</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #112877" onclick="copy('#112877')"></div>
+                                <div class="swatch-name">800</div>
+                                <div class="swatch-hex" onclick="copy('#112877')">#112877</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #07164a" onclick="copy('#07164a')"></div>
+                                <div class="swatch-name">900</div>
+                                <div class="swatch-hex" onclick="copy('#07164a')">#07164a</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="palette-group">
+                        <div class="palette-group-name">Green</div>
+                        <div class="palette-row">
+                            <div class="swatch">
+                                <div
+                                    class="swatch-box is-white"
+                                    style="background: #d2ffdb"
+                                    onclick="copy('#d2ffdb')"
+                                ></div>
+                                <div class="swatch-name">50</div>
+                                <div class="swatch-hex" onclick="copy('#d2ffdb')">#d2ffdb</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #a8febb" onclick="copy('#a8febb')"></div>
+                                <div class="swatch-name">100</div>
+                                <div class="swatch-hex" onclick="copy('#a8febb')">#a8febb</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #2cf376" onclick="copy('#2cf376')"></div>
+                                <div class="swatch-name">200</div>
+                                <div class="swatch-hex" onclick="copy('#2cf376')">#2cf376</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #27dd6a" onclick="copy('#27dd6a')"></div>
+                                <div class="swatch-name">300</div>
+                                <div class="swatch-hex" onclick="copy('#27dd6a')">#27dd6a</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #22c55e" onclick="copy('#22c55e')"></div>
+                                <div class="swatch-name">400</div>
+                                <div class="swatch-hex" onclick="copy('#22c55e')">#22c55e</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #1aa34d" onclick="copy('#1aa34d')"></div>
+                                <div class="swatch-name">500</div>
+                                <div class="swatch-hex" onclick="copy('#1aa34d')">#1aa34d</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #12813b" onclick="copy('#12813b')"></div>
+                                <div class="swatch-name">600</div>
+                                <div class="swatch-hex" onclick="copy('#12813b')">#12813b</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #0b5f2a" onclick="copy('#0b5f2a')"></div>
+                                <div class="swatch-name">700</div>
+                                <div class="swatch-hex" onclick="copy('#0b5f2a')">#0b5f2a</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #05401a" onclick="copy('#05401a')"></div>
+                                <div class="swatch-name">800</div>
+                                <div class="swatch-hex" onclick="copy('#05401a')">#05401a</div>
+                            </div>
+                            <div class="swatch">
+                                <div class="swatch-box" style="background: #02260c" onclick="copy('#02260c')"></div>
+                                <div class="swatch-name">900</div>
+                                <div class="swatch-hex" onclick="copy('#02260c')">#02260c</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <!-- Semantic -->
+                    <div class="section-title" style="margin-bottom: 4px">Semantic Tokens</div>
+                    <div class="section-desc">
+                        컴포넌트에서 직접 사용하는 토큰. 카드를 클릭하면 CSS 변수명이 복사됩니다.
+                    </div>
+
+                    <!-- Primary -->
+                    <div class="semantic-section">
+                        <div class="semantic-header">
+                            <h3>Primary</h3>
+                            <span class="badge" style="background: #feedec; color: #d53e17">Tomato</span>
+                            <span class="hint">CTA · 브랜드 강조</span>
+                        </div>
+                        <div class="usage-group">
+                            <!-- <div class="usage-label">Surface</div> -->
+                            <div class="usage-row">
+                                <div class="usage-card" onclick="copy('--color-primary-subtle')">
+                                    <div class="usage-card-preview" style="background: #feedec"></div>
+                                    <div class="usage-card-meta">
+                                        <div class="usage-card-weight">subtle</div>
+                                        <div class="usage-card-token">--color-primary-subtle</div>
+                                        <div class="usage-card-hex">#feedec</div>
+                                    </div>
+                                </div>
+                                <div class="usage-card" onclick="copy('--color-primary-lighter')">
+                                    <div class="usage-card-preview" style="background: #fedad8"></div>
+                                    <div class="usage-card-meta">
+                                        <div class="usage-card-weight">lighter</div>
+                                        <div class="usage-card-token">--color-primary-lighter</div>
+                                        <div class="usage-card-hex">#fedad8</div>
+                                    </div>
+                                </div>
+                                <div class="usage-card" onclick="copy('--color-primary')">
+                                    <div class="usage-card-preview" style="background: #fb5331"></div>
+                                    <div class="usage-card-meta">
+                                        <div class="usage-card-weight">default</div>
+                                        <div class="usage-card-token">--color-primary-default</div>
+                                        <div class="usage-card-hex">#fb5331</div>
+                                    </div>
+                                </div>
+                                <div class="usage-card" onclick="copy('--color-primary-darker')">
+                                    <div class="usage-card-preview" style="background: #d53e17"></div>
+                                    <div class="usage-card-meta">
+                                        <div class="usage-card-weight">darker</div>
+                                        <div class="usage-card-token">--color-primary-darker</div>
+                                        <div class="usage-card-hex">#d53e17</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Info -->
+                    <div class="semantic-section">
+                        <div class="semantic-header">
+                            <h3>Info</h3>
+                            <span class="badge" style="background: #eef0fe; color: #1b3aa1">Blue</span>
+                            <span class="hint">보조 액션 · 정보</span>
+                        </div>
+                        <div class="usage-group">
+                            <div class="usage-row">
+                                <div class="usage-card" onclick="copy('--color-info-subtle')">
+                                    <div class="usage-card-preview" style="background: #eef0fe"></div>
+                                    <div class="usage-card-meta">
+                                        <div class="usage-card-weight">subtle</div>
+                                        <div class="usage-card-token">--color-info-subtle</div>
+                                        <div class="usage-card-hex">#eef0fe</div>
+                                    </div>
+                                </div>
+                                <div class="usage-card" onclick="copy('--color-info-lighter')">
+                                    <div class="usage-card-preview" style="background: #bdc3f9"></div>
+                                    <div class="usage-card-meta">
+                                        <div class="usage-card-weight">lighter</div>
+                                        <div class="usage-card-token">--color-info-lighter</div>
+                                        <div class="usage-card-hex">#bdc3f9</div>
+                                    </div>
+                                </div>
+                                <div class="usage-card" onclick="copy('--color-info')">
+                                    <div class="usage-card-preview" style="background: #4968ef"></div>
+                                    <div class="usage-card-meta">
+                                        <div class="usage-card-weight">default</div>
+                                        <div class="usage-card-token">--color-info</div>
+                                        <div class="usage-card-hex">#4968ef</div>
+                                    </div>
+                                </div>
+                                <div class="usage-card" onclick="copy('--color-info-darker')">
+                                    <div class="usage-card-preview" style="background: #1b3aa1"></div>
+                                    <div class="usage-card-meta">
+                                        <div class="usage-card-weight">darker</div>
+                                        <div class="usage-card-token">--color-info-darker</div>
+                                        <div class="usage-card-hex">#1b3aa1</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Warning -->
+                    <div class="semantic-section">
+                        <div class="semantic-header">
+                            <h3>Warning</h3>
+                            <span class="badge" style="background: #ffeee2; color: #d08608">Yellow</span>
+                            <span class="hint">위험</span>
+                        </div>
+                        <div class="usage-group">
+                            <div class="usage-row">
+                                <div class="usage-card" onclick="copy('--color-warning-subtle')">
+                                    <div class="usage-card-preview" style="background: #ffeee2"></div>
+                                    <div class="usage-card-meta">
+                                        <div class="usage-card-weight">subtle</div>
+                                        <div class="usage-card-token">--sn-surface-subtle</div>
+                                        <div class="usage-card-hex">#ffeee2</div>
+                                    </div>
+                                </div>
+                                <div class="usage-card" onclick="copy('--color-warning-lighter')">
+                                    <div class="usage-card-preview" style="background: #ffbc7d"></div>
+                                    <div class="usage-card-meta">
+                                        <div class="usage-card-weight">lighter</div>
+                                        <div class="usage-card-token">--sn-surface-lighter</div>
+                                        <div class="usage-card-hex">#ffbc7d</div>
+                                    </div>
+                                </div>
+                                <div class="usage-card" onclick="copy('--sn-surface-default')">
+                                    <div class="usage-card-preview" style="background: #f59e0b"></div>
+                                    <div class="usage-card-meta">
+                                        <div class="usage-card-weight">default</div>
+                                        <div class="usage-card-token">--sn-surface-default</div>
+                                        <div class="usage-card-hex">#f59e0b</div>
+                                    </div>
+                                </div>
+                                <div class="usage-card" onclick="copy('--sn-surface-darker')">
+                                    <div class="usage-card-preview" style="background: #d08608"></div>
+                                    <div class="usage-card-meta">
+                                        <div class="usage-card-weight">darker</div>
+                                        <div class="usage-card-token">--sn-surface-darker</div>
+                                        <div class="usage-card-hex">#d08608</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Warning -->
+                    <div class="semantic-section">
+                        <div class="semantic-header">
+                            <h3>Warning</h3>
+                            <span class="badge" style="background: #ffeee2; color: #d08608">Yellow</span>
+                            <span class="hint">에러 · 경고</span>
+                        </div>
+                        <div class="usage-group">
+                            <div class="usage-label">Surface</div>
+                            <div class="usage-row">
+                                <div class="usage-card" onclick="copy('--sn-surface-subtle')">
+                                    <div class="usage-card-preview" style="background: #ffeee2"></div>
+                                    <div class="usage-card-meta">
+                                        <div class="usage-card-weight">subtle</div>
+                                        <div class="usage-card-token">--sn-surface-subtle</div>
+                                        <div class="usage-card-hex">#ffeee2</div>
+                                    </div>
+                                </div>
+                                <div class="usage-card" onclick="copy('--sn-surface-lighter')">
+                                    <div class="usage-card-preview" style="background: #ffbc7d"></div>
+                                    <div class="usage-card-meta">
+                                        <div class="usage-card-weight">lighter</div>
+                                        <div class="usage-card-token">--sn-surface-lighter</div>
+                                        <div class="usage-card-hex">#ffbc7d</div>
+                                    </div>
+                                </div>
+                                <div class="usage-card" onclick="copy('--sn-surface-default')">
+                                    <div class="usage-card-preview" style="background: #f59e0b"></div>
+                                    <div class="usage-card-meta">
+                                        <div class="usage-card-weight">default</div>
+                                        <div class="usage-card-token">--sn-surface-default</div>
+                                        <div class="usage-card-hex">#f59e0b</div>
+                                    </div>
+                                </div>
+                                <div class="usage-card" onclick="copy('--sn-surface-darker')">
+                                    <div class="usage-card-preview" style="background: #d08608"></div>
+                                    <div class="usage-card-meta">
+                                        <div class="usage-card-weight">darker</div>
+                                        <div class="usage-card-token">--sn-surface-darker</div>
+                                        <div class="usage-card-hex">#d08608</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Positive -->
+                    <div class="semantic-section">
+                        <div class="semantic-header">
+                            <h3>Positive</h3>
+                            <span class="badge" style="background: #d2ffdb; color: #1aa34d">Green</span>
+                            <span class="hint">성공 · 완료 · 확인</span>
+                        </div>
+                        <div class="usage-group">
+                            <div class="usage-label">Surface</div>
+                            <div class="usage-row">
+                                <div class="usage-card" onclick="copy('--color-green-subtle')">
+                                    <div class="usage-card-preview" style="background: #d2ffdb"></div>
+                                    <div class="usage-card-meta">
+                                        <div class="usage-card-weight">subtle</div>
+                                        <div class="usage-card-token">--color-green-subtle</div>
+                                        <div class="usage-card-hex">#d2ffdb</div>
+                                    </div>
+                                </div>
+                                <div class="usage-card" onclick="copy('--color-green-lighter')">
+                                    <div class="usage-card-preview" style="background: #a8febb"></div>
+                                    <div class="usage-card-meta">
+                                        <div class="usage-card-weight">lighter</div>
+                                        <div class="usage-card-token">--color-green-lighter</div>
+                                        <div class="usage-card-hex">#a8febb</div>
+                                    </div>
+                                </div>
+                                <div class="usage-card" onclick="copy('--color-green')">
+                                    <div class="usage-card-preview" style="background: #22c55e"></div>
+                                    <div class="usage-card-meta">
+                                        <div class="usage-card-weight">default</div>
+                                        <div class="usage-card-token">--color-green</div>
+                                        <div class="usage-card-hex">#22c55e</div>
+                                    </div>
+                                </div>
+                                <div class="usage-card" onclick="copy('--color-green-darker')">
+                                    <div class="usage-card-preview" style="background: #1aa34d"></div>
+                                    <div class="usage-card-meta">
+                                        <div class="usage-card-weight">darker</div>
+                                        <div class="usage-card-token">--color-green-darker</div>
+                                        <div class="usage-card-hex">#1aa34d</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Neutral -->
+                    <div class="semantic-section">
+                        <div class="semantic-header">
+                            <h3>Neutral</h3>
+                            <span class="badge" style="background: #eef1f5; color: #3b4554">Gray</span>
+                            <span class="hint">기본 UI · 텍스트 · 비활성</span>
+                        </div>
+                        <div class="usage-group">
+                            <div class="usage-label">Surface</div>
+                            <div class="usage-row">
+                                <div class="usage-card" onclick="copy('--neu-surface-white')">
+                                    <div
+                                        class="usage-card-preview"
+                                        style="background: #fafafa; border-bottom: 1px solid #dee3eb"
+                                    ></div>
+                                    <div class="usage-card-meta">
+                                        <div class="usage-card-weight">white</div>
+                                        <div class="usage-card-token">--neu-surface-white</div>
+                                        <div class="usage-card-hex">#fafafa</div>
+                                    </div>
+                                </div>
+                                <div class="usage-card" onclick="copy('--neu-surface-subtle')">
+                                    <div class="usage-card-preview" style="background: #eef1f5"></div>
+                                    <div class="usage-card-meta">
+                                        <div class="usage-card-weight">subtle</div>
+                                        <div class="usage-card-token">--neu-surface-subtle</div>
+                                        <div class="usage-card-hex">#eef1f5</div>
+                                    </div>
+                                </div>
+                                <div class="usage-card" onclick="copy('--neu-surface-default')">
+                                    <div class="usage-card-preview" style="background: #dee3eb"></div>
+                                    <div class="usage-card-meta">
+                                        <div class="usage-card-weight">default</div>
+                                        <div class="usage-card-token">--neu-surface-default</div>
+                                        <div class="usage-card-hex">#dee3eb</div>
+                                    </div>
+                                </div>
+                                <div class="usage-card" onclick="copy('--neu-surface-disabled')">
+                                    <div class="usage-card-preview" style="background: #b9c4d7"></div>
+                                    <div class="usage-card-meta">
+                                        <div class="usage-card-weight">disabled</div>
+                                        <div class="usage-card-token">--neu-surface-disabled</div>
+                                        <div class="usage-card-hex">#b9c4d7</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="usage-group">
+                            <div class="usage-label">Text / Icon</div>
+                            <div class="usage-row">
+                                <div class="usage-card" onclick="copy('--neu-text-disabled')">
+                                    <div class="usage-card-preview" style="background: #eef1f5">
+                                        <span class="text-aa" style="color: #7c8fab">Aa</span>
+                                    </div>
+                                    <div class="usage-card-meta">
+                                        <div class="usage-card-weight">disabled</div>
+                                        <div class="usage-card-token">--neu-text-disabled</div>
+                                        <div class="usage-card-hex">#7c8fab</div>
+                                    </div>
+                                </div>
+                                <div class="usage-card" onclick="copy('--neu-text-caption')">
+                                    <div class="usage-card-preview" style="background: #eef1f5">
+                                        <span class="text-aa" style="color: #505d70">Aa</span>
+                                    </div>
+                                    <div class="usage-card-meta">
+                                        <div class="usage-card-weight">caption</div>
+                                        <div class="usage-card-token">--neu-text-caption</div>
+                                        <div class="usage-card-hex">#505d70</div>
+                                    </div>
+                                </div>
+                                <div class="usage-card" onclick="copy('--neu-text-subtitle')">
+                                    <div class="usage-card-preview" style="background: #eef1f5">
+                                        <span class="text-aa" style="color: #3b4554">Aa</span>
+                                    </div>
+                                    <div class="usage-card-meta">
+                                        <div class="usage-card-weight">subtitle</div>
+                                        <div class="usage-card-token">--neu-text-subtitle</div>
+                                        <div class="usage-card-hex">#3b4554</div>
+                                    </div>
+                                </div>
+                                <div class="usage-card" onclick="copy('--neu-text-body')">
+                                    <div class="usage-card-preview" style="background: #eef1f5">
+                                        <span class="text-aa" style="color: #272f39">Aa</span>
+                                    </div>
+                                    <div class="usage-card-meta">
+                                        <div class="usage-card-weight">body</div>
+                                        <div class="usage-card-token">--neu-text-body</div>
+                                        <div class="usage-card-hex">#272f39</div>
+                                    </div>
+                                </div>
+                                <div class="usage-card" onclick="copy('--neu-text-title')">
+                                    <div class="usage-card-preview" style="background: #eef1f5">
+                                        <span class="text-aa" style="color: #171c23">Aa</span>
+                                    </div>
+                                    <div class="usage-card-meta">
+                                        <div class="usage-card-weight">title</div>
+                                        <div class="usage-card-token">--neu-text-title</div>
+                                        <div class="usage-card-hex">#171c23</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ─── TYPOGRAPHY ─── -->
+                <section class="section" id="typography">
+                    <div class="section-title">Typography</div>
+                    <div class="section-desc">제품 전반에 사용하는 서체 계층과 텍스트 스타일 가이드입니다.</div>
+                    <div class="placeholder-section"><p>Typography 가이드는 준비 중입니다.</p></div>
+                </section>
+
+                <!-- ─── SPACING ─── -->
+                <section class="section" id="spacing">
+                    <div class="section-title">Spacing</div>
+                    <div class="section-desc">간격, 라운드, 레이아웃 리듬에 대한 기준을 정리합니다.</div>
+                    <div class="placeholder-section"><p>Spacing 가이드는 준비 중입니다.</p></div>
+                </section>
+
+                <!-- ─── ICONS ─── -->
+                <section class="section" id="icons">
+                    <div class="section-title">Logo & Icons</div>
+                    <div class="section-desc">로고 사용 규칙과 아이콘 시스템을 정리합니다.</div>
+                    <div class="placeholder-section"><p>Logo & Icons 가이드는 준비 중입니다.</p></div>
+                </section>
+
+                <!-- ─── TOKENS ─── -->
+                <section class="section" id="tokens">
+                    <div class="section-title">Tokens</div>
+                    <div class="section-desc">
+                        브랜드 시스템에서 사용하는 전체 토큰 참조표입니다. <code>code</code> 또는 색상 점을 클릭하면
+                        복사됩니다.
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>Token</th>
+                                    <th>Category</th>
+                                    <th>Usage</th>
+                                    <th>Weight</th>
+                                    <th>Value</th>
+                                </tr>
+                            </thead>
+                            <tbody id="token-tbody"></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <div class="divider"></div>
+
+                <!-- ─── COMPONENTS ─── -->
+                <section class="section" id="components">
+                    <div class="section-title">Components</div>
+                    <div class="section-desc">Toma:do UI에 맞춘 기본 컴포넌트 미리보기입니다.</div>
+                    <div class="comp-grid">
+                        <!-- Button -->
+                        <div class="comp-card" data-comp="Button" id="comp-button">
+                            <div class="comp-card-name">Button</div>
+                            <div class="demo-btn-row">
+                                <button class="demo-btn demo-btn-primary">Primary</button>
+                                <button class="demo-btn demo-btn-disabled">Secondary</button>
+                                <button class="demo-btn demo-btn-ghost">Ghost</button>
+                            </div>
+                        </div>
+
+                        <!-- Input -->
+                        <div class="comp-card" data-comp="Input" id="comp-input">
+                            <div class="comp-card-name">Input</div>
+                            <div>
+                                <div class="demo-input-label">Label</div>
+                                <input class="demo-input" type="text" placeholder="Placeholder text" />
+                            </div>
+                            <div>
+                                <div class="demo-input-label">Error state</div>
+                                <input class="demo-input error" type="text" value="Invalid value" />
+                            </div>
+                        </div>
+
+                        <!-- Checkbox -->
+                        <div class="comp-card" data-comp="Checkbox" id="comp-checkbox">
+                            <div class="comp-card-name">Checkbox</div>
+                            <div class="demo-checkbox-row">
+                                <label class="demo-checkbox-item checked" onclick="toggleCheck(this)">
+                                    <div class="demo-checkbox-box"></div>
+                                    <span class="demo-checkbox-label">Checked option</span>
+                                </label>
+                                <label class="demo-checkbox-item" onclick="toggleCheck(this)">
+                                    <div class="demo-checkbox-box"></div>
+                                    <span class="demo-checkbox-label">Unchecked option</span>
+                                </label>
+                                <label
+                                    class="demo-checkbox-item"
+                                    onclick="toggleCheck(this)"
+                                    style="opacity: 0.45; pointer-events: none"
+                                >
+                                    <div class="demo-checkbox-box"></div>
+                                    <span class="demo-checkbox-label">Disabled option</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Badge -->
+                        <div class="comp-card" data-comp="Badge" id="comp-badge">
+                            <div class="comp-card-name">Badge</div>
+                            <div class="demo-badge-row">
+                                <span class="demo-badge badge-primary">Primary</span>
+                                <span class="demo-badge badge-disabled">Secondary</span>
+                                <span class="demo-badge badge-positive">Positive</span>
+                                <span class="demo-badge badge-negative">Negative</span>
+                                <span class="demo-badge badge-neutral">Neutral</span>
+                            </div>
+                        </div>
+
+                        <!-- Card -->
+                        <div class="comp-card" data-comp="Card" id="comp-card">
+                            <div class="comp-card-name">Card</div>
+                            <div class="demo-card">
+                                <div class="demo-card-img"></div>
+                                <div class="demo-card-body">
+                                    <div class="demo-card-title">Card Title</div>
+                                    <div class="demo-card-sub">Supporting description text</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Modal -->
+                        <div class="comp-card" data-comp="Modal" id="comp-modal">
+                            <div class="comp-card-name">Modal</div>
+                            <div class="demo-modal-mini">
+                                <div class="demo-modal-header">
+                                    <span class="demo-modal-title">Confirm Action</span>
+                                    <div class="demo-modal-close">✕</div>
+                                </div>
+                                <div class="demo-modal-body">Are you sure you want to proceed?</div>
+                                <div class="demo-modal-footer">
+                                    <button class="demo-modal-btn cancel">Cancel</button>
+                                    <button class="demo-modal-btn confirm">Confirm</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- Toast -->
+        <div class="toast" id="toast"></div>
+
+        <script>
+            /* ── Copy ── */
+            function copy(val) {
+                navigator.clipboard.writeText(val).catch(() => {});
+                showToast('Copied: ' + val);
+            }
+
+            let toastTimer;
+            function showToast(msg) {
+                const t = document.getElementById('toast');
+                t.textContent = msg;
+                t.classList.add('show');
+                clearTimeout(toastTimer);
+                toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+            }
+
+            /* ── Nav active ── */
+            function setActive(el) {
+                document.querySelectorAll('.nav-item').forEach((n) => n.classList.remove('active'));
+                el.classList.add('active');
+                const title = el.textContent.trim();
+                const isComp = !!el.dataset.comp;
+                document.getElementById('topbar-title').textContent = title;
+                document.getElementById('topbar-path').textContent =
+                    (isComp ? 'Components' : 'Foundations') + ' / ' + title;
+            }
+
+            /* ── Scroll spy ── */
+            const sections = [
+                'colors',
+                'typography',
+                'spacing',
+                'icons',
+                'tokens',
+                'comp-button',
+                'comp-input',
+                'comp-checkbox',
+                'comp-badge',
+                'comp-card',
+                'comp-modal',
+            ];
+            const navMap = {
+                colors: 'Color',
+                typography: 'Typography',
+                spacing: 'Spacing',
+                icons: 'Logo & Icons',
+                tokens: 'Design Tokens',
+                'comp-button': 'Button',
+                'comp-input': 'Input',
+                'comp-checkbox': 'Checkbox',
+                'comp-badge': 'Badge',
+                'comp-card': 'Card',
+                'comp-modal': 'Modal',
+            };
+
+            window.addEventListener('scroll', () => {
+                let current = 'colors';
+                sections.forEach((id) => {
+                    const el = document.getElementById(id);
+                    if (el && window.scrollY + 100 >= el.offsetTop) current = id;
+                });
+                document.querySelectorAll('.nav-item').forEach((a) => {
+                    const href = (a.getAttribute('href') || '').replace('#', '');
+                    a.classList.toggle('active', href === current);
+                });
+                const title = navMap[current] || '';
+                document.getElementById('topbar-title').textContent = title;
+                const isComp = current.startsWith('comp-');
+                document.getElementById('topbar-path').textContent =
+                    (isComp ? 'Components' : 'Foundations') + ' / ' + title;
+            });
+
+            /* ── Checkbox toggle ── */
+            function toggleCheck(el) {
+                el.classList.toggle('checked');
+            }
+
+            /* ── Token table ── */
+            const tokens = [
+                { token: '--sp-surface-subtle', cat: 'Primary', usage: 'Surface', weight: 'subtle', hex: '#feedec' },
+                { token: '--sp-surface-lighter', cat: 'Primary', usage: 'Surface', weight: 'lighter', hex: '#fedad8' },
+                { token: '--sp-surface-default', cat: 'Primary', usage: 'Surface', weight: 'default', hex: '#fb5331' },
+                { token: '--sp-surface-darker', cat: 'Primary', usage: 'Surface', weight: 'darker', hex: '#d53e17' },
+                { token: '--sp-border-subtle', cat: 'Primary', usage: 'Border', weight: 'subtle', hex: '#feedec' },
+                { token: '--sp-border-lighter', cat: 'Primary', usage: 'Border', weight: 'lighter', hex: '#fedad8' },
+                { token: '--sp-border-default', cat: 'Primary', usage: 'Border', weight: 'default', hex: '#fb5331' },
+                { token: '--sp-border-darker', cat: 'Primary', usage: 'Border', weight: 'darker', hex: '#d53e17' },
+                { token: '--sp-text-subtle', cat: 'Primary', usage: 'Text', weight: 'subtle', hex: '#fedad8' },
+                { token: '--sp-text-lighter', cat: 'Primary', usage: 'Text', weight: 'lighter', hex: '#fcb1aa' },
+                { token: '--sp-text-default', cat: 'Primary', usage: 'Text', weight: 'default', hex: '#fb5331' },
+                { token: '--sp-text-darker', cat: 'Primary', usage: 'Text', weight: 'darker', hex: '#d53e17' },
+                { token: '--ss-surface-subtle', cat: 'Secondary', usage: 'Surface', weight: 'subtle', hex: '#eef0fe' },
+                {
+                    token: '--ss-surface-lighter',
+                    cat: 'Secondary',
+                    usage: 'Surface',
+                    weight: 'lighter',
+                    hex: '#bdc3f9',
+                },
+                {
+                    token: '--ss-surface-default',
+                    cat: 'Secondary',
+                    usage: 'Surface',
+                    weight: 'default',
+                    hex: '#4968ef',
+                },
+                { token: '--ss-surface-darker', cat: 'Secondary', usage: 'Surface', weight: 'darker', hex: '#1b3aa1' },
+                { token: '--ss-border-subtle', cat: 'Secondary', usage: 'Border', weight: 'subtle', hex: '#dee1fc' },
+                { token: '--ss-border-lighter', cat: 'Secondary', usage: 'Border', weight: 'lighter', hex: '#bdc3f9' },
+                { token: '--ss-border-default', cat: 'Secondary', usage: 'Border', weight: 'default', hex: '#4968ef' },
+                { token: '--ss-border-darker', cat: 'Secondary', usage: 'Border', weight: 'darker', hex: '#1b3aa1' },
+                { token: '--ss-text-subtle', cat: 'Secondary', usage: 'Text', weight: 'subtle', hex: '#dee1fc' },
+                { token: '--ss-text-lighter', cat: 'Secondary', usage: 'Text', weight: 'lighter', hex: '#bdc3f9' },
+                { token: '--ss-text-default', cat: 'Secondary', usage: 'Text', weight: 'default', hex: '#4968ef' },
+                { token: '--ss-text-darker', cat: 'Secondary', usage: 'Text', weight: 'darker', hex: '#1b3aa1' },
+                { token: '--sn-surface-subtle', cat: 'Negative', usage: 'Surface', weight: 'subtle', hex: '#ffeee2' },
+                { token: '--sn-surface-lighter', cat: 'Negative', usage: 'Surface', weight: 'lighter', hex: '#ffbc7d' },
+                { token: '--sn-surface-default', cat: 'Negative', usage: 'Surface', weight: 'default', hex: '#f59e0b' },
+                { token: '--sn-surface-darker', cat: 'Negative', usage: 'Surface', weight: 'darker', hex: '#d08608' },
+                { token: '--sn-border-subtle', cat: 'Negative', usage: 'Border', weight: 'subtle', hex: '#ffeee2' },
+                { token: '--sn-border-lighter', cat: 'Negative', usage: 'Border', weight: 'lighter', hex: '#ffbc7d' },
+                { token: '--sn-border-default', cat: 'Negative', usage: 'Border', weight: 'default', hex: '#f59e0b' },
+                { token: '--sn-border-darker', cat: 'Negative', usage: 'Border', weight: 'darker', hex: '#d08608' },
+                { token: '--sn-text-subtle', cat: 'Negative', usage: 'Text', weight: 'subtle', hex: '#ffeee2' },
+                { token: '--sn-text-lighter', cat: 'Negative', usage: 'Text', weight: 'lighter', hex: '#ffbc7d' },
+                { token: '--sn-text-default', cat: 'Negative', usage: 'Text', weight: 'default', hex: '#f59e0b' },
+                { token: '--sn-text-darker', cat: 'Negative', usage: 'Text', weight: 'darker', hex: '#d08608' },
+                { token: '--spos-surface-subtle', cat: 'Positive', usage: 'Surface', weight: 'subtle', hex: '#d2ffdb' },
+                {
+                    token: '--spos-surface-lighter',
+                    cat: 'Positive',
+                    usage: 'Surface',
+                    weight: 'lighter',
+                    hex: '#a8febb',
+                },
+                {
+                    token: '--spos-surface-default',
+                    cat: 'Positive',
+                    usage: 'Surface',
+                    weight: 'default',
+                    hex: '#22c55e',
+                },
+                { token: '--spos-surface-darker', cat: 'Positive', usage: 'Surface', weight: 'darker', hex: '#1aa34d' },
+                { token: '--spos-text-subtle', cat: 'Positive', usage: 'Text', weight: 'subtle', hex: '#a8febb' },
+                { token: '--spos-text-lighter', cat: 'Positive', usage: 'Text', weight: 'lighter', hex: '#2cf376' },
+                { token: '--spos-text-default', cat: 'Positive', usage: 'Text', weight: 'default', hex: '#22c55e' },
+                { token: '--spos-text-darker', cat: 'Positive', usage: 'Text', weight: 'darker', hex: '#1aa34d' },
+                { token: '--neu-surface-white', cat: 'Neutral', usage: 'Surface', weight: 'white', hex: '#fafafa' },
+                { token: '--neu-surface-subtle', cat: 'Neutral', usage: 'Surface', weight: 'subtle', hex: '#eef1f5' },
+                { token: '--neu-surface-default', cat: 'Neutral', usage: 'Surface', weight: 'default', hex: '#dee3eb' },
+                {
+                    token: '--neu-surface-disabled',
+                    cat: 'Neutral',
+                    usage: 'Surface',
+                    weight: 'disabled',
+                    hex: '#b9c4d7',
+                },
+                { token: '--neu-border-disabled', cat: 'Neutral', usage: 'Border', weight: 'disabled', hex: '#b9c4d7' },
+                { token: '--neu-border-default', cat: 'Neutral', usage: 'Border', weight: 'default', hex: '#98aac4' },
+                { token: '--neu-border-darker', cat: 'Neutral', usage: 'Border', weight: 'darker', hex: '#7c8fab' },
+                { token: '--neu-text-disabled', cat: 'Neutral', usage: 'Text', weight: 'disabled', hex: '#7c8fab' },
+                { token: '--neu-text-caption', cat: 'Neutral', usage: 'Text', weight: 'caption', hex: '#505d70' },
+                { token: '--neu-text-subtitle', cat: 'Neutral', usage: 'Text', weight: 'subtitle', hex: '#3b4554' },
+                { token: '--neu-text-body', cat: 'Neutral', usage: 'Text', weight: 'body', hex: '#272f39' },
+                { token: '--neu-text-title', cat: 'Neutral', usage: 'Text', weight: 'title', hex: '#171c23' },
+            ];
+
+            const tbody = document.getElementById('token-tbody');
+            tokens.forEach((t) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+      <td><span class="td-dot" style="background:${t.hex};" onclick="copy('${t.hex}')" title="${t.hex}"></span></td>
+      <td><code onclick="copy('${t.token}')">${t.token}</code></td>
+      <td style="color:var(--gray-600)">${t.cat}</td>
+      <td style="color:var(--gray-500)">${t.usage}</td>
+      <td style="color:var(--gray-500)">${t.weight}</td>
+      <td><code onclick="copy('${t.hex}')">${t.hex}</code></td>
+    `;
+                tbody.appendChild(tr);
+            });
+        </script>
+    </body>
+</html>

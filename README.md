@@ -5,9 +5,9 @@ Vite + React + TypeScript 기반으로 구성되어 있으며, Todo / Daily Log 
 
 ## Tech Stack
 
-- Vite
-- React
-- TypeScript
+<p align="left">
+  <img src="https://skillicons.dev/icons?i=react,ts,vite,git,github" />
+</p>
 
 ## Getting Started
 

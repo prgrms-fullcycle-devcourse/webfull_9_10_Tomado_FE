@@ -1,30 +1,30 @@
 name: Feature
 description: 새로운 기능 개발
-title: "[Feature] "
-labels: ["⚙ Setting"]
+title: '[Feature] '
+labels: ['⚙ Setting']
 
 body:
-  - type: textarea
-    id: description
-    attributes:
-      label: 기능 설명
-      description: 어떤 기능을 개발하려고 하나요?
-      placeholder: 기능에 대해 설명해주세요.
-    validations:
-      required: true
+    - type: textarea
+      id: description
+      attributes:
+          label: 기능 설명
+          description: 어떤 기능을 개발하려고 하나요?
+          placeholder: 기능에 대해 설명해주세요.
+      validations:
+          required: true
 
-  - type: textarea
-    id: purpose
-    attributes:
-      label: 개발 목적
-      description: 이 기능이 필요한 이유는 무엇인가요?
+    - type: textarea
+      id: purpose
+      attributes:
+          label: 개발 목적
+          description: 이 기능이 필요한 이유는 무엇인가요?
 
-  - type: textarea
-    id: tasks
-    attributes:
-      label: 작업 목록
-      description: 예상되는 작업을 정리해주세요.
-      placeholder: |
-        - [ ]
-        - [ ]
-        - [ ]
+    - type: textarea
+      id: tasks
+      attributes:
+          label: 작업 목록
+          description: 예상되는 작업을 정리해주세요.
+          placeholder: |
+              - [ ]
+              - [ ]
+              - [ ]
