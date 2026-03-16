@@ -1,2 +1,7 @@
 # 기본 리뷰어
 * @nogglee @TeemoGB @twldnjs
+
+# 디자인 시스템
+/src/styles/theme.css @nogglee
+/src/styles/base.css @nogglee
+/src/styles/utilities.css @nogglee
