@@ -1,6 +1,4 @@
-import './styles/index.css';
-
-function App() {
+export default function Landing() {
     return (
         <div className='flex min-h-screen items-center justify-center bg-primary-subtle'>
             <h1 className='text-3xl font-bold text-primary-darker'>Tailwind 4 Working</h1>
@@ -10,5 +8,3 @@ function App() {
         </div>
     );
 }
-
-export default App;
