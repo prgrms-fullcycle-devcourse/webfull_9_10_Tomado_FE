@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom';
 import AppShell from '@@/layout/AppShell';
 
 import Main from '@/pages/Main';
+import Landing from '@/pages/Landing';
 import Dashboard from '@/pages/Dashboard';
 import DailyLog from '@/pages/DailyLog';
 import Retro from '@/pages/Retro';
@@ -18,6 +19,14 @@ export const routes = [
         children: [
             {
                 path: '/',
+                element: (
+                    <ProtectedRoute>
+                        <Landing />
+                    </ProtectedRoute>
+                ),
+            },
+            {
+                path: '/main',
                 element: (
                     <ProtectedRoute>
                         <Main />
