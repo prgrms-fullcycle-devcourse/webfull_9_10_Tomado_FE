@@ -5,3 +5,4 @@ export { default as MyPage } from './My';
 export { default as DailyLogPage } from './DailyLog';
 export { default as RetroPage } from './Retro';
 export { default as DashboardPage } from './Dashboard';
+export { default as BrandCenterPage } from './BrandCenter';

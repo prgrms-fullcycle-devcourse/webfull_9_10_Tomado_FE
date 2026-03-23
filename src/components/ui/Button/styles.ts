@@ -1,0 +1,119 @@
+import type { ButtonProps, ButtonSize, ButtonState, ButtonVariant } from './types';
+
+// INFO: 참인 조건의 클래스만 남기고 최종 문자열을 만들어 반환합니다.
+const cx = (...classes: Array<string | false | null | undefined>) => {
+    return classes.filter(Boolean).join(' ');
+};
+
+// INFO: DOM 상태를 기반으로 interaction 효과를 적용하는 클래스입니다.
+const interactiveClassName =
+    'transition-colors duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:pointer-events-none disabled:cursor-not-allowed';
+
+// INFO: variant와 state 조합에 따라 버튼의 색상 토큰 클래스를 매핑합니다.
+const variantStateClassNames: Record<ButtonVariant, Record<ButtonState, string>> = {
+    filled: {
+        default: 'border-transparent bg-primary text-white',
+        hover: 'border-transparent bg-primary-darker text-white',
+        disabled: 'border-transparent bg-neutral-lighter text-neutral',
+    },
+    outline: {
+        default: 'border-primary bg-transparent text-primary',
+        hover: 'border-primary-darker bg-transparent text-primary-darker',
+        disabled: 'border-neutral bg-transparent text-neutral',
+    },
+    ghost: {
+        default: 'border-transparent bg-transparent text-primary',
+        hover: 'border-transparent bg-transparent text-primary-darker',
+        disabled: 'border-transparent bg-transparent text-neutral',
+    },
+};
+
+// INFO: standard 버튼의 size별 높이, radius, padding, 아이콘 크기를 관리합니다.
+const standardSizeClassNames: Record<ButtonSize, { withLabel: string; iconOnly: string; icon: number }> = {
+    lg: {
+        withLabel: 'h-10 rounded-[0.625rem] px-4 text-base leading-5 font-medium',
+        iconOnly: 'size-10 rounded-[0.625rem]',
+        icon: 16,
+    },
+    md: {
+        withLabel: 'h-8 rounded-lg px-3 text-sm leading-4 font-medium',
+        iconOnly: 'size-8 rounded-lg',
+        icon: 14,
+    },
+    sm: {
+        withLabel: 'h-6 rounded-md px-2 text-xs leading-3 font-medium',
+        iconOnly: 'size-6 rounded-md',
+        icon: 10,
+    },
+};
+
+// INFO: player 버튼의 size별 버튼 외곽 크기와 아이콘 크기를 관리합니다.
+const playerSizeClassNames: Record<ButtonSize, { button: string; icon: number }> = {
+    lg: {
+        button: 'size-20 rounded-full',
+        icon: 48,
+    },
+    md: {
+        button: 'size-16 rounded-full',
+        icon: 32,
+    },
+    sm: {
+        button: 'size-12 rounded-full',
+        icon: 16,
+    },
+};
+
+// INFO: Button.tsx에서 사용할 최종 버튼 wrapper 클래스 문자열을 조합합니다.
+export const getButtonClassName = ({
+    kind = 'standard',
+    variant = 'filled',
+    state = 'default',
+    size = 'lg',
+    fullWidth = false,
+    iconOnly = false,
+}: Pick<ButtonProps, 'kind' | 'variant' | 'state' | 'size' | 'fullWidth' | 'iconOnly'>) => {
+    const palette = variantStateClassNames[variant][state];
+
+    // INFO: player는 원형 버튼 규칙을 사용하므로 standard와 size 맵을 분리합니다.
+    if (kind === 'player') {
+        const sizeClassNames = playerSizeClassNames[size];
+
+        return cx(
+            'inline-flex shrink-0 items-center justify-center border text-current',
+            interactiveClassName,
+            sizeClassNames.button,
+            fullWidth && 'w-full',
+            palette
+        );
+    }
+
+    const sizeClassNames = standardSizeClassNames[size];
+
+    // INFO: iconOnly일 때는 텍스트 버튼 규격 대신 정사각형 버튼 규격을 사용합니다.
+    return cx(
+        'inline-flex shrink-0 items-center justify-center gap-2 border text-current',
+        interactiveClassName,
+        fullWidth && 'w-full',
+        iconOnly ? sizeClassNames.iconOnly : sizeClassNames.withLabel,
+        palette
+    );
+};
+
+// INFO: 버튼 내부 content 영역의 정렬 방식을 kind 기준으로 분기합니다.
+export const getButtonContentClassName = ({ kind = 'standard' }: Pick<ButtonProps, 'kind' | 'size' | 'iconOnly'>) => {
+    if (kind === 'player') {
+        return 'inline-flex items-center justify-center';
+    }
+
+    return 'inline-flex items-center justify-center gap-2 whitespace-nowrap';
+};
+
+// INFO: Icon 컴포넌트에 넘길 실제 픽셀 단위 아이콘 크기를 반환합니다.
+export const getButtonIconSize = ({ kind = 'standard', size = 'lg' }: Pick<ButtonProps, 'kind' | 'size'>) => {
+    return kind === 'player' ? playerSizeClassNames[size].icon : standardSizeClassNames[size].icon;
+};
+
+// INFO: ButtonGroup에서 자식 버튼이 불필요하게 줄어들지 않도록 고정합니다.
+export const buttonGroupClassName = '[&>*]:shrink-0';
+
+export { cx };
