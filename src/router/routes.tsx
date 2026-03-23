@@ -10,6 +10,7 @@ import Retro from '@/pages/Retro';
 import My from '@/pages/My';
 import Login from '@/pages/Login';
 import Signup from '@/pages/Signup';
+import BrandCenter from '@/pages/BrandCenter';
 
 import ProtectedRoute from './ProtectedRoute';
 
@@ -66,6 +67,10 @@ export const routes = [
                 ),
             },
         ],
+    },
+    {
+        path: '/brandcenter',
+        element: <BrandCenter />,
     },
     {
         path: '/login',
