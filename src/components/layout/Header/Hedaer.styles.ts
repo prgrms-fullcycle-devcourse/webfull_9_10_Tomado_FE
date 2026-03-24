@@ -10,7 +10,7 @@ export const headerSlotClassName = 'flex min-w-0 items-center';
 
 export const headerLeftClassName = 'flex-1 justify-start';
 
-export const headerCenterClassName = 'justify-center max-lg:hidden';
+export const headerCenterClassName = 'justify-center max-[600px]:hidden';
 
 export const headerRightClassName = 'justify-end gap-2.5';
 
