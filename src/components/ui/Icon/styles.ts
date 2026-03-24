@@ -4,7 +4,7 @@ import type { IconSize } from './types';
 
 const DEFAULT_ICON_SIZE = 24;
 
-const fixedColorIconNames = new Set(['avatar']);
+const fixedColorIconNames = new Set(['avatar', 'pomodoro', 'fire']);
 
 const toCssLength = (size: IconSize = DEFAULT_ICON_SIZE) => {
     return typeof size === 'number' ? `${size}px` : size;
