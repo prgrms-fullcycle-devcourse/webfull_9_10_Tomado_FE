@@ -15,6 +15,7 @@ export interface HeaderProps extends HTMLAttributes<HTMLElement> {
 export interface GuestHeaderProps extends HTMLAttributes<HTMLElement> {
     signupHref?: string;
     loginHref?: string;
+    brandHref?: string;
 }
 
 export interface DefaultHeaderProps extends HTMLAttributes<HTMLElement> {

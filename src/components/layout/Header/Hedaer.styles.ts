@@ -10,7 +10,7 @@ export const headerSlotClassName = 'flex min-w-0 items-center';
 
 export const headerLeftClassName = 'flex-1 justify-start';
 
-export const headerCenterClassName = 'justify-center max-lg:hidden';
+export const headerCenterClassName = 'justify-center max-[600px]:hidden';
 
 export const headerRightClassName = 'justify-end gap-2.5';
 
@@ -20,12 +20,7 @@ export const logoClassName = 'h-8 w-auto shrink-0';
 
 export const navClassName = 'flex items-center gap-1';
 
-export const getNavItemClassName = (active = false) => {
-    return cx(
-        'text-base font-medium transition-colors',
-        active ? '!text-primary' : '!text-neutral-darker hover:!text-primary hover:!bg-neutral-subtle'
-    );
-};
+export const getNavItemClassName = (active = false) => cx(active && 'text-primary font-semibold');
 
 export const utilityActionsClassName = 'flex items-center gap-2.5';
 
@@ -36,9 +31,6 @@ export const profileImageClassName = 'block size-8 object-contain bg-primary';
 
 export const headerActionBaseClassName =
     'inline-flex h-10 items-center justify-center rounded-[0.625rem] border px-4 text-base leading-5 font-medium transition-colors';
-
-export const headerOutlineActionClassName =
-    '!border-neutral-lighter bg-white !text-neutral-darker hover:!border-primary hover:!text-primary';
 
 export const headerFilledActionClassName = '!border-transparent bg-primary !text-white hover:bg-primary-darker';
 

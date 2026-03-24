@@ -3,7 +3,6 @@ import { Icon } from '@@/ui/Icon';
 import { Header } from './Header';
 import {
     getNavItemClassName,
-    headerOutlineActionClassName,
     logoClassName,
     navClassName,
     profileBadgeClassName,
@@ -54,7 +53,6 @@ export const DefaultHeader = ({
                         {utilitySlot ?? (
                             <>
                                 <Button
-                                    className={headerOutlineActionClassName}
                                     icon={<Icon color='color-primary' name='music_on' />}
                                     size='md'
                                     variant='outline'
@@ -62,7 +60,6 @@ export const DefaultHeader = ({
                                     배경음악
                                 </Button>
                                 <Button
-                                    className={headerOutlineActionClassName}
                                     icon={<Icon color='color-primary' name='fullscreen_open' />}
                                     size='md'
                                     variant='outline'
