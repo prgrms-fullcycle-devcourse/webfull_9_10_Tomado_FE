@@ -1,5 +1,6 @@
 import { Button, ButtonGroup } from '@/components/ui/Button';
 import type { ButtonSize, ButtonVariant } from '@/components/ui/Button';
+import { SectionHeader } from '@/components/ui/SectionHeader';
 
 const standardVariants: Array<{ label: string; variant: ButtonVariant }> = [
     { label: 'Filled', variant: 'filled' },
@@ -354,6 +355,34 @@ export default function BrandCenter() {
                                 </div>
                             </article>
                         ))}
+                    </div>
+                </section>
+
+                <section className={sectionClassName}>
+                    <div className='mb-6 flex items-center justify-between gap-4'>
+                        <div>
+                            <h2 className='mt-2 text-2xl font-semibold text-black'>SectionHeader</h2>
+                            <p className='mt-2 text-sm text-neutral-darker sm:text-base'>
+                                datePicker, title type, text 슬롯 visibility를 함께 확인하는 샘플입니다.
+                            </p>
+                        </div>
+                    </div>
+                    <div className='space-y-4'>
+                        <article className={panelClassName}>
+                            <SectionHeader datePicker title='title' type='main' />
+                        </article>
+                        <article className={panelClassName}>
+                            <SectionHeader title='title' type='sub' />
+                        </article>
+                        <article className={panelClassName}>
+                            <SectionHeader datePicker title='title' type='sub' />
+                        </article>
+                        <article className={panelClassName}>
+                            <SectionHeader datePicker showText text='제목을 입력해 주세요' title='title' type='sub' />
+                        </article>
+                        <article className={panelClassName}>
+                            <SectionHeader datePicker text='제목을 입력해 주세요' title='title' type='sub' />
+                        </article>
                     </div>
                 </section>
             </div>
