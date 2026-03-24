@@ -4,10 +4,28 @@ import type { IconSize } from './types';
 
 const DEFAULT_ICON_SIZE = 24;
 
-const fixedColorIconNames = new Set(['Avatar']);
+const fixedColorIconNames = new Set(['avatar']);
 
 const toCssLength = (size: IconSize = DEFAULT_ICON_SIZE) => {
     return typeof size === 'number' ? `${size}px` : size;
+};
+
+const resolveIconColor = (color?: CSSProperties['color']) => {
+    if (!color) {
+        return 'currentColor';
+    }
+
+    if (
+        color === 'currentColor' ||
+        color.startsWith('var(') ||
+        color.startsWith('#') ||
+        color.startsWith('rgb') ||
+        color.startsWith('hsl')
+    ) {
+        return color;
+    }
+
+    return `var(--${color})`;
 };
 
 export const getIconWrapperStyle = (size?: IconSize): CSSProperties => {
@@ -21,18 +39,12 @@ export const getIconWrapperStyle = (size?: IconSize): CSSProperties => {
     };
 };
 
-export const getMaskIconStyle = (src: string, size?: IconSize, color?: CSSProperties['color']) => {
+export const getIconSvgStyle = (color?: CSSProperties['color']) => {
     return {
-        ...getIconWrapperStyle(size),
-        backgroundColor: color ?? 'currentColor',
-        maskImage: `url(${src})`,
-        maskRepeat: 'no-repeat',
-        maskPosition: 'center',
-        maskSize: 'contain',
-        WebkitMaskImage: `url(${src})`,
-        WebkitMaskRepeat: 'no-repeat',
-        WebkitMaskPosition: 'center',
-        WebkitMaskSize: 'contain',
+        display: 'block',
+        width: '100%',
+        height: '100%',
+        color: resolveIconColor(color),
     } satisfies CSSProperties;
 };
 
