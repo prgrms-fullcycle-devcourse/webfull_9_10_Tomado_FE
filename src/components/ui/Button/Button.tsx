@@ -1,5 +1,5 @@
-import type { ForwardedRef } from 'react';
-import { forwardRef } from 'react';
+import type { ForwardedRef, ReactElement } from 'react';
+import { cloneElement, forwardRef, isValidElement } from 'react';
 import { Icon } from '@/components/ui/Icon';
 
 import { buttonGroupClassName, cx, getButtonClassName, getButtonContentClassName, getButtonIconSize } from './styles';
@@ -10,9 +10,15 @@ const renderButtonIcon = (props: ButtonProps) => {
     const iconSize = getButtonIconSize(props);
 
     if (props.icon) {
+        const iconNode = isValidElement(props.icon)
+            ? cloneElement(props.icon as ReactElement<Record<string, unknown>>, {
+                  size: iconSize,
+              })
+            : props.icon;
+
         return (
             <span className='inline-flex shrink-0' style={{ width: `${iconSize}px`, height: `${iconSize}px` }}>
-                {props.icon}
+                {iconNode}
             </span>
         );
     }

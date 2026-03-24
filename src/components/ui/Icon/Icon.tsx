@@ -75,7 +75,14 @@ export const Icon = forwardRef<HTMLSpanElement, IconProps>(
 
         return (
             <span {...sharedProps} style={{ ...getFixedIconStyle(size), ...getIconSvgStyle(color) }}>
-                <SvgComponent aria-hidden='true' className='block size-full' focusable='false' />
+                <SvgComponent
+                    aria-hidden='true'
+                    className='block'
+                    focusable='false'
+                    height='100%'
+                    preserveAspectRatio='xMidYMid meet'
+                    width='100%'
+                />
             </span>
         );
     }
