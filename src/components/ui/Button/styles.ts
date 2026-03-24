@@ -1,31 +1,20 @@
-import type { ButtonProps, ButtonSize, ButtonState, ButtonVariant } from './types';
+import type { ButtonProps, ButtonSize, ButtonVariant } from './types';
 
 // INFO: 참인 조건의 클래스만 남기고 최종 문자열을 만들어 반환합니다.
 const cx = (...classes: Array<string | false | null | undefined>) => {
     return classes.filter(Boolean).join(' ');
 };
 
-// INFO: DOM 상태를 기반으로 interaction 효과를 적용하는 클래스입니다.
+// INFO: hover, focus-visible, disabled 같은 실제 DOM 상태에 반응하는 공통 인터랙션 클래스입니다.
 const interactiveClassName =
-    'transition-colors duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:pointer-events-none disabled:cursor-not-allowed';
+    'transition-colors duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:pointer-events-none disabled:cursor-not-allowed hover:cursor-pointer';
 
-// INFO: variant와 state 조합에 따라 버튼의 색상 토큰 클래스를 매핑합니다.
-const variantStateClassNames: Record<ButtonVariant, Record<ButtonState, string>> = {
-    filled: {
-        default: 'border-transparent bg-primary text-white',
-        hover: 'border-transparent bg-primary-darker text-white',
-        disabled: 'border-transparent bg-neutral-lighter text-neutral',
-    },
-    outline: {
-        default: 'border-primary bg-transparent text-primary',
-        hover: 'border-primary-darker bg-transparent text-primary-darker',
-        disabled: 'border-neutral bg-transparent text-neutral',
-    },
-    ghost: {
-        default: 'border-transparent bg-transparent text-primary',
-        hover: 'border-transparent bg-transparent text-primary-darker',
-        disabled: 'border-transparent bg-transparent text-neutral',
-    },
+// INFO: variant별 기본 색상과 hover/disabled selector 규칙을 함께 정의합니다.
+const variantClassNames: Record<ButtonVariant, string> = {
+    filled: 'border-transparent bg-primary text-white hover:bg-primary-darker disabled:border-transparent disabled:bg-neutral-lighter disabled:text-neutral',
+    outline:
+        'border-2 border-primary bg-transparent text-primary hover:border-primary-darker hover:text-primary-darker disabled:border-neutral disabled:bg-transparent disabled:text-neutral',
+    ghost: 'border-transparent bg-transparent text-primary hover:text-primary-darker bg-neutral-subtle disabled:border-transparent disabled:bg-transparent disabled:text-neutral',
 };
 
 // INFO: standard 버튼의 size별 높이, radius, padding, 아이콘 크기를 관리합니다.
@@ -63,16 +52,15 @@ const playerSizeClassNames: Record<ButtonSize, { button: string; icon: number }>
     },
 };
 
-// INFO: Button.tsx에서 사용할 최종 버튼 wrapper 클래스 문자열을 조합합니다.
+// INFO: variant, size, kind 조합에 맞는 최종 버튼 wrapper 클래스를 반환합니다.
 export const getButtonClassName = ({
     kind = 'standard',
     variant = 'filled',
-    state = 'default',
     size = 'lg',
     fullWidth = false,
     iconOnly = false,
-}: Pick<ButtonProps, 'kind' | 'variant' | 'state' | 'size' | 'fullWidth' | 'iconOnly'>) => {
-    const palette = variantStateClassNames[variant][state];
+}: Pick<ButtonProps, 'kind' | 'variant' | 'size' | 'fullWidth' | 'iconOnly'>) => {
+    const palette = variantClassNames[variant];
 
     // INFO: player는 원형 버튼 규칙을 사용하므로 standard와 size 맵을 분리합니다.
     if (kind === 'player') {

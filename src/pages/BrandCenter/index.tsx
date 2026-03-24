@@ -344,7 +344,7 @@ export default function BrandCenter() {
                                                     <p className='text-xs font-medium uppercase tracking-[0.12em] text-neutral'>
                                                         Disabled
                                                     </p>
-                                                    <Button fullWidth size={size} state='disabled' variant={variant}>
+                                                    <Button disabled fullWidth size={size} variant={variant}>
                                                         다음
                                                     </Button>
                                                 </div>

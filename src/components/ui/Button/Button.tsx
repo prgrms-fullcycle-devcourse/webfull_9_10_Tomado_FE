@@ -29,7 +29,6 @@ const ButtonComponent = (
     {
         kind = 'standard',
         variant = 'filled',
-        state = 'default',
         size = 'lg',
         fullWidth = false,
         iconOnly = false,
@@ -44,8 +43,6 @@ const ButtonComponent = (
 ) => {
     // INFO: player, iconOnly, 커스텀 icon 전달 시에는 시각적으로 아이콘이 노출됩니다.
     const hasVisualIcon = kind === 'player' || iconOnly || Boolean(icon);
-    // INFO: state와 disabled prop 둘 중 하나라도 비활성이면 실제 DOM disabled를 적용합니다.
-    const isDisabled = disabled || state === 'disabled';
 
     return (
         <button
@@ -55,18 +52,17 @@ const ButtonComponent = (
                 getButtonClassName({
                     kind,
                     variant,
-                    state,
                     size,
                     fullWidth,
                     iconOnly,
                 }),
                 className
             )}
-            disabled={isDisabled}
+            disabled={disabled}
             type={type}
         >
             <span className={getButtonContentClassName({ kind, size, iconOnly })}>
-                {hasVisualIcon ? renderButtonIcon({ kind, variant, state, size, iconOnly, icon }) : null}
+                {hasVisualIcon ? renderButtonIcon({ kind, variant, size, iconOnly, icon }) : null}
                 {/* INFO: player와 iconOnly는 텍스트를 시각적으로 숨기되 접근성용 이름은 유지합니다. */}
                 {kind === 'player' ? (
                     <span className='sr-only'>{children ?? 'Play'}</span>
