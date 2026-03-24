@@ -1,30 +1,36 @@
 import type { ForwardedRef } from 'react';
 import { forwardRef } from 'react';
+import { Icon } from '@/components/ui/Icon';
 
-import {
-    buttonGroupClassName,
-    cx,
-    getButtonClassName,
-    getButtonContentClassName,
-    getButtonIconClassName,
-} from './styles';
+import { buttonGroupClassName, cx, getButtonClassName, getButtonContentClassName, getButtonIconSize } from './styles';
 import type { ButtonGroupProps, ButtonProps } from './types';
 
-// INFO: 커스텀 icon이 있으면 렌더링하고, iconOnly일 때도 접근성 텍스트는 유지합니다.
-const renderButtonIcon = ({ icon, size = 'md' }: Pick<ButtonProps, 'icon' | 'size'>) => {
-    if (!icon) {
-        return null;
+// INFO: 커스텀 icon이 있으면 우선 사용하고, 없으면 kind에 맞는 기본 아이콘을 렌더링합니다.
+const renderButtonIcon = (props: ButtonProps) => {
+    const iconSize = getButtonIconSize(props);
+
+    if (props.icon) {
+        return (
+            <span className='inline-flex shrink-0' style={{ width: `${iconSize}px`, height: `${iconSize}px` }}>
+                {props.icon}
+            </span>
+        );
     }
 
-    return <span className={cx('inline-flex shrink-0', getButtonIconClassName({ size }))}>{icon}</span>;
+    if (props.kind === 'player') {
+        return <Icon name='play' size={iconSize} />;
+    }
+
+    return <Icon name='arrow_up_right' size={iconSize} />;
 };
 
 // INFO: Button의 공개 props를 받아 실제 button DOM으로 렌더링하는 본체입니다.
 const ButtonComponent = (
     {
+        kind = 'standard',
         variant = 'filled',
         state = 'default',
-        size = 'md',
+        size = 'lg',
         fullWidth = false,
         iconOnly = false,
         icon,
@@ -36,6 +42,9 @@ const ButtonComponent = (
     }: ButtonProps,
     ref: ForwardedRef<HTMLButtonElement>
 ) => {
+    // INFO: player, iconOnly, 커스텀 icon 전달 시에는 시각적으로 아이콘이 노출됩니다.
+    const hasVisualIcon = kind === 'player' || iconOnly || Boolean(icon);
+    // INFO: state와 disabled prop 둘 중 하나라도 비활성이면 실제 DOM disabled를 적용합니다.
     const isDisabled = disabled || state === 'disabled';
 
     return (
@@ -44,8 +53,9 @@ const ButtonComponent = (
             ref={ref}
             className={cx(
                 getButtonClassName({
+                    kind,
                     variant,
-                    state: isDisabled ? 'disabled' : state,
+                    state,
                     size,
                     fullWidth,
                     iconOnly,
@@ -55,11 +65,17 @@ const ButtonComponent = (
             disabled={isDisabled}
             type={type}
         >
-            {icon && !iconOnly ? renderButtonIcon({ icon, size }) : null}
-            <span className={getButtonContentClassName({ iconOnly })}>
-                {children ?? (iconOnly ? 'Button action' : null)}
+            <span className={getButtonContentClassName({ kind, size, iconOnly })}>
+                {hasVisualIcon ? renderButtonIcon({ kind, variant, state, size, iconOnly, icon }) : null}
+                {/* INFO: player와 iconOnly는 텍스트를 시각적으로 숨기되 접근성용 이름은 유지합니다. */}
+                {kind === 'player' ? (
+                    <span className='sr-only'>{children ?? 'Play'}</span>
+                ) : iconOnly ? (
+                    <span className='sr-only'>{children ?? 'Button action'}</span>
+                ) : (
+                    children
+                )}
             </span>
-            {icon && iconOnly ? renderButtonIcon({ icon, size }) : null}
         </button>
     );
 };
@@ -71,5 +87,15 @@ Button.displayName = 'Button';
 
 // INFO: 버튼들을 그룹으로 배치하는 wrapper이며, 모바일 세로 스택 여부를 제어합니다.
 export const ButtonGroup = ({ className, stackOnMobile = true, ...props }: ButtonGroupProps) => {
-    return <div {...props} className={cx(buttonGroupClassName, stackOnMobile && 'max-sm:flex-col', className)} />;
+    return (
+        <div
+            {...props}
+            className={cx(
+                'flex w-full items-stretch gap-4',
+                stackOnMobile ? 'max-sm:flex-col sm:[&>*]:flex-1' : '[&>*]:flex-1',
+                buttonGroupClassName,
+                className
+            )}
+        />
+    );
 };
