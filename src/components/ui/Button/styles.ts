@@ -13,8 +13,8 @@ const interactiveClassName =
 const variantClassNames: Record<ButtonVariant, string> = {
     filled: 'border-transparent bg-primary text-white hover:bg-primary-darker disabled:border-transparent disabled:bg-neutral-lighter disabled:text-neutral',
     outline:
-        'border-2 border-primary bg-transparent text-primary hover:border-primary-darker hover:text-primary-darker disabled:border-neutral disabled:bg-transparent disabled:text-neutral',
-    ghost: 'border-transparent bg-transparent text-primary hover:text-primary-darker bg-neutral-subtle disabled:border-transparent disabled:bg-transparent disabled:text-neutral',
+        'border-2 border-neutral-subtle bg-transparent text-neutral-darker hover:border-primary hover:text-primary-darker disabled:border-neutral disabled:bg-transparent disabled:text-neutral',
+    ghost: 'border-transparent bg-transparent text-neutral-darker hover:bg-neutral-subtle disabled:border-transparent disabled:bg-transparent disabled:text-neutral',
 };
 
 // INFO: standard 버튼의 size별 높이, radius, padding, 아이콘 크기를 관리합니다.
