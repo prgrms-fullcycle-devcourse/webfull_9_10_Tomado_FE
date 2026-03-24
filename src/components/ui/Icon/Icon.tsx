@@ -1,28 +1,44 @@
 import { forwardRef } from 'react';
+import type { ComponentType, SVGProps } from 'react';
 
-import { getFixedIconStyle, getMaskIconStyle, getIconWrapperStyle, isFixedColorIcon } from './styles';
+import { getFixedIconStyle, getIconSvgStyle, isFixedColorIcon } from './styles';
 import type { IconProps } from './types';
 
-const iconModules = import.meta.glob('./*.svg', {
+const iconAssetModules = import.meta.glob('./*.svg', {
     eager: true,
     import: 'default',
 }) as Record<string, string>;
 
-const iconAssetMap = Object.fromEntries(
-    Object.entries(iconModules).map(([path, src]) => {
+const iconComponentModules = import.meta.glob('./*.svg', {
+    eager: true,
+    query: '?react',
+    import: 'default',
+}) as Record<string, ComponentType<SVGProps<SVGSVGElement>>>;
+
+const iconSrcMap = Object.fromEntries(
+    Object.entries(iconAssetModules).map(([path, src]) => {
         const fileName = path.split('/').pop() ?? '';
         const name = fileName.replace(/\.svg$/i, '');
         return [name, src];
     })
 );
 
-export const availableIconNames = Object.keys(iconAssetMap).sort();
+const iconComponentMap = Object.fromEntries(
+    Object.entries(iconComponentModules).map(([path, component]) => {
+        const fileName = path.split('/').pop() ?? '';
+        const name = fileName.replace(/\.svg$/i, '');
+        return [name, component];
+    })
+);
+
+export const availableIconNames = Object.keys(iconSrcMap).sort();
 
 export const Icon = forwardRef<HTMLSpanElement, IconProps>(
     ({ name, size = 24, color, className, label, ...props }, ref) => {
-        const src = iconAssetMap[name];
+        const SvgComponent = iconComponentMap[name];
+        const assetSrc = iconSrcMap[name];
 
-        if (!src) {
+        if (!SvgComponent && !assetSrc) {
             if (import.meta.env.DEV) {
                 console.warn(`[Icon] Unknown icon name: ${name}`);
             }
@@ -39,7 +55,7 @@ export const Icon = forwardRef<HTMLSpanElement, IconProps>(
             'aria-hidden': label ? undefined : true,
         };
 
-        if (isFixedColorIcon(name)) {
+        if (isFixedColorIcon(name) && assetSrc) {
             return (
                 <span {...sharedProps} style={getFixedIconStyle(size)}>
                     <img
@@ -47,16 +63,29 @@ export const Icon = forwardRef<HTMLSpanElement, IconProps>(
                         aria-hidden='true'
                         className='block size-full object-contain'
                         draggable={false}
-                        src={src}
+                        src={assetSrc}
                     />
                 </span>
             );
         }
 
-        return <span {...sharedProps} style={getMaskIconStyle(src, size, color)} />;
+        if (!SvgComponent) {
+            return null;
+        }
+
+        return (
+            <span {...sharedProps} style={{ ...getFixedIconStyle(size), ...getIconSvgStyle(color) }}>
+                <SvgComponent
+                    aria-hidden='true'
+                    className='block'
+                    focusable='false'
+                    height='100%'
+                    preserveAspectRatio='xMidYMid meet'
+                    width='100%'
+                />
+            </span>
+        );
     }
 );
 
 Icon.displayName = 'Icon';
-
-export { getIconWrapperStyle };

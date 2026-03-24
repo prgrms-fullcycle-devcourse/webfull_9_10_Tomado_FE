@@ -1,10 +1,10 @@
 import { Outlet } from 'react-router-dom';
-import { Header } from '@/components/layout/Header';
+import { DefaultHeader } from '@/components/layout/Header';
 
 export default function AppShell() {
     return (
         <>
-            <Header />
+            <DefaultHeader />
             <Outlet />
             {/* FocusModeOverlay는 나중에 여기서 전역으로 렌더링 */}
         </>
