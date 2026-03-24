@@ -13,19 +13,42 @@ import Signup from '@/pages/Signup';
 import BrandCenter from '@/pages/BrandCenter';
 
 import ProtectedRoute from './ProtectedRoute';
+import PublicOnlyRoute from './PublicOnlyRoute';
+import { isAuthenticated } from './auth';
 
 export const routes = [
     {
-        element: <AppShell />,
+        element: <AppShell headerVariant='guest' />,
         children: [
             {
                 path: '/',
+                element: isAuthenticated ? <Navigate to='/main' replace /> : <Landing />,
+            },
+            {
+                path: '/login',
                 element: (
-                    <ProtectedRoute>
-                        <Landing />
-                    </ProtectedRoute>
+                    <PublicOnlyRoute>
+                        <Login />
+                    </PublicOnlyRoute>
                 ),
             },
+            {
+                path: '/signup',
+                element: (
+                    <PublicOnlyRoute>
+                        <Signup />
+                    </PublicOnlyRoute>
+                ),
+            },
+            {
+                path: '/brandcenter',
+                element: <BrandCenter />,
+            },
+        ],
+    },
+    {
+        element: <AppShell headerVariant='default' />,
+        children: [
             {
                 path: '/main',
                 element: (
@@ -67,18 +90,6 @@ export const routes = [
                 ),
             },
         ],
-    },
-    {
-        path: '/brandcenter',
-        element: <BrandCenter />,
-    },
-    {
-        path: '/login',
-        element: <Login />,
-    },
-    {
-        path: '/signup',
-        element: <Signup />,
     },
     {
         path: '*',
