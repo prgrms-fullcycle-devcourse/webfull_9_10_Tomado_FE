@@ -1,7 +1,7 @@
 # Button
 
 ```tsx
-import { Button, ButtonGroup } from '@/components/ui/Button';
+import { Button, ButtonGroup } from '@@/ui/Button';
 ```
 
 ## Props
@@ -15,7 +15,7 @@ import { Button, ButtonGroup } from '@/components/ui/Button';
 - `kind`: `standard | player`
 - `variant`: `filled | outline | ghost`
 - `state`: `default | hover | disabled`
-- `size`: `lg | sm`
+- `size`: `lg | md | sm`
 - `fullWidth`: 부모 너비 기준 확장
 - `icon`: 커스텀 아이콘 노드
 - `iconOnly`: 아이콘만 표시
@@ -25,7 +25,7 @@ import { Button, ButtonGroup } from '@/components/ui/Button';
 ```tsx
 <Button>다음</Button>
 
-<Button variant='outline' size='sm'>
+<Button variant='outline' size='md'>
     취소
 </Button>
 
