@@ -1,22 +1,6 @@
-import { twoColumnLayoutClassName, cx } from './styles';
-import type { TwoColumnLayoutProps } from './types';
+import { doubleColumnLayoutClassName, cx } from './styles';
+import type { DoubleColumnLayoutProps } from './types';
 
-export const DoubleColumnLayout = ({
-    className,
-    minColumnWidth = '420px',
-    gap = '24px',
-    style,
-    ...props
-}: TwoColumnLayoutProps) => {
-    return (
-        <div
-            {...props}
-            className={cx(twoColumnLayoutClassName, className)}
-            style={{
-                gap,
-                gridTemplateColumns: `repeat(auto-fit, minmax(min(${minColumnWidth}, 100%), 1fr))`,
-                ...style,
-            }}
-        />
-    );
+export const DoubleColumnLayout = ({ className, ...props }: DoubleColumnLayoutProps) => {
+    return <div {...props} className={cx(doubleColumnLayoutClassName, className)} />;
 };
