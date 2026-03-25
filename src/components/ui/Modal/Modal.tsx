@@ -263,14 +263,16 @@ export const Modal = ({
                     {menuItems && menuItems.length > 0 ? (
                         menuItems.map((item, index) => (
                             <Fragment key={`${item.label}-${index}`}>
-                                {index > 0 ? <div className={menuDividerClassName} /> : null}
-                                <button
-                                    className={getMenuItemClassName(item.tone, item.active)}
-                                    onClick={item.onClick}
-                                    type='button'
-                                >
-                                    {item.label}
-                                </button>
+                                {index > 0 ? <hr aria-hidden='true' className={menuDividerClassName} /> : null}
+                                <div className='p-1'>
+                                    <button
+                                        className={getMenuItemClassName(item.tone)}
+                                        onClick={item.onClick}
+                                        type='button'
+                                    >
+                                        {item.label}
+                                    </button>
+                                </div>
                             </Fragment>
                         ))
                     ) : (

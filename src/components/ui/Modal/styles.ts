@@ -4,6 +4,7 @@ export const cx = (...classes: Array<string | false | null | undefined>) => {
     return classes.filter(Boolean).join(' ');
 };
 
+// INFO: overlay는 백드롭과 모달 배치 좌표를 담당하는 바깥 레이어입니다.
 export const getOverlayClassName = (
     variant: ModalVariant = 'standard',
     _tone: ModalTone = 'default',
@@ -17,9 +18,6 @@ export const getOverlayClassName = (
         return 'fixed inset-0 z-50 flex items-start justify-center p-4';
     }
 
-    // if (variant === 'player' && tone === 'focusmode') {
-    //     return 'fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-[2px]';
-    // }
     if (variant === 'player') {
         return 'fixed inset-0 z-50';
     }
@@ -29,10 +27,11 @@ export const getOverlayClassName = (
 
 export const overlayBackdropClassName = 'absolute inset-0';
 
+// INFO: surface는 실제 모달 박스의 크기, 배경, 라운드, 그림자를 담당합니다.
 export const getSurfaceClassName = (variant: ModalVariant = 'standard', tone: ModalTone = 'default') => {
     if (variant === 'menu') {
         return cx(
-            'relative w-full max-w-[420px] overflow-hidden rounded-xl border border-neutral-lighter bg-white shadow-lg',
+            'relative w-[200px] overflow-hidden rounded-xl border border-neutral-lighter bg-white shadow-lg',
             tone === 'default' && 'text-black'
         );
     }
@@ -112,14 +111,13 @@ export const standardFooterClassName = 'w-full';
 
 export const menuListClassName = 'flex flex-col';
 
-export const getMenuItemClassName = (tone: 'default' | 'danger' = 'default', active = false) => {
+export const getMenuItemClassName = (tone: 'default' | 'danger' = 'default') => {
     return cx(
-        'w-full px-6 py-5 text-left text-[2rem] leading-none font-medium transition-colors',
-        tone === 'danger' ? 'text-danger hover:bg-danger-subtle' : 'text-black hover:bg-neutral-subtle',
-        active && 'bg-neutral-subtle'
+        'w-full px-2 h-8 text-left text-xs transition-colors rounded-lg hover:cursor-pointer',
+        tone === 'danger' ? 'text-danger hover:bg-danger-subtle' : 'text-black hover:bg-neutral-subtle'
     );
 };
 
-export const menuDividerClassName = 'h-px bg-neutral-lighter';
+export const menuDividerClassName = 'h-px border-neutral-subtle';
 
 export const emptyMenuStateClassName = 'px-6 py-5 text-sm text-neutral-darker';

@@ -7,7 +7,6 @@ export type MenuModalItem = {
     label: string;
     tone?: 'default' | 'danger';
     onClick?: () => void;
-    active?: boolean;
 };
 
 export interface ModalProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
