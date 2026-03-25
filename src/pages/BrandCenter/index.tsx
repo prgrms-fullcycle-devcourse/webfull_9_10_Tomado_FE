@@ -2,10 +2,17 @@ import { useState } from 'react';
 
 import { Button, ButtonGroup } from '@@/ui/Button';
 import type { ButtonSize, ButtonVariant } from '@@/ui/Button';
+import { Badge } from '@@/ui/Badge';
+import { Checkbox } from '@@/ui/Checkbox';
 import { Modal } from '@@/ui/Modal';
+import { Radio } from '@@/ui/Radio';
+import { Shortcut } from '@@/ui/Shortcut';
 import { Toast } from '@@/ui/Toast';
+import { Tag } from '@@/ui/Tag';
 import { Tooltip } from '@@/ui/Tooltip';
+import { Toggle } from '@@/ui/Toggle';
 import { SessionIndicator } from '@/features/timer/components/SessionIndicator';
+import { SegmentedControl, type SegmentedControlOption } from '@@/ui/SegmentedControl';
 import { SectionHeader } from '@@/ui/SectionHeader';
 
 const standardVariants: Array<{ label: string; variant: ButtonVariant }> = [
@@ -172,14 +179,26 @@ const modalPreviewClassName = 'flex min-h-[420px] items-center justify-center ro
 const menuPreviewClassName = 'flex min-h-[280px] items-center justify-center rounded-[1.75rem] bg-neutral-subtle p-6';
 const focusPreviewClassName =
     'flex min-h-[420px] items-center justify-center rounded-[1.75rem] bg-[linear-gradient(135deg,_rgba(13,17,23,0.9),_rgba(59,69,84,0.72))] p-6';
+const selectionControlPreviewClassName =
+    'flex min-h-[180px] items-center justify-center rounded-[1.75rem] bg-neutral-subtle p-6';
 
 const headingClassName = 'text-sm font-semibold uppercase tracking-[0.18em] text-neutral-darker';
 
 const standardSizes: ButtonSize[] = ['lg', 'md'];
+const segmentedControlOptions: SegmentedControlOption[] = [
+    { value: 'label-1', label: 'Label' },
+    { value: 'label-2', label: 'Label' },
+    { value: 'label-3', label: 'Label' },
+    { value: 'label-4', label: 'Label', disabled: true },
+];
 
 export default function BrandCenter() {
     const [sessionIndicatorFocusMode, setSessionIndicatorFocusMode] = useState(false);
     const [playerModalFocusMode, setPlayerModalFocusMode] = useState(false);
+    const [selectedSegment, setSelectedSegment] = useState('day');
+    const [checkboxChecked, setCheckboxChecked] = useState(true);
+    const [radioValue, setRadioValue] = useState<'left' | 'right'>('left');
+    const [toggleChecked, setToggleChecked] = useState(true);
 
     return (
         <main className='min-h-screen bg-[radial-gradient(circle_at_top,_var(--color-primary-subtle),_transparent_32%),linear-gradient(180deg,_var(--color-white),_var(--color-neutral-subtle))] px-4 py-8 sm:px-6 lg:px-10'>
@@ -374,6 +393,190 @@ export default function BrandCenter() {
                 <section className={sectionClassName}>
                     <div className='mb-6 flex items-center justify-between gap-4'>
                         <div>
+                            <h2 className='mt-2 text-2xl font-semibold text-black'>SegmentedControl</h2>
+                            <p className='mt-2 text-sm text-neutral-darker sm:text-base'>
+                                색상은 semantic color token을 사용하고, spacing과 radius는 Tailwind 기본 토큰으로 맞춘
+                                샘플입니다.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className='grid gap-5 xl:grid-cols-[1.2fr_0.8fr]'>
+                        <article className={panelClassName}>
+                            <div className='mb-5 flex items-center justify-between border-b border-neutral pb-4'>
+                                <h3 className='text-lg font-semibold text-black'>Visual QA</h3>
+                                <span className='rounded-full bg-neutral-subtle px-3 py-1 text-xs font-semibold text-neutral-darker'>
+                                    lg
+                                </span>
+                            </div>
+                            <div className='space-y-5'>
+                                <SegmentedControl defaultValue='label-1' size='lg' options={segmentedControlOptions} />
+                                <SegmentedControl defaultValue='label-2' size='md' options={segmentedControlOptions} />
+                                <SegmentedControl defaultValue='label-3' size='sm' options={segmentedControlOptions} />
+                                <SegmentedControl
+                                    defaultValue='label-4'
+                                    disabled={true}
+                                    options={segmentedControlOptions}
+                                />
+                            </div>
+                        </article>
+
+                        <article className={panelClassName}>
+                            <div className='mb-5 flex items-center justify-between border-b border-neutral pb-4'>
+                                <h3 className='text-lg font-semibold text-black'>Interactive Example</h3>
+                                <span className='rounded-full bg-primary-subtle px-3 py-1 text-xs font-semibold text-primary-darker'>
+                                    selected: {selectedSegment}
+                                </span>
+                            </div>
+                            <div className='space-y-5'>
+                                <SegmentedControl
+                                    ariaLabel='기간 선택'
+                                    onValueChange={setSelectedSegment}
+                                    options={[
+                                        { value: 'day', label: 'Day' },
+                                        { value: 'week', label: 'Week' },
+                                        { value: 'month', label: 'Month' },
+                                        { value: 'year', label: 'Year' },
+                                    ]}
+                                    value={selectedSegment}
+                                />
+                                <SegmentedControl
+                                    ariaLabel='보기 모드 선택'
+                                    defaultValue='calendar'
+                                    options={[
+                                        { value: 'list', label: 'List' },
+                                        { value: 'board', label: 'Board' },
+                                        { value: 'calendar', label: 'Calendar' },
+                                    ]}
+                                    size='md'
+                                />
+                            </div>
+                        </article>
+                    </div>
+                </section>
+
+                <section className={sectionClassName}>
+                    <div className='mb-6 flex items-center justify-between gap-4'>
+                        <div>
+                            <h2 className='mt-2 text-2xl font-semibold text-black'>Selection Controls</h2>
+                            <p className='mt-2 text-sm text-neutral-darker sm:text-base'>
+                                Checkbox, Radio, Toggle의 선택 상태와 인터랙션을 한 번에 확인하는 샘플입니다.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className='grid gap-5 xl:grid-cols-3'>
+                        <article className={panelClassName}>
+                            <div className='mb-5 flex items-center justify-between border-b border-neutral pb-4'>
+                                <h3 className='text-lg font-semibold text-black'>Checkbox</h3>
+                                <span className='rounded-full bg-neutral-subtle px-3 py-1 text-xs font-semibold text-neutral-darker'>
+                                    checkbox
+                                </span>
+                            </div>
+                            <div className='space-y-5'>
+                                <div className={selectionControlPreviewClassName}>
+                                    <div className='flex items-center gap-12'>
+                                        <Checkbox checked ariaLabel='체크된 체크박스 샘플' />
+                                        <Checkbox ariaLabel='해제된 체크박스 샘플' />
+                                        <Checkbox disabled ariaLabel='비활성화된 체크박스 샘플' />
+                                    </div>
+                                </div>
+                                <div className='flex items-center justify-between rounded-[1.25rem] bg-neutral-subtle px-5 py-4'>
+                                    <span className='text-sm font-semibold text-neutral-darker'>
+                                        interactive: {checkboxChecked ? 'checked' : 'unchecked'}
+                                    </span>
+                                    <Checkbox checked={checkboxChecked} onCheckedChange={setCheckboxChecked} />
+                                </div>
+                            </div>
+                        </article>
+
+                        <article className={panelClassName}>
+                            <div className='mb-5 flex items-center justify-between border-b border-neutral pb-4'>
+                                <h3 className='text-lg font-semibold text-black'>Radio</h3>
+                                <span className='rounded-full bg-neutral-subtle px-3 py-1 text-xs font-semibold text-neutral-darker'>
+                                    radio
+                                </span>
+                            </div>
+                            <div className='space-y-5'>
+                                <div className={selectionControlPreviewClassName}>
+                                    <div className='flex items-center gap-12'>
+                                        <Radio
+                                            checked
+                                            ariaLabel='선택된 라디오 샘플'
+                                            name='radio-preview'
+                                            value='left'
+                                        />
+                                        <Radio ariaLabel='해제된 라디오 샘플' name='radio-preview' value='right' />
+                                        <Radio
+                                            disabled
+                                            ariaLabel='비활성 라디오 샘플'
+                                            name='radio-preview-disabled'
+                                            value='disabled'
+                                        />
+                                    </div>
+                                </div>
+                                <div className='flex items-center justify-between rounded-[1.25rem] bg-neutral-subtle px-5 py-4'>
+                                    <span className='text-sm font-semibold text-neutral-darker'>
+                                        interactive: {radioValue}
+                                    </span>
+                                    <div className='flex items-center gap-6'>
+                                        <Radio
+                                            ariaLabel='왼쪽 라디오'
+                                            checked={radioValue === 'left'}
+                                            name='radio-interactive'
+                                            onChange={() => setRadioValue('left')}
+                                            onCheckedChange={(checked) => {
+                                                if (checked) {
+                                                    setRadioValue('left');
+                                                }
+                                            }}
+                                            value='left'
+                                        />
+                                        <Radio
+                                            ariaLabel='오른쪽 라디오'
+                                            checked={radioValue === 'right'}
+                                            name='radio-interactive'
+                                            onChange={() => setRadioValue('right')}
+                                            onCheckedChange={(checked) => {
+                                                if (checked) {
+                                                    setRadioValue('right');
+                                                }
+                                            }}
+                                            value='right'
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article className={panelClassName}>
+                            <div className='mb-5 flex items-center justify-between border-b border-neutral pb-4'>
+                                <h3 className='text-lg font-semibold text-black'>Toggle</h3>
+                                <span className='rounded-full bg-neutral-subtle px-3 py-1 text-xs font-semibold text-neutral-darker'>
+                                    switch
+                                </span>
+                            </div>
+                            <div className='space-y-5'>
+                                <div className={selectionControlPreviewClassName}>
+                                    <div className='flex items-center gap-12'>
+                                        <Toggle checked ariaLabel='활성 토글 샘플' />
+                                        <Toggle ariaLabel='비활성 토글 샘플' />
+                                    </div>
+                                </div>
+                                <div className='flex items-center justify-between rounded-[1.25rem] bg-neutral-subtle px-5 py-4'>
+                                    <span className='text-sm font-semibold text-neutral-darker'>
+                                        interactive: {toggleChecked ? 'on' : 'off'}
+                                    </span>
+                                    <Toggle checked={toggleChecked} onCheckedChange={setToggleChecked} />
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                </section>
+
+                <section className={sectionClassName}>
+                    <div className='mb-6 flex items-center justify-between gap-4'>
+                        <div>
                             <h2 className='mt-2 text-2xl font-semibold text-black'>SectionHeader</h2>
                             <p className='mt-2 text-sm text-neutral-darker sm:text-base'>
                                 datePicker, title type, text 슬롯 visibility를 함께 확인하는 샘플입니다.
@@ -395,6 +598,64 @@ export default function BrandCenter() {
                         </article>
                         <article className={panelClassName}>
                             <SectionHeader datePicker text='제목을 입력해 주세요' title='title' type='sub' />
+                        </article>
+                    </div>
+                </section>
+
+                <section className={sectionClassName}>
+                    <div className='mb-6 flex items-center justify-between gap-4'>
+                        <div>
+                            <h2 className='mt-2 text-2xl font-semibold text-black'>Badge / Tag / Shortcut</h2>
+                            <p className='mt-2 text-sm text-neutral-darker sm:text-base'>
+                                라벨형 컴포넌트와 키캡 표현을 한 화면에서 검수하는 샘플입니다.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className='grid gap-5 xl:grid-cols-3'>
+                        <article className={panelClassName}>
+                            <div className='mb-5 flex items-center justify-between border-b border-neutral pb-4'>
+                                <h3 className='text-lg font-semibold text-black'>Badge</h3>
+                                <span className='rounded-full bg-neutral-subtle px-3 py-1 text-xs font-semibold text-neutral-darker'>
+                                    filled
+                                </span>
+                            </div>
+                            <div className={selectionControlPreviewClassName}>
+                                <div className='flex flex-col items-center gap-10'>
+                                    <Badge label='라벨' />
+                                    <Badge iconName='visibility' label='라벨' />
+                                </div>
+                            </div>
+                        </article>
+
+                        <article className={panelClassName}>
+                            <div className='mb-5 flex items-center justify-between border-b border-neutral pb-4'>
+                                <h3 className='text-lg font-semibold text-black'>Tag</h3>
+                                <span className='rounded-full bg-neutral-subtle px-3 py-1 text-xs font-semibold text-neutral-darker'>
+                                    outline
+                                </span>
+                            </div>
+                            <div className={selectionControlPreviewClassName}>
+                                <div className='flex flex-col items-center gap-10'>
+                                    <Tag label='태그' />
+                                    <Tag iconName='visibility' label='태그' />
+                                </div>
+                            </div>
+                        </article>
+
+                        <article className={panelClassName}>
+                            <div className='mb-5 flex items-center justify-between border-b border-neutral pb-4'>
+                                <h3 className='text-lg font-semibold text-black'>Shortcut</h3>
+                                <span className='rounded-full bg-neutral-subtle px-3 py-1 text-xs font-semibold text-neutral-darker'>
+                                    keys
+                                </span>
+                            </div>
+                            <div className={selectionControlPreviewClassName}>
+                                <div className='flex flex-col items-center gap-8'>
+                                    <Shortcut keys={['T', 'F', '+', '-', 'Esc']} />
+                                    <Shortcut keys={['Cmd', 'K']} size='sm' />
+                                </div>
+                            </div>
                         </article>
                     </div>
                 </section>

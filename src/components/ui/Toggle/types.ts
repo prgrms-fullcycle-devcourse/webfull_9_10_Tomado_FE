@@ -1,11 +1,11 @@
 import type { ButtonHTMLAttributes } from 'react';
 
-export type CheckboxSize = 'sm' | 'md';
+export type ToggleSize = 'sm' | 'md';
 
-export interface CheckboxProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'onChange'> {
+export interface ToggleProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'onChange'> {
     checked?: boolean;
     defaultChecked?: boolean;
-    size?: CheckboxSize;
+    size?: ToggleSize;
     ariaLabel?: string;
     onCheckedChange?: (checked: boolean) => void;
 }
