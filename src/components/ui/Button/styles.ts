@@ -39,16 +39,16 @@ const standardSizeClassNames: Record<ButtonSize, { withLabel: string; iconOnly: 
 // INFO: player 버튼의 size별 버튼 외곽 크기와 아이콘 크기를 관리합니다.
 const playerSizeClassNames: Record<ButtonSize, { button: string; icon: number }> = {
     lg: {
-        button: 'size-20 rounded-full',
-        icon: 48,
+        button: 'w-20 h-20 rounded-full',
+        icon: 60,
     },
     md: {
-        button: 'size-16 rounded-full',
-        icon: 32,
+        button: 'w-15 h-15 rounded-full',
+        icon: 40,
     },
     sm: {
-        button: 'size-12 rounded-full',
-        icon: 16,
+        button: 'w-10 h-10 rounded-full',
+        icon: 30,
     },
 };
 
