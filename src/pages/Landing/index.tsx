@@ -1,6 +1,7 @@
 import { Button } from '@@/ui/Button/Button';
 import { SectionHeader } from '@@/ui/SectionHeader/SectionHeader';
 import { Icon } from '@@/ui/Icon/Icon';
+import { Modal } from '@@/ui/Modal/Modal';
 
 export default function Landing() {
     return (
@@ -12,9 +13,14 @@ export default function Landing() {
             <div className='h-50 w-full max-w-4xl bg-white'>
                 <SectionHeader title='섹션 헤더' datePicker showText text='2025.10.13' type='sub' />
                 <SectionHeader title='섹션 헤더' datePicker showText text='2025.10.13' type='main' />
-                <Button variant='filled' size='md' icon={<Icon name='delete' />}>
-                    안녕하세요
+                <Button icon={<Icon name='delete' />} size='md' variant='filled'>
+                    아이콘이 있는 버튼
                 </Button>
+                <Modal
+                    inline
+                    menuItems={[{ label: '날짜 이동하기' }, { label: '삭제하기', tone: 'danger' }]}
+                    variant='menu'
+                />
             </div>
         </div>
     );
