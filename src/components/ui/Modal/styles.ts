@@ -31,14 +31,14 @@ export const overlayBackdropClassName = 'absolute inset-0';
 export const getSurfaceClassName = (variant: ModalVariant = 'standard', tone: ModalTone = 'default') => {
     if (variant === 'menu') {
         return cx(
-            'relative w-[200px] overflow-hidden rounded-xl border border-neutral-lighter bg-white shadow-lg',
+            'relative w-[200px] overflow-hidden rounded-xl border border-neutral-lighter bg-white shadow-shadow-1',
             tone === 'default' && 'text-black'
         );
     }
 
     if (variant === 'player') {
         return cx(
-            'absolute w-full top-[54px] right-[170px] max-w-[221px] overflow-hidden rounded-2xl border shadow-lg',
+            'absolute w-full top-[54px] right-[170px] max-w-[221px] overflow-hidden rounded-2xl border shadow-shadow-1',
             tone === 'focusmode'
                 ? 'border-white/15 bg-white/10 text-white backdrop-blur-2xl'
                 : 'border-neutral-lighter bg-white text-black'
@@ -46,7 +46,7 @@ export const getSurfaceClassName = (variant: ModalVariant = 'standard', tone: Mo
     }
 
     return cx(
-        'relative w-full max-w-[400px] min-w-[280px] rounded-3xl border bg-white p-4 shadow-lg',
+        'relative w-full max-w-[400px] min-w-[280px] rounded-3xl border bg-white p-4 shadow-shadow-1',
         tone === 'danger' ? 'border-danger-lighter text-black' : 'border-neutral-lighter text-black'
     );
 };
