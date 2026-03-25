@@ -22,6 +22,8 @@ export const DefaultHeader = ({
     utilitySlot,
     profileSlot,
     avatarSrc,
+    onMusicClick,
+    onFocusModeClick,
     ...props
 }: DefaultHeaderProps) => {
     return (
@@ -54,6 +56,7 @@ export const DefaultHeader = ({
                             <>
                                 <Button
                                     icon={<Icon color='color-primary' name='music_on' />}
+                                    onClick={onMusicClick}
                                     size='md'
                                     variant='outline'
                                 >
@@ -61,6 +64,7 @@ export const DefaultHeader = ({
                                 </Button>
                                 <Button
                                     icon={<Icon color='color-primary' name='fullscreen_open' />}
+                                    onClick={onFocusModeClick}
                                     size='md'
                                     variant='outline'
                                 >

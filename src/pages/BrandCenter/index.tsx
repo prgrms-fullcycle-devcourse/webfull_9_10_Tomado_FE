@@ -1,6 +1,7 @@
-import { Button, ButtonGroup } from '@/components/ui/Button';
-import type { ButtonSize, ButtonVariant } from '@/components/ui/Button';
-import { SectionHeader } from '@/components/ui/SectionHeader';
+import { Button, ButtonGroup } from '@@/ui/Button';
+import type { ButtonSize, ButtonVariant } from '@@/ui/Button';
+import { Modal } from '@@/ui/Modal';
+import { SectionHeader } from '@@/ui/SectionHeader';
 
 const standardVariants: Array<{ label: string; variant: ButtonVariant }> = [
     { label: 'Filled', variant: 'filled' },
@@ -162,6 +163,8 @@ const sectionClassName =
     'rounded-[2rem] border border-neutral bg-white/90 p-6 shadow-[0_20px_60px_rgba(23,28,35,0.06)] backdrop-blur';
 
 const panelClassName = 'rounded-3xl border border-neutral bg-white p-5';
+const modalPreviewClassName = 'flex min-h-[420px] items-center justify-center rounded-[1.75rem] bg-neutral-subtle p-6';
+const menuPreviewClassName = 'flex min-h-[280px] items-center justify-center rounded-[1.75rem] bg-neutral-subtle p-6';
 
 const headingClassName = 'text-sm font-semibold uppercase tracking-[0.18em] text-neutral-darker';
 
@@ -382,6 +385,105 @@ export default function BrandCenter() {
                         </article>
                         <article className={panelClassName}>
                             <SectionHeader datePicker text='제목을 입력해 주세요' title='title' type='sub' />
+                        </article>
+                    </div>
+                </section>
+
+                <section className={sectionClassName}>
+                    <div className='mb-6 flex items-center justify-between gap-4'>
+                        <div>
+                            <h2 className='mt-2 text-2xl font-semibold text-black'>Modal</h2>
+                            <p className='mt-2 text-sm text-neutral-darker sm:text-base'>
+                                standard, player, menu 모달을 inline 모드로 시각 검수하는 샘플입니다.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className='grid gap-5 xl:grid-cols-2'>
+                        <article className={panelClassName}>
+                            <h3 className='mb-4 text-lg font-semibold text-black'>Standard / Default</h3>
+                            <div className={modalPreviewClassName}>
+                                <Modal
+                                    inline
+                                    description='다음 단계를 진행해주세요'
+                                    footer={
+                                        <ButtonGroup>
+                                            <Button
+                                                className='!border-transparent !bg-neutral-subtle !text-black'
+                                                variant='filled'
+                                            >
+                                                취소
+                                            </Button>
+                                            <Button>다음</Button>
+                                        </ButtonGroup>
+                                    }
+                                    title='다음 단계'
+                                />
+                            </div>
+                        </article>
+
+                        <article className={panelClassName}>
+                            <h3 className='mb-4 text-lg font-semibold text-black'>Standard / Danger</h3>
+                            <div className={modalPreviewClassName}>
+                                <Modal
+                                    inline
+                                    description={
+                                        <>
+                                            지금 삭제하시면 복구할 수 없어요.
+                                            <br />
+                                            그래도 삭제하시겠어요?
+                                        </>
+                                    }
+                                    footer={
+                                        <ButtonGroup>
+                                            <Button
+                                                className='!border-transparent !bg-neutral-subtle !text-black'
+                                                variant='filled'
+                                            >
+                                                취소
+                                            </Button>
+                                            <Button className='!bg-danger hover:!bg-danger-darker' variant='filled'>
+                                                삭제
+                                            </Button>
+                                        </ButtonGroup>
+                                    }
+                                    title='삭제하시겠어요?'
+                                    tone='danger'
+                                />
+                            </div>
+                        </article>
+
+                        <article className={panelClassName}>
+                            <h3 className='mb-4 text-lg font-semibold text-black'>Player / Default</h3>
+                            <div className={`${modalPreviewClassName}`}>
+                                <Modal inline title='배경음악 플레이어' variant='player' className='!top-[-190px]' />
+                            </div>
+                        </article>
+
+                        <article className={panelClassName}>
+                            <h3 className='mb-4 text-lg font-semibold text-black'>Player / Focusmode</h3>
+                            <div className='flex min-h-[420px] items-center justify-center rounded-[1.75rem] bg-[linear-gradient(135deg,_rgba(13,17,23,0.9),_rgba(59,69,84,0.72))] p-6'>
+                                <Modal
+                                    inline
+                                    title='배경음악 플레이어'
+                                    tone='focusmode'
+                                    variant='player'
+                                    className='!top-[-190px]'
+                                />
+                            </div>
+                        </article>
+                    </div>
+
+                    <div className='mt-5 grid gap-5 lg:grid-cols-2'>
+                        <article className={panelClassName}>
+                            <h3 className='mb-4 text-lg font-semibold text-black'>Menu / Default</h3>
+                            <div className={menuPreviewClassName}>
+                                <Modal
+                                    inline
+                                    menuItems={[{ label: '날짜 이동하기' }, { label: '삭제하기', tone: 'danger' }]}
+                                    variant='menu'
+                                />
+                            </div>
                         </article>
                     </div>
                 </section>

@@ -23,4 +23,6 @@ export interface DefaultHeaderProps extends HTMLAttributes<HTMLElement> {
     utilitySlot?: ReactNode;
     profileSlot?: ReactNode;
     avatarSrc?: string;
+    onMusicClick?: () => void;
+    onFocusModeClick?: () => void;
 }
