@@ -1,6 +1,9 @@
+import { useState } from 'react';
+
 import { Button, ButtonGroup } from '@@/ui/Button';
 import type { ButtonSize, ButtonVariant } from '@@/ui/Button';
 import { Modal } from '@@/ui/Modal';
+import { SegmentedControl, type SegmentedControlOption } from '@@/ui/SegmentedControl';
 import { SectionHeader } from '@@/ui/SectionHeader';
 
 const standardVariants: Array<{ label: string; variant: ButtonVariant }> = [
@@ -169,8 +172,16 @@ const menuPreviewClassName = 'flex min-h-[280px] items-center justify-center rou
 const headingClassName = 'text-sm font-semibold uppercase tracking-[0.18em] text-neutral-darker';
 
 const standardSizes: ButtonSize[] = ['lg', 'md'];
+const segmentedControlOptions: SegmentedControlOption[] = [
+    { value: 'label-1', label: 'Label' },
+    { value: 'label-2', label: 'Label' },
+    { value: 'label-3', label: 'Label' },
+    { value: 'label-4', label: 'Label', disabled: true },
+];
 
 export default function BrandCenter() {
+    const [selectedSegment, setSelectedSegment] = useState('day');
+
     return (
         <main className='min-h-screen bg-[radial-gradient(circle_at_top,_var(--color-primary-subtle),_transparent_32%),linear-gradient(180deg,_var(--color-white),_var(--color-neutral-subtle))] px-4 py-8 sm:px-6 lg:px-10'>
             <div className='mx-auto flex w-full max-w-7xl flex-col gap-8'>
@@ -358,6 +369,71 @@ export default function BrandCenter() {
                                 </div>
                             </article>
                         ))}
+                    </div>
+                </section>
+
+                <section className={sectionClassName}>
+                    <div className='mb-6 flex items-center justify-between gap-4'>
+                        <div>
+                            <h2 className='mt-2 text-2xl font-semibold text-black'>SegmentedControl</h2>
+                            <p className='mt-2 text-sm text-neutral-darker sm:text-base'>
+                                색상은 semantic color token을 사용하고, spacing과 radius는 Tailwind 기본 토큰으로 맞춘
+                                샘플입니다.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className='grid gap-5 xl:grid-cols-[1.2fr_0.8fr]'>
+                        <article className={panelClassName}>
+                            <div className='mb-5 flex items-center justify-between border-b border-neutral pb-4'>
+                                <h3 className='text-lg font-semibold text-black'>Visual QA</h3>
+                                <span className='rounded-full bg-neutral-subtle px-3 py-1 text-xs font-semibold text-neutral-darker'>
+                                    lg
+                                </span>
+                            </div>
+                            <div className='space-y-5'>
+                                <SegmentedControl defaultValue='label-1' size='lg' options={segmentedControlOptions} />
+                                <SegmentedControl defaultValue='label-2' size='md' options={segmentedControlOptions} />
+                                <SegmentedControl defaultValue='label-3' size='sm' options={segmentedControlOptions} />
+                                <SegmentedControl
+                                    defaultValue='label-4'
+                                    disabled={true}
+                                    options={segmentedControlOptions}
+                                />
+                            </div>
+                        </article>
+
+                        <article className={panelClassName}>
+                            <div className='mb-5 flex items-center justify-between border-b border-neutral pb-4'>
+                                <h3 className='text-lg font-semibold text-black'>Interactive Example</h3>
+                                <span className='rounded-full bg-primary-subtle px-3 py-1 text-xs font-semibold text-primary-darker'>
+                                    selected: {selectedSegment}
+                                </span>
+                            </div>
+                            <div className='space-y-5'>
+                                <SegmentedControl
+                                    ariaLabel='기간 선택'
+                                    onValueChange={setSelectedSegment}
+                                    options={[
+                                        { value: 'day', label: 'Day' },
+                                        { value: 'week', label: 'Week' },
+                                        { value: 'month', label: 'Month' },
+                                        { value: 'year', label: 'Year' },
+                                    ]}
+                                    value={selectedSegment}
+                                />
+                                <SegmentedControl
+                                    ariaLabel='보기 모드 선택'
+                                    defaultValue='calendar'
+                                    options={[
+                                        { value: 'list', label: 'List' },
+                                        { value: 'board', label: 'Board' },
+                                        { value: 'calendar', label: 'Calendar' },
+                                    ]}
+                                    size='md'
+                                />
+                            </div>
+                        </article>
                     </div>
                 </section>
 
