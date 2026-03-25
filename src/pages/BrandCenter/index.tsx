@@ -3,6 +3,9 @@ import { useState } from 'react';
 import { Button, ButtonGroup } from '@@/ui/Button';
 import type { ButtonSize, ButtonVariant } from '@@/ui/Button';
 import { Modal } from '@@/ui/Modal';
+import { Toast } from '@@/ui/Toast';
+import { Tooltip } from '@@/ui/Tooltip';
+import { SessionIndicator } from '@/features/timer/components/SessionIndicator';
 import { SegmentedControl, type SegmentedControlOption } from '@@/ui/SegmentedControl';
 import { SectionHeader } from '@@/ui/SectionHeader';
 
@@ -168,6 +171,8 @@ const sectionClassName =
 const panelClassName = 'rounded-3xl border border-neutral bg-white p-5';
 const modalPreviewClassName = 'flex min-h-[420px] items-center justify-center rounded-[1.75rem] bg-neutral-subtle p-6';
 const menuPreviewClassName = 'flex min-h-[280px] items-center justify-center rounded-[1.75rem] bg-neutral-subtle p-6';
+const focusPreviewClassName =
+    'flex min-h-[420px] items-center justify-center rounded-[1.75rem] bg-[linear-gradient(135deg,_rgba(13,17,23,0.9),_rgba(59,69,84,0.72))] p-6';
 
 const headingClassName = 'text-sm font-semibold uppercase tracking-[0.18em] text-neutral-darker';
 
@@ -180,6 +185,9 @@ const segmentedControlOptions: SegmentedControlOption[] = [
 ];
 
 export default function BrandCenter() {
+    const [sessionIndicatorFocusMode, setSessionIndicatorFocusMode] = useState(false);
+    const [playerModalFocusMode, setPlayerModalFocusMode] = useState(false);
+
     const [selectedSegment, setSelectedSegment] = useState('day');
 
     return (
@@ -468,6 +476,46 @@ export default function BrandCenter() {
                 <section className={sectionClassName}>
                     <div className='mb-6 flex items-center justify-between gap-4'>
                         <div>
+                            <h2 className='mt-2 text-2xl font-semibold text-black'>SessionIndicator</h2>
+                            <p className='mt-2 text-sm text-neutral-darker sm:text-base'>
+                                깜빡임 없이 UI만 먼저 검수할 수 있도록 `filledCount` 샘플을 배치했습니다.
+                            </p>
+                        </div>
+                        <Button
+                            onClick={() => setSessionIndicatorFocusMode((prev) => !prev)}
+                            size='md'
+                            variant={sessionIndicatorFocusMode ? 'filled' : 'outline'}
+                        >
+                            Focus Mode {sessionIndicatorFocusMode ? 'On' : 'Off'}
+                        </Button>
+                    </div>
+                    <div className='grid gap-5 sm:grid-cols-2 xl:grid-cols-4'>
+                        {[1, 2, 3, 4].map((filledCount) => (
+                            <article
+                                key={filledCount}
+                                className={
+                                    sessionIndicatorFocusMode
+                                        ? 'rounded-3xl border border-white/15 bg-[linear-gradient(135deg,_rgba(13,17,23,0.9),_rgba(59,69,84,0.72))] p-5'
+                                        : panelClassName
+                                }
+                            >
+                                <p
+                                    className={`mb-4 text-sm font-semibold ${sessionIndicatorFocusMode ? 'text-white' : 'text-neutral-darker'}`}
+                                >
+                                    filledCount {filledCount}
+                                </p>
+                                <SessionIndicator
+                                    filledCount={filledCount}
+                                    tone={sessionIndicatorFocusMode ? 'focusmode' : 'default'}
+                                />
+                            </article>
+                        ))}
+                    </div>
+                </section>
+
+                <section className={sectionClassName}>
+                    <div className='mb-6 flex items-center justify-between gap-4'>
+                        <div>
                             <h2 className='mt-2 text-2xl font-semibold text-black'>Modal</h2>
                             <p className='mt-2 text-sm text-neutral-darker sm:text-base'>
                                 standard, player, menu 모달을 inline 모드로 시각 검수하는 샘플입니다.
@@ -530,19 +578,23 @@ export default function BrandCenter() {
                         </article>
 
                         <article className={panelClassName}>
-                            <h3 className='mb-4 text-lg font-semibold text-black'>Player / Default</h3>
-                            <div className={`${modalPreviewClassName}`}>
-                                <Modal inline title='배경음악 플레이어' variant='player' className='!top-[-190px]' />
+                            <div className='mb-4 flex items-center justify-between gap-4'>
+                                <h3 className='text-lg font-semibold text-black'>
+                                    Player / {playerModalFocusMode ? 'Focusmode' : 'Default'}
+                                </h3>
+                                <Button
+                                    onClick={() => setPlayerModalFocusMode((prev) => !prev)}
+                                    size='md'
+                                    variant={playerModalFocusMode ? 'filled' : 'outline'}
+                                >
+                                    Focus Mode {playerModalFocusMode ? 'On' : 'Off'}
+                                </Button>
                             </div>
-                        </article>
-
-                        <article className={panelClassName}>
-                            <h3 className='mb-4 text-lg font-semibold text-black'>Player / Focusmode</h3>
-                            <div className='flex min-h-[420px] items-center justify-center rounded-[1.75rem] bg-[linear-gradient(135deg,_rgba(13,17,23,0.9),_rgba(59,69,84,0.72))] p-6'>
+                            <div className={playerModalFocusMode ? focusPreviewClassName : modalPreviewClassName}>
                                 <Modal
                                     inline
                                     title='배경음악 플레이어'
-                                    tone='focusmode'
+                                    tone={playerModalFocusMode ? 'focusmode' : 'default'}
                                     variant='player'
                                     className='!top-[-190px]'
                                 />
@@ -560,6 +612,46 @@ export default function BrandCenter() {
                                     variant='menu'
                                 />
                             </div>
+                        </article>
+                    </div>
+                </section>
+
+                <section className={sectionClassName}>
+                    <div className='mb-6'>
+                        <p className={headingClassName}>Feedback</p>
+                        <h2 className='mt-2 text-2xl font-semibold text-black'>Tooltip</h2>
+                        <p className='mt-2 text-sm text-neutral-darker sm:text-base'>
+                            날짜와 포모도로 요약 정보를 보여주는 툴팁 기본형입니다.
+                        </p>
+                    </div>
+
+                    <div className='grid gap-5 lg:grid-cols-2'>
+                        <article className={panelClassName}>
+                            <Tooltip date='2026년 3월 18일' pomodoroValue='8세션' focusTimeValue='10시간 20분' />
+                        </article>
+                    </div>
+                </section>
+
+                <section className={sectionClassName}>
+                    <div className='mb-6'>
+                        <p className={headingClassName}>Feedback</p>
+                        <h2 className='mt-2 text-2xl font-semibold text-black'>Toast</h2>
+                        <p className='mt-2 text-sm text-neutral-darker sm:text-base'>
+                            라벨만, 아이콘 포함, 텍스트 버튼 포함 토스트 기본형입니다.
+                        </p>
+                    </div>
+
+                    <div className='grid gap-5'>
+                        <article className={panelClassName}>
+                            <Toast label='토스트 메시지' />
+                        </article>
+
+                        <article className={panelClassName}>
+                            <Toast icon label='토스트 메시지' />
+                        </article>
+
+                        <article className={panelClassName}>
+                            <Toast label='토스트 메시지' textButton textButtonLabel='취소' />
                         </article>
                     </div>
                 </section>
