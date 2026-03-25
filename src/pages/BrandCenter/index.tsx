@@ -2,10 +2,13 @@ import { useState } from 'react';
 
 import { Button, ButtonGroup } from '@@/ui/Button';
 import type { ButtonSize, ButtonVariant } from '@@/ui/Button';
+import { Badge } from '@@/ui/Badge';
 import { Checkbox } from '@@/ui/Checkbox';
 import { Modal } from '@@/ui/Modal';
 import { Radio } from '@@/ui/Radio';
+import { Shortcut } from '@@/ui/Shortcut';
 import { Toast } from '@@/ui/Toast';
+import { Tag } from '@@/ui/Tag';
 import { Tooltip } from '@@/ui/Tooltip';
 import { Toggle } from '@@/ui/Toggle';
 import { SessionIndicator } from '@/features/timer/components/SessionIndicator';
@@ -595,6 +598,64 @@ export default function BrandCenter() {
                         </article>
                         <article className={panelClassName}>
                             <SectionHeader datePicker text='제목을 입력해 주세요' title='title' type='sub' />
+                        </article>
+                    </div>
+                </section>
+
+                <section className={sectionClassName}>
+                    <div className='mb-6 flex items-center justify-between gap-4'>
+                        <div>
+                            <h2 className='mt-2 text-2xl font-semibold text-black'>Badge / Tag / Shortcut</h2>
+                            <p className='mt-2 text-sm text-neutral-darker sm:text-base'>
+                                라벨형 컴포넌트와 키캡 표현을 한 화면에서 검수하는 샘플입니다.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className='grid gap-5 xl:grid-cols-3'>
+                        <article className={panelClassName}>
+                            <div className='mb-5 flex items-center justify-between border-b border-neutral pb-4'>
+                                <h3 className='text-lg font-semibold text-black'>Badge</h3>
+                                <span className='rounded-full bg-neutral-subtle px-3 py-1 text-xs font-semibold text-neutral-darker'>
+                                    filled
+                                </span>
+                            </div>
+                            <div className={selectionControlPreviewClassName}>
+                                <div className='flex flex-col items-center gap-10'>
+                                    <Badge label='라벨' />
+                                    <Badge iconName='visibility' label='라벨' />
+                                </div>
+                            </div>
+                        </article>
+
+                        <article className={panelClassName}>
+                            <div className='mb-5 flex items-center justify-between border-b border-neutral pb-4'>
+                                <h3 className='text-lg font-semibold text-black'>Tag</h3>
+                                <span className='rounded-full bg-neutral-subtle px-3 py-1 text-xs font-semibold text-neutral-darker'>
+                                    outline
+                                </span>
+                            </div>
+                            <div className={selectionControlPreviewClassName}>
+                                <div className='flex flex-col items-center gap-10'>
+                                    <Tag label='태그' />
+                                    <Tag iconName='visibility' label='태그' />
+                                </div>
+                            </div>
+                        </article>
+
+                        <article className={panelClassName}>
+                            <div className='mb-5 flex items-center justify-between border-b border-neutral pb-4'>
+                                <h3 className='text-lg font-semibold text-black'>Shortcut</h3>
+                                <span className='rounded-full bg-neutral-subtle px-3 py-1 text-xs font-semibold text-neutral-darker'>
+                                    keys
+                                </span>
+                            </div>
+                            <div className={selectionControlPreviewClassName}>
+                                <div className='flex flex-col items-center gap-8'>
+                                    <Shortcut keys={['T', 'F', '+', '-', 'Esc']} />
+                                    <Shortcut keys={['Cmd', 'K']} size='sm' />
+                                </div>
+                            </div>
                         </article>
                     </div>
                 </section>
