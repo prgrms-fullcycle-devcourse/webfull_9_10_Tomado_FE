@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { Button, ButtonGroup } from '@@/ui/Button';
 import type { ButtonSize, ButtonVariant } from '@@/ui/Button';
 import { Modal } from '@@/ui/Modal';
+import { Toast } from '@@/ui/Toast';
 import { Tooltip } from '@@/ui/Tooltip';
 import { SessionIndicator } from '@/features/timer/components/SessionIndicator';
 import { SectionHeader } from '@@/ui/SectionHeader';
@@ -553,6 +554,30 @@ export default function BrandCenter() {
                     <div className='grid gap-5 lg:grid-cols-2'>
                         <article className={panelClassName}>
                             <Tooltip date='2026년 3월 18일' pomodoroValue='8세션' focusTimeValue='10시간 20분' />
+                        </article>
+                    </div>
+                </section>
+
+                <section className={sectionClassName}>
+                    <div className='mb-6'>
+                        <p className={headingClassName}>Feedback</p>
+                        <h2 className='mt-2 text-2xl font-semibold text-black'>Toast</h2>
+                        <p className='mt-2 text-sm text-neutral-darker sm:text-base'>
+                            라벨만, 아이콘 포함, 텍스트 버튼 포함 토스트 기본형입니다.
+                        </p>
+                    </div>
+
+                    <div className='grid gap-5'>
+                        <article className={panelClassName}>
+                            <Toast label='토스트 메시지' />
+                        </article>
+
+                        <article className={panelClassName}>
+                            <Toast icon label='토스트 메시지' />
+                        </article>
+
+                        <article className={panelClassName}>
+                            <Toast label='토스트 메시지' textButton textButtonLabel='취소' />
                         </article>
                     </div>
                 </section>
