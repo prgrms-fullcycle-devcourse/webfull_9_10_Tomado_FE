@@ -17,8 +17,10 @@ export const titleGroupClassName = 'flex min-w-0 items-center gap-2.5';
 export const navigationButtonClassName =
     'inline-flex shrink-0 items-center justify-center rounded-lg text-gray-700 transition-colors hover:text-neutral-darker disabled:pointer-events-none disabled:text-neutral hover:cursor-pointer';
 
-export const titleFrameClassName =
-    'inline-flex min-w-0 items-center rounded-lg px-3 py-2 transition-colors hover:bg-neutral-subtle hover:cursor-pointer';
+export const titleFrameClassName = (datePicker: boolean = false) =>
+    datePicker
+        ? 'inline-flex min-w-0 items-center rounded-lg px-3 py-2 transition-colors hover:bg-neutral-subtle hover:cursor-pointer'
+        : 'inline-flex min-w-0 items-center';
 
 export const getTitleClassName = (type: SectionHeaderType = 'main') => {
     return type === 'main'

@@ -47,7 +47,7 @@ export const SectionHeader = ({
                     </button>
                 ) : null}
 
-                <div className={titleFrameClassName}>
+                <div className={titleFrameClassName(datePicker)}>
                     <p className={getTitleClassName(type)}>{title}</p>
                 </div>
 
