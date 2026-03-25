@@ -115,4 +115,6 @@
     --color-heatmap-3: var(--color-tomato-600);
     --color-heatmap-4: var(--color-tomato-500);
     --color-heatmap-5: var(--color-tomato-400);
+
+    --shadow-1: 0 0 20px rgba(0, 0, 0, 0.1);
 }
