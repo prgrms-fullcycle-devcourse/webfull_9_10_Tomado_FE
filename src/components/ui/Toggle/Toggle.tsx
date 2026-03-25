@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react';
 import type { MouseEvent } from 'react';
 
-import { Icon } from '@/components/ui/Icon';
+import { cx, getToggleThumbClassName, getToggleTrackClassName } from './styles';
+import type { ToggleProps } from './types';
 
-import { checkboxIconClassName, cx, getCheckboxClassName, getCheckboxIconSize } from './styles';
-import type { CheckboxProps } from './types';
-
-export const Checkbox = ({
+export const Toggle = ({
     checked,
     defaultChecked = false,
     size = 'md',
@@ -17,7 +15,7 @@ export const Checkbox = ({
     onClick,
     type = 'button',
     ...props
-}: CheckboxProps) => {
+}: ToggleProps) => {
     const [localChecked, setLocalChecked] = useState(checked ?? defaultChecked);
 
     useEffect(() => {
@@ -44,16 +42,14 @@ export const Checkbox = ({
         <button
             {...props}
             aria-checked={isChecked}
-            aria-label={ariaLabel ?? (isChecked ? 'Checked checkbox' : 'Unchecked checkbox')}
-            className={cx(getCheckboxClassName({ checked: isChecked, size, disabled }), className)}
+            aria-label={ariaLabel ?? (isChecked ? 'Enabled toggle' : 'Disabled toggle')}
+            className={cx(getToggleTrackClassName({ checked: isChecked, size, disabled }), className)}
             disabled={disabled}
             onClick={handleClick}
-            role='checkbox'
+            role='switch'
             type={type}
         >
-            {isChecked ? (
-                <Icon className={checkboxIconClassName} color='white' name='check' size={getCheckboxIconSize(size)} />
-            ) : null}
+            <span className={getToggleThumbClassName({ checked: isChecked, size })} />
         </button>
     );
 };

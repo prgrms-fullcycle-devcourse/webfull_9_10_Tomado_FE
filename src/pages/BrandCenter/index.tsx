@@ -2,9 +2,12 @@ import { useState } from 'react';
 
 import { Button, ButtonGroup } from '@@/ui/Button';
 import type { ButtonSize, ButtonVariant } from '@@/ui/Button';
+import { Checkbox } from '@@/ui/Checkbox';
 import { Modal } from '@@/ui/Modal';
+import { Radio } from '@@/ui/Radio';
 import { Toast } from '@@/ui/Toast';
 import { Tooltip } from '@@/ui/Tooltip';
+import { Toggle } from '@@/ui/Toggle';
 import { SessionIndicator } from '@/features/timer/components/SessionIndicator';
 import { SegmentedControl, type SegmentedControlOption } from '@@/ui/SegmentedControl';
 import { SectionHeader } from '@@/ui/SectionHeader';
@@ -173,6 +176,8 @@ const modalPreviewClassName = 'flex min-h-[420px] items-center justify-center ro
 const menuPreviewClassName = 'flex min-h-[280px] items-center justify-center rounded-[1.75rem] bg-neutral-subtle p-6';
 const focusPreviewClassName =
     'flex min-h-[420px] items-center justify-center rounded-[1.75rem] bg-[linear-gradient(135deg,_rgba(13,17,23,0.9),_rgba(59,69,84,0.72))] p-6';
+const selectionControlPreviewClassName =
+    'flex min-h-[180px] items-center justify-center rounded-[1.75rem] bg-neutral-subtle p-6';
 
 const headingClassName = 'text-sm font-semibold uppercase tracking-[0.18em] text-neutral-darker';
 
@@ -187,8 +192,10 @@ const segmentedControlOptions: SegmentedControlOption[] = [
 export default function BrandCenter() {
     const [sessionIndicatorFocusMode, setSessionIndicatorFocusMode] = useState(false);
     const [playerModalFocusMode, setPlayerModalFocusMode] = useState(false);
-
     const [selectedSegment, setSelectedSegment] = useState('day');
+    const [checkboxChecked, setCheckboxChecked] = useState(true);
+    const [radioValue, setRadioValue] = useState<'left' | 'right'>('left');
+    const [toggleChecked, setToggleChecked] = useState(true);
 
     return (
         <main className='min-h-screen bg-[radial-gradient(circle_at_top,_var(--color-primary-subtle),_transparent_32%),linear-gradient(180deg,_var(--color-white),_var(--color-neutral-subtle))] px-4 py-8 sm:px-6 lg:px-10'>
@@ -440,6 +447,125 @@ export default function BrandCenter() {
                                     ]}
                                     size='md'
                                 />
+                            </div>
+                        </article>
+                    </div>
+                </section>
+
+                <section className={sectionClassName}>
+                    <div className='mb-6 flex items-center justify-between gap-4'>
+                        <div>
+                            <h2 className='mt-2 text-2xl font-semibold text-black'>Selection Controls</h2>
+                            <p className='mt-2 text-sm text-neutral-darker sm:text-base'>
+                                Checkbox, Radio, Toggle의 선택 상태와 인터랙션을 한 번에 확인하는 샘플입니다.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className='grid gap-5 xl:grid-cols-3'>
+                        <article className={panelClassName}>
+                            <div className='mb-5 flex items-center justify-between border-b border-neutral pb-4'>
+                                <h3 className='text-lg font-semibold text-black'>Checkbox</h3>
+                                <span className='rounded-full bg-neutral-subtle px-3 py-1 text-xs font-semibold text-neutral-darker'>
+                                    checkbox
+                                </span>
+                            </div>
+                            <div className='space-y-5'>
+                                <div className={selectionControlPreviewClassName}>
+                                    <div className='flex items-center gap-12'>
+                                        <Checkbox checked ariaLabel='체크된 체크박스 샘플' />
+                                        <Checkbox ariaLabel='해제된 체크박스 샘플' />
+                                        <Checkbox disabled ariaLabel='비활성화된 체크박스 샘플' />
+                                    </div>
+                                </div>
+                                <div className='flex items-center justify-between rounded-[1.25rem] bg-neutral-subtle px-5 py-4'>
+                                    <span className='text-sm font-semibold text-neutral-darker'>
+                                        interactive: {checkboxChecked ? 'checked' : 'unchecked'}
+                                    </span>
+                                    <Checkbox checked={checkboxChecked} onCheckedChange={setCheckboxChecked} />
+                                </div>
+                            </div>
+                        </article>
+
+                        <article className={panelClassName}>
+                            <div className='mb-5 flex items-center justify-between border-b border-neutral pb-4'>
+                                <h3 className='text-lg font-semibold text-black'>Radio</h3>
+                                <span className='rounded-full bg-neutral-subtle px-3 py-1 text-xs font-semibold text-neutral-darker'>
+                                    radio
+                                </span>
+                            </div>
+                            <div className='space-y-5'>
+                                <div className={selectionControlPreviewClassName}>
+                                    <div className='flex items-center gap-12'>
+                                        <Radio
+                                            checked
+                                            ariaLabel='선택된 라디오 샘플'
+                                            name='radio-preview'
+                                            value='left'
+                                        />
+                                        <Radio ariaLabel='해제된 라디오 샘플' name='radio-preview' value='right' />
+                                        <Radio
+                                            disabled
+                                            ariaLabel='비활성 라디오 샘플'
+                                            name='radio-preview-disabled'
+                                            value='disabled'
+                                        />
+                                    </div>
+                                </div>
+                                <div className='flex items-center justify-between rounded-[1.25rem] bg-neutral-subtle px-5 py-4'>
+                                    <span className='text-sm font-semibold text-neutral-darker'>
+                                        interactive: {radioValue}
+                                    </span>
+                                    <div className='flex items-center gap-6'>
+                                        <Radio
+                                            ariaLabel='왼쪽 라디오'
+                                            checked={radioValue === 'left'}
+                                            name='radio-interactive'
+                                            onChange={() => setRadioValue('left')}
+                                            onCheckedChange={(checked) => {
+                                                if (checked) {
+                                                    setRadioValue('left');
+                                                }
+                                            }}
+                                            value='left'
+                                        />
+                                        <Radio
+                                            ariaLabel='오른쪽 라디오'
+                                            checked={radioValue === 'right'}
+                                            name='radio-interactive'
+                                            onChange={() => setRadioValue('right')}
+                                            onCheckedChange={(checked) => {
+                                                if (checked) {
+                                                    setRadioValue('right');
+                                                }
+                                            }}
+                                            value='right'
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article className={panelClassName}>
+                            <div className='mb-5 flex items-center justify-between border-b border-neutral pb-4'>
+                                <h3 className='text-lg font-semibold text-black'>Toggle</h3>
+                                <span className='rounded-full bg-neutral-subtle px-3 py-1 text-xs font-semibold text-neutral-darker'>
+                                    switch
+                                </span>
+                            </div>
+                            <div className='space-y-5'>
+                                <div className={selectionControlPreviewClassName}>
+                                    <div className='flex items-center gap-12'>
+                                        <Toggle checked ariaLabel='활성 토글 샘플' />
+                                        <Toggle ariaLabel='비활성 토글 샘플' />
+                                    </div>
+                                </div>
+                                <div className='flex items-center justify-between rounded-[1.25rem] bg-neutral-subtle px-5 py-4'>
+                                    <span className='text-sm font-semibold text-neutral-darker'>
+                                        interactive: {toggleChecked ? 'on' : 'off'}
+                                    </span>
+                                    <Toggle checked={toggleChecked} onCheckedChange={setToggleChecked} />
+                                </div>
                             </div>
                         </article>
                     </div>
