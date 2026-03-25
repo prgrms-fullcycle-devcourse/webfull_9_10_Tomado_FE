@@ -8,7 +8,8 @@ import {
     emptyMenuStateClassName,
     getMenuItemClassName,
     getOverlayClassName,
-    getPlayerBodyClassName,
+    getPlayerCardClassName,
+    getPlayerCardInnerClassName,
     getPlayerCloseButtonClassName,
     getPlayerHeaderClassName,
     getStandardDescriptionClassName,
@@ -18,6 +19,17 @@ import {
     menuDividerClassName,
     menuListClassName,
     overlayBackdropClassName,
+    playerCardDescriptionClassName,
+    playerCardImageClassName,
+    playerCardTextClassName,
+    playerCardTitleClassName,
+    playerCardsClassName,
+    playerCardItemClassName,
+    playerHeaderInnerClassName,
+    playerTitleClassName,
+    playerTransportClassName,
+    playerVolumeRangeClassName,
+    playerVolumeSectionClassName,
     standardBodyClassName,
     standardCloseButtonWrapperClassName,
     standardContentClassName,
@@ -54,8 +66,163 @@ const renderCloseButton = (variant: ModalProps['variant'], tone: ModalProps['ton
             onClick={onClose}
             type='button'
         >
-            <Icon color='currentColor' name='close' size={20} />
+            <Icon color='currentColor' name='close' size={16} />
         </button>
+    );
+};
+
+const renderPlayerDefaultBody = ({
+    tone = 'default',
+    playerVolume = 40,
+    onPlayerVolumeChange,
+    playerPlaying = true,
+    onPlayerPrevious,
+    onPlayerToggle,
+    onPlayerNext,
+}: Pick<
+    ModalProps,
+    | 'tone'
+    | 'playerVolume'
+    | 'onPlayerVolumeChange'
+    | 'playerPlaying'
+    | 'onPlayerPrevious'
+    | 'onPlayerToggle'
+    | 'onPlayerNext'
+>) => {
+    return (
+        <>
+            <div className={playerCardsClassName}>
+                <div className={playerCardItemClassName}>
+                    <div className={getPlayerCardClassName}>
+                        <button className={getPlayerCardInnerClassName(false)} type='button'>
+                            <div className={playerCardTextClassName}>
+                                <p className={cx(playerCardTitleClassName, tone === 'focusmode' && 'text-white')}>
+                                    Lo-fi
+                                </p>
+                                <p
+                                    className={cx(
+                                        playerCardDescriptionClassName,
+                                        tone === 'focusmode' && 'text-white/70'
+                                    )}
+                                >
+                                    아날로그 감성
+                                </p>
+                            </div>
+                            <img
+                                alt=''
+                                aria-hidden='true'
+                                className={playerCardImageClassName}
+                                src='/img_player_01.png'
+                            />
+                        </button>
+                    </div>
+                </div>
+                <div className={playerCardItemClassName}>
+                    <div className={getPlayerCardClassName}>
+                        <button className={getPlayerCardInnerClassName(true)} type='button'>
+                            <div className={playerCardTextClassName}>
+                                <p className={cx(playerCardTitleClassName, tone === 'focusmode' && 'text-white')}>
+                                    빗소리
+                                </p>
+                                <p
+                                    className={cx(
+                                        playerCardDescriptionClassName,
+                                        tone === 'focusmode' && 'text-white/70'
+                                    )}
+                                >
+                                    집중을 돕는 빗소리
+                                </p>
+                            </div>
+                            <img
+                                alt=''
+                                aria-hidden='true'
+                                className={playerCardImageClassName}
+                                src='/img_player_02.png'
+                            />
+                        </button>
+                    </div>
+                </div>
+                <div className={playerCardItemClassName}>
+                    <div className={getPlayerCardClassName}>
+                        <button className={getPlayerCardInnerClassName(false)} type='button'>
+                            <div className={playerCardTextClassName}>
+                                <p className={cx(playerCardTitleClassName, tone === 'focusmode' && 'text-white')}>
+                                    카페
+                                </p>
+                                <p
+                                    className={cx(
+                                        playerCardDescriptionClassName,
+                                        tone === 'focusmode' && 'text-white/70'
+                                    )}
+                                >
+                                    편안한 백색소음
+                                </p>
+                            </div>
+                            <img
+                                alt=''
+                                aria-hidden='true'
+                                className={playerCardImageClassName}
+                                src='/img_player_03.png'
+                            />
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div className={playerVolumeSectionClassName}>
+                <Icon color={tone === 'focusmode' ? 'white' : 'color-neutral-darker'} name='volume_off' size={16} />
+                <input
+                    aria-label='볼륨'
+                    className={playerVolumeRangeClassName}
+                    max={100}
+                    min={0}
+                    onChange={onPlayerVolumeChange}
+                    type='range'
+                    value={playerVolume}
+                />
+                <Icon color={tone === 'focusmode' ? 'white' : 'color-neutral-darker'} name='volume_on' size={16} />
+            </div>
+
+            <div className={playerTransportClassName}>
+                <Button
+                    className={tone === 'focusmode' ? '!text-white hover:!bg-white/8' : '!text-neutral-darker'}
+                    icon={<Icon color='currentColor' name='prev' />}
+                    iconOnly
+                    kind='player'
+                    onClick={onPlayerPrevious}
+                    size='sm'
+                    variant='ghost'
+                >
+                    이전
+                </Button>
+                <Button
+                    className={
+                        tone === 'focusmode'
+                            ? '!border-white/20 !bg-white/10 !text-white hover:!bg-white/16'
+                            : '!border-transparent !bg-neutral-darker !text-white hover:!bg-gray-600'
+                    }
+                    icon={<Icon color='currentColor' name={playerPlaying ? 'pause' : 'play'} />}
+                    iconOnly
+                    kind='player'
+                    onClick={onPlayerToggle}
+                    size='sm'
+                    variant='filled'
+                >
+                    재생 제어
+                </Button>
+                <Button
+                    className={tone === 'focusmode' ? '!text-white hover:!bg-white/8' : '!text-neutral-darker'}
+                    icon={<Icon color='currentColor' name='next' />}
+                    iconOnly
+                    kind='player'
+                    onClick={onPlayerNext}
+                    size='sm'
+                    variant='ghost'
+                >
+                    다음
+                </Button>
+            </div>
+        </>
     );
 };
 
@@ -72,6 +239,12 @@ export const Modal = ({
     onClose,
     onBackdropClick,
     menuItems,
+    playerVolume = 40,
+    onPlayerVolumeChange,
+    playerPlaying = true,
+    onPlayerPrevious,
+    onPlayerToggle,
+    onPlayerNext,
     children,
     className,
     ...props
@@ -108,13 +281,31 @@ export const Modal = ({
         ) : variant === 'player' ? (
             <>
                 <div className={getPlayerHeaderClassName(tone)}>
-                    <div className='min-w-0 flex-1 text-[2rem] leading-none font-medium'>{title}</div>
-                    {closeNode}
+                    <div className={cx(playerHeaderInnerClassName, tone === 'focusmode' && 'bg-white/6 text-white')}>
+                        <div className={cx(playerTitleClassName, tone === 'focusmode' && 'text-white')}>
+                            {title ?? '배경음악 플레이어'}
+                        </div>
+                        {closeNode}
+                    </div>
                 </div>
-                <div className={getPlayerBodyClassName(tone)}>
-                    {headerSlot}
-                    {children}
-                    {footer ? <div className='mt-6'>{footer}</div> : null}
+                <div>
+                    {children ? (
+                        <>
+                            {headerSlot}
+                            {children}
+                            {footer ? <div className='mt-6'>{footer}</div> : null}
+                        </>
+                    ) : (
+                        renderPlayerDefaultBody({
+                            tone,
+                            playerVolume,
+                            onPlayerVolumeChange,
+                            playerPlaying,
+                            onPlayerPrevious,
+                            onPlayerToggle,
+                            onPlayerNext,
+                        })
+                    )}
                 </div>
             </>
         ) : (
@@ -135,7 +326,7 @@ export const Modal = ({
                 <button
                     aria-label='Close modal backdrop'
                     className={overlayBackdropClassName}
-                    onClick={onBackdropClick}
+                    onClick={onBackdropClick ?? onClose}
                     type='button'
                 />
             ) : null}

@@ -6,7 +6,7 @@ export const cx = (...classes: Array<string | false | null | undefined>) => {
 
 export const getOverlayClassName = (
     variant: ModalVariant = 'standard',
-    tone: ModalTone = 'default',
+    _tone: ModalTone = 'default',
     inline = false
 ) => {
     if (inline) {
@@ -17,8 +17,11 @@ export const getOverlayClassName = (
         return 'fixed inset-0 z-50 flex items-start justify-center p-4';
     }
 
-    if (variant === 'player' && tone === 'focusmode') {
-        return 'fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-[2px]';
+    // if (variant === 'player' && tone === 'focusmode') {
+    //     return 'fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-[2px]';
+    // }
+    if (variant === 'player') {
+        return 'fixed inset-0 z-50';
     }
 
     return 'fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4';
@@ -36,7 +39,7 @@ export const getSurfaceClassName = (variant: ModalVariant = 'standard', tone: Mo
 
     if (variant === 'player') {
         return cx(
-            'relative w-full max-w-[460px] overflow-hidden rounded-2xl border shadow-lg',
+            'absolute w-full top-[54px] right-[170px] max-w-[221px] overflow-hidden rounded-2xl border shadow-lg',
             tone === 'focusmode'
                 ? 'border-white/15 bg-white/10 text-white backdrop-blur-2xl'
                 : 'border-neutral-lighter bg-white text-black'
@@ -49,33 +52,49 @@ export const getSurfaceClassName = (variant: ModalVariant = 'standard', tone: Mo
     );
 };
 
-export const playerHeaderClassName =
-    'flex items-center justify-between border-b border-neutral-lighter/80 bg-neutral-subtle/80 px-6 py-5 text-neutral-darker';
-
-export const playerBodyClassName = 'px-6 py-5';
-
+export const playerHeaderClassName = 'p-1 bg-neutral-subtle';
 export const getPlayerHeaderClassName = (tone: ModalTone = 'default') => {
     if (tone === 'focusmode') {
-        return 'flex items-center justify-between border-b border-white/10 bg-white/6 px-6 py-5 text-white';
+        return 'p-1';
     }
 
     return playerHeaderClassName;
 };
-
-export const getPlayerBodyClassName = (tone: ModalTone = 'default') => {
-    return tone === 'focusmode' ? 'px-6 py-5 text-white' : playerBodyClassName;
+export const playerHeaderInnerClassName =
+    'flex items-center justify-between bg-neutral-subtle px-2 h-8 text-neutral-darker';
+export const playerTitleClassName = 'text-xs font-medium text-neutral-darker';
+export const getPlayerCloseButtonClassName = (tone: ModalTone = 'default') => {
+    return tone === 'focusmode'
+        ? 'inline-flex size-6 items-center justify-center cursor-pointer text-white/80 transition-colors'
+        : 'inline-flex size-6 items-center justify-center cursor-pointer text-neutral-darker transition-colors';
 };
+
+export const playerCardsClassName = 'flex flex-col py-[10px]';
+export const playerCardItemClassName = 'relative';
+export const getPlayerCardClassName = 'px-2 py-1';
+export const getPlayerCardInnerClassName = (active = false) => {
+    return cx(
+        'relative flex w-full cursor-pointer items-center overflow-hidden rounded-xl border px-3 py-2.5 pr-[92px] transition-colors',
+        active
+            ? 'border-primary bg-primary-subtle'
+            : 'border-neutral-subtle bg-transparent hover:border-neutral-lighter hover:bg-neutral-subtle'
+    );
+};
+export const playerCardTextClassName = 'flex min-w-0 flex-1 flex-col items-start gap-1';
+export const playerCardTitleClassName = 'truncate text-base font-semibold text-gray-800';
+export const playerCardDescriptionClassName = 'truncate text-xs text-neutral';
+export const playerCardImageClassName =
+    'pointer-events-none absolute top-1/2 right-0 h-[66px] -translate-y-1/2 object-contain';
+
+export const playerVolumeSectionClassName = 'flex items-center gap-3 px-4 py-2.5';
+export const playerVolumeRangeClassName =
+    'h-1 w-full cursor-pointer appearance-none rounded-full bg-neutral-lighter accent-primary';
+export const playerTransportClassName = 'flex items-center justify-center gap-2.5 px-4 py-2.5';
 
 export const standardCloseButtonWrapperClassName = 'absolute top-4 right-4';
 
 export const inlineCloseButtonClassName =
     'inline-flex size-8 items-center justify-center rounded-lg transition-colors hover:bg-neutral-subtle hover:text-neutral-darker';
-
-export const getPlayerCloseButtonClassName = (tone: ModalTone = 'default') => {
-    return tone === 'focusmode'
-        ? 'inline-flex size-8 items-center justify-center rounded-lg text-white/80 transition-colors hover:bg-white/10 hover:text-white'
-        : inlineCloseButtonClassName;
-};
 
 export const standardContentClassName = 'flex-col items-center px-3 pt-12 pb-2 text-center';
 

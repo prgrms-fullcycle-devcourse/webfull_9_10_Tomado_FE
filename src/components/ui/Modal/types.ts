@@ -1,4 +1,4 @@
-import type { HTMLAttributes, MouseEventHandler, ReactNode } from 'react';
+import type { ChangeEventHandler, HTMLAttributes, MouseEventHandler, ReactNode } from 'react';
 
 export type ModalVariant = 'standard' | 'player' | 'menu';
 export type ModalTone = 'default' | 'danger' | 'focusmode';
@@ -23,4 +23,10 @@ export interface ModalProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'
     onClose?: () => void;
     onBackdropClick?: MouseEventHandler<HTMLButtonElement>;
     menuItems?: MenuModalItem[];
+    playerVolume?: number;
+    onPlayerVolumeChange?: ChangeEventHandler<HTMLInputElement>;
+    playerPlaying?: boolean;
+    onPlayerPrevious?: () => void;
+    onPlayerToggle?: () => void;
+    onPlayerNext?: () => void;
 }
