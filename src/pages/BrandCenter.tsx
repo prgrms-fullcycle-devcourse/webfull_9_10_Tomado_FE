@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { Button, ButtonGroup, Badge, Modal, Shortcut, Toast, Tag, Tooltip } from '@@/ui';
+import { Button, ButtonGroup, Badge, Modal, Shortcut, Toast, Tag, Tooltip, Menu, PlayerModal } from '@@/ui';
 import { CheckBox, Radio, SegmentedControl, Toggle } from '@@/form';
 import { SectionHeader } from '@@/layout';
 
@@ -470,16 +470,16 @@ export default function BrandCenter() {
                             <div className='space-y-5'>
                                 <div className={selectionControlPreviewClassName}>
                                     <div className='flex items-center gap-12'>
-                                        <Checkbox checked ariaLabel='체크된 체크박스 샘플' />
-                                        <Checkbox ariaLabel='해제된 체크박스 샘플' />
-                                        <Checkbox disabled ariaLabel='비활성화된 체크박스 샘플' />
+                                        <CheckBox checked ariaLabel='체크된 체크박스 샘플' />
+                                        <CheckBox ariaLabel='해제된 체크박스 샘플' />
+                                        <CheckBox disabled ariaLabel='비활성화된 체크박스 샘플' />
                                     </div>
                                 </div>
                                 <div className='flex items-center justify-between rounded-[1.25rem] bg-neutral-subtle px-5 py-4'>
                                     <span className='text-sm font-semibold text-neutral-darker'>
                                         interactive: {checkboxChecked ? 'checked' : 'unchecked'}
                                     </span>
-                                    <Checkbox checked={checkboxChecked} onCheckedChange={setCheckboxChecked} />
+                                    <CheckBox checked={checkboxChecked} onCheckedChange={setCheckboxChecked} />
                                 </div>
                             </div>
                         </article>
@@ -752,11 +752,10 @@ export default function BrandCenter() {
                                 </Button>
                             </div>
                             <div className={playerModalFocusMode ? focusPreviewClassName : modalPreviewClassName}>
-                                <Modal
+                                <PlayerModal
                                     inline
                                     title='배경음악 플레이어'
                                     tone={playerModalFocusMode ? 'focusmode' : 'default'}
-                                    variant='player'
                                     className='!top-[-190px]'
                                 />
                             </div>
@@ -767,10 +766,9 @@ export default function BrandCenter() {
                         <article className={panelClassName}>
                             <h3 className='mb-4 text-lg font-semibold text-black'>Menu / Default</h3>
                             <div className={menuPreviewClassName}>
-                                <Modal
+                                <Menu
                                     inline
-                                    menuItems={[{ label: '날짜 이동하기' }, { label: '삭제하기', tone: 'danger' }]}
-                                    variant='menu'
+                                    items={[{ label: '날짜 이동하기' }, { label: '삭제하기', tone: 'danger' }]}
                                 />
                             </div>
                         </article>
