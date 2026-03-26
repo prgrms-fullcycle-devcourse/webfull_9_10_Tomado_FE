@@ -83,17 +83,17 @@ import { Input, SearchInput, TodoInput, TextArea, CheckBox, Radio, SegmentedCont
 
 ## CheckBox
 
-체크박스 버튼 컴포넌트. 제어/비제어 모두 지원합니다.
+체크박스 버튼 컴포넌트. 제어/비제어 모두 지원하며 `checked/unchecked` 아이콘을 상태에 따라 표시합니다.
 
 ```tsx
 <CheckBox defaultChecked />
-<CheckBox size='sm' />
+<CheckBox size={20} />
 <CheckBox checked={checked} onCheckedChange={setChecked} />
 ```
 
 핵심 props:
 
-- `size`: `sm | md`
+- `size?: number` (기본값: `24`)
 - `checked?`, `defaultChecked?`
 - `onCheckedChange?: (checked: boolean) => void`
 - `ariaLabel?`
