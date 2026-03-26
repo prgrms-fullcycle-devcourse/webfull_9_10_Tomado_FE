@@ -1,4 +1,4 @@
-import { Button } from '@@/ui/Button/Button';
+import { Button } from '@@/ui/index';
 import { SectionHeader } from '@@/ui/SectionHeader/SectionHeader';
 import { Icon } from '@@/ui/Icon/Icon';
 import { Modal } from '@@/ui/Modal/Modal';

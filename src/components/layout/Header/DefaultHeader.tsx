@@ -1,4 +1,4 @@
-import { Button } from '@@/ui/Button';
+import { Button } from '@@/ui/index';
 import { Icon } from '@@/ui/Icon';
 import { Header } from './Header';
 import {

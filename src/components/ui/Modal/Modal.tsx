@@ -1,7 +1,7 @@
 import { Fragment } from 'react';
 
-import { Button, ButtonGroup } from '@/components/ui/Button';
-import { Icon } from '@/components/ui/Icon';
+import { Button, ButtonGroup, PlayerButton } from '@@/ui/index';
+import { Icon } from '@@/ui/Icon';
 
 import {
     cx,
@@ -217,43 +217,37 @@ const renderPlayerDefaultBody = ({
             </div>
 
             <div className={playerTransportClassName}>
-                <Button
+                <PlayerButton
                     className={tone === 'focusmode' ? '!text-white hover:!bg-white/8' : '!text-neutral-darker'}
                     icon={<Icon color='currentColor' name='prev' />}
-                    iconOnly
-                    kind='player'
                     onClick={onPlayerPrevious}
                     size='sm'
                     variant='ghost'
                 >
                     이전
-                </Button>
-                <Button
+                </PlayerButton>
+                <PlayerButton
                     className={
                         tone === 'focusmode'
                             ? '!border-white/20 !bg-white/10 !text-white hover:!bg-white/16'
                             : '!border-transparent !bg-neutral-darker !text-white hover:!bg-gray-600'
                     }
                     icon={<Icon color='currentColor' name={playerPlaying ? 'pause' : 'play'} />}
-                    iconOnly
-                    kind='player'
                     onClick={onPlayerToggle}
                     size='sm'
                     variant='filled'
                 >
                     재생 제어
-                </Button>
-                <Button
+                </PlayerButton>
+                <PlayerButton
                     className={tone === 'focusmode' ? '!text-white hover:!bg-white/8' : '!text-neutral-darker'}
                     icon={<Icon color='currentColor' name='next' />}
-                    iconOnly
-                    kind='player'
                     onClick={onPlayerNext}
                     size='sm'
                     variant='ghost'
                 >
                     다음
-                </Button>
+                </PlayerButton>
             </div>
         </>
     );

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { Button, ButtonGroup } from '@@/ui/Button';
+import { Button, ButtonGroup } from '@@/ui/index';
 import type { ButtonSize, ButtonVariant } from '@@/ui/Button';
 import { Badge } from '@@/ui/Badge';
 import { Checkbox } from '@@/ui/Checkbox';

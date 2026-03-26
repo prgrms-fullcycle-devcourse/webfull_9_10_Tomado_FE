@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { Container } from '@@/layout/Container';
 import { DoubleColumnLayout } from '@@/layout/DoubleColumnLayout';
-import { Button } from '@@/ui/Button';
+import { PlayerButton } from '@@/ui/index';
 import { Icon } from '@@/ui/Icon/Icon';
 import { TodoInput } from '@@/ui/Input';
 import { Modal } from '@@/ui/Modal';
@@ -102,15 +102,13 @@ export default function Main() {
                                 <span className='inline-flex w-[2ch] justify-start'>{timerParts.seconds}</span>
                             </div>
                             <div className='flex gap-5'>
-                                <Button
-                                    kind='player'
+                                <PlayerButton
                                     size='md'
                                     aria-label={isRunning ? '일시정지' : '재생'}
                                     icon={<Icon name={isRunning ? 'pause' : 'play'} />}
                                     onClick={handleToggleTimer}
                                 />
-                                <Button
-                                    kind='player'
+                                <PlayerButton
                                     variant='outline'
                                     size='md'
                                     aria-label='정지'

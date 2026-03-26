@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/Button';
+import { Button } from '@@/ui/index';
 import { Header } from './Header';
 import { logoClassName, utilityActionsClassName } from './Hedaer.styles';
 import type { GuestHeaderProps } from './types';
