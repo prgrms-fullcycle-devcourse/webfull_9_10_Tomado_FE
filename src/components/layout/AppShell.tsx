@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 
 import { DefaultHeader, GuestHeader } from '@@/layout/Header';
-import { PlayerModal } from '@@/ui';
+import { PlayerModal } from '@/components/ui';
 
-type AppShellProps = {
+export type AppShellProps = {
     headerVariant?: 'default' | 'guest';
 };
 
