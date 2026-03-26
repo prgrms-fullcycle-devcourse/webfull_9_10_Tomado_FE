@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 
-import { DefaultHeader, GuestHeader } from '@@/layout/Header';
-import { PlayerModal } from '@/components/ui';
+import { DefaultHeader, GuestHeader } from '.';
+import { PlayerModal } from '@@/ui';
 
 export type AppShellProps = {
     headerVariant?: 'default' | 'guest';
