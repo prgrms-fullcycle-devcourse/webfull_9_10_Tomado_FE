@@ -5,6 +5,7 @@ import type { HTMLAttributes } from 'react';
 export interface TomatoVisualProps extends HTMLAttributes<HTMLDivElement> {
     size?: number;
     animate?: boolean;
+    progress?: number;
 }
 
 const cx = (...classes: Array<string | false | null | undefined>) => {
@@ -49,16 +50,19 @@ const tomatoStages = [
     },
 ] as const;
 
-const leafColor = 'var(--color-success-darker)';
-const stemColor = 'var(--color-success-darker)';
+const leafColor = 'var(--color-green-600)';
+const stemColor = 'var(--color-green-600)';
 const fillTransitionStyle = { transition: 'fill 1800ms ease-in-out' } as const;
 
-export const TomatoVisual = ({ size = 320, animate = true, className, ...props }: TomatoVisualProps) => {
+export const TomatoVisual = ({ size = 320, animate = true, progress, className, ...props }: TomatoVisualProps) => {
     const [stageIndex, setStageIndex] = useState(0);
-    const currentStage = tomatoStages[stageIndex];
+    const hasExternalProgress = typeof progress === 'number';
+    const normalizedProgress = hasExternalProgress ? Math.min(1, Math.max(0, progress)) : 0;
+    const progressStageIndex = Math.min(tomatoStages.length - 1, Math.floor(normalizedProgress * tomatoStages.length));
+    const currentStage = tomatoStages[hasExternalProgress ? progressStageIndex : stageIndex];
 
     useEffect(() => {
-        if (!animate) {
+        if (!animate || hasExternalProgress) {
             return;
         }
 
@@ -67,7 +71,7 @@ export const TomatoVisual = ({ size = 320, animate = true, className, ...props }
         }, 3000);
 
         return () => window.clearTimeout(timeoutId);
-    }, [animate, stageIndex]);
+    }, [animate, hasExternalProgress, stageIndex]);
 
     return (
         <div
@@ -76,6 +80,7 @@ export const TomatoVisual = ({ size = 320, animate = true, className, ...props }
             style={{ width: size, height: size }}
         >
             <svg fill='none' viewBox='180 180 440 430' width={size} height={size} aria-hidden='true'>
+                {/* 몸통 */}
                 <path
                     d='M536.114,328.243c-26.654-30.561-72.744-44.283-111.186-30.128c-8.148,3-41.707,3-49.855,0
                     c-38.443-14.155-84.533-0.432-111.187,30.128c-31.652,36.293-41.517,84.832-34.751,130.583
@@ -84,6 +89,8 @@ export const TomatoVisual = ({ size = 320, animate = true, className, ...props }
                     fill={currentStage.body}
                     style={fillTransitionStyle}
                 />
+
+                {/* 광택 */}
                 <circle
                     cx='314.372'
                     cy='376.423'
@@ -92,6 +99,8 @@ export const TomatoVisual = ({ size = 320, animate = true, className, ...props }
                     fillOpacity='0.65'
                     style={fillTransitionStyle}
                 />
+
+                {/* 그림자 */}
                 <path
                     d='M536.114,328.243c-26.654-30.561-72.744-44.283-111.186-30.128c-8.148,3-41.707,3-49.855,0
                     c-12.652-4.659-26.129-6.242-39.473-5.255c21.936,4.773,22.698,32.555,91.459,27.456c63.897-4.738,111.075,90.124,74.72,168.236
@@ -101,6 +110,8 @@ export const TomatoVisual = ({ size = 320, animate = true, className, ...props }
                     fillOpacity='0.18'
                     style={fillTransitionStyle}
                 />
+
+                {/* 토마토 잎 */}
                 <path
                     d='M398.754,283.553c-6.342-15.999-22.062-25.66-39.187-27.372c8.24,7.94,14.25,14.705,17.021,28.559
                     c-8.983-5.049-33.25-8.708-46.568,0.79c17.725,1.989,27.552,5.951,37.86,17.814c0,0-7.216,6.683-8.708,14.052
@@ -109,6 +120,8 @@ export const TomatoVisual = ({ size = 320, animate = true, className, ...props }
                     c6.358-11.542,17.663-18.019,30.777-19.306C439.872,261.53,411.712,261.824,398.754,283.553L398.754,283.553z'
                     fill={stemColor}
                 />
+
+                {/* 토마토 꼭지 */}
                 <path
                     d='M411.78,219.196c-21.458,16.95-19.139,58.159-16.605,77.868c1.548,0.771,3.467,0.949,5.611-0.422
                     c0.066-11.942,0.964-30.534,5.399-42.986c6.388-17.938,16.462-23.344,16.462-23.344
