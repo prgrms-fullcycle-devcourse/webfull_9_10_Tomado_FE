@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { ButtonHTMLAttributes, MouseEvent } from 'react';
 
-import { Icon } from '@/components/ui/Icon';
+import { Icon } from '@@/ui';
 
 export type CheckBoxSize = 'sm' | 'md';
 
