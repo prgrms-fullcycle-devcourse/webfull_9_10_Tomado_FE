@@ -1,5 +1,15 @@
-import { centeredLayoutClassName, cx } from './styles';
-import type { CenteredLayoutProps } from './types';
+import type { HTMLAttributes } from 'react';
+
+export interface CenteredLayoutProps extends HTMLAttributes<HTMLDivElement> {
+    maxWidth?: string;
+    gap?: string;
+}
+
+const cx = (...classes: Array<string | false | null | undefined>) => {
+    return classes.filter(Boolean).join(' ');
+};
+
+const centeredLayoutClassName = 'mx-auto flex w-full flex-col';
 
 export const CenteredLayout = ({
     className,
