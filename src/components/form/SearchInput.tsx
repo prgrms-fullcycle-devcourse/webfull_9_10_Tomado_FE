@@ -71,7 +71,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
         ref
     ) => {
         return (
-            <div className={className}>
+            <div className={cx('w-full', className)}>
                 <div className={cx(getSearchInputWrapperClassName({ state, disabled }), fieldClassName)}>
                     <Icon className={getLeadingIconClassName({ disabled })} name='search' size={16} />
                     <input
