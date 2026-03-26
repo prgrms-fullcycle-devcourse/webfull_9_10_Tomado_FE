@@ -1,7 +1,7 @@
 import type { InputHTMLAttributes, ReactNode } from 'react';
 import { forwardRef } from 'react';
 
-import { Icon } from '@/components/ui/Icon';
+import { Icon } from '@@/ui';
 
 export type SearchInputState = 'default' | 'filled' | 'error';
 

@@ -13,7 +13,7 @@ import { Tooltip } from '@@/ui/Tooltip';
 import { Toggle } from '@@/ui/Toggle';
 import { SessionIndicator } from '@/features/timer/components/SessionIndicator';
 import { SegmentedControl, type SegmentedControlOption } from '@@/ui/SegmentedControl';
-import { SectionHeader } from '@@/ui/SectionHeader';
+import { SectionHeader } from '@/components/layout/SectionHeader';
 
 const standardVariants: Array<{ label: string; variant: ButtonVariant }> = [
     { label: 'Filled', variant: 'filled' },

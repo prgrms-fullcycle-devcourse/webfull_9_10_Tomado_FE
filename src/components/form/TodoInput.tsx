@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes, InputHTMLAttributes, MouseEventHandler, ReactNode } from 'react';
 import { forwardRef, useState } from 'react';
 
-import { Icon } from '@/components/ui/Icon';
+import { Icon } from '@@/ui';
 
 export type TodoInputState = 'default' | 'filled' | 'error';
 

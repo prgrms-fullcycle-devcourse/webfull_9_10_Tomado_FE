@@ -1,7 +1,5 @@
-import { Button } from '@@/ui/index';
-import { SectionHeader } from '@@/ui/SectionHeader/SectionHeader';
-import { Icon } from '@@/ui/Icon/Icon';
-import { Modal } from '@@/ui/Modal/Modal';
+import { Icon, Button, Menu } from '@@/ui/index';
+import { SectionHeader } from '@/components/layout/SectionHeader/SectionHeader';
 
 export default function Landing() {
     return (
@@ -16,11 +14,7 @@ export default function Landing() {
                 <Button icon={<Icon name='delete' />} size='md' variant='filled'>
                     아이콘이 있는 버튼
                 </Button>
-                <Modal
-                    inline
-                    menuItems={[{ label: '날짜 이동하기' }, { label: '삭제하기', tone: 'danger' }]}
-                    variant='menu'
-                />
+                <Menu inline items={[{ label: '날짜 이동하기' }, { label: '삭제하기', tone: 'danger' }]} />
             </div>
         </div>
     );

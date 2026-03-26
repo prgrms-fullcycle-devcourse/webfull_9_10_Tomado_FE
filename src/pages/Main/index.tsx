@@ -2,11 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { Container } from '@@/layout/Container';
 import { DoubleColumnLayout } from '@@/layout/DoubleColumnLayout';
-import { PlayerButton } from '@@/ui/index';
-import { Icon } from '@@/ui/Icon/Icon';
-import { TodoInput } from '@@/ui/Input';
-import { Modal } from '@@/ui/Modal';
-import { SectionHeader } from '@@/ui/SectionHeader';
+import { Icon, PlayerButton, Modal } from '@@/ui';
+import { TodoInput } from '@@/form';
+import { SectionHeader } from '@@/layout/SectionHeader';
 import { SessionIndicator } from '@/features/timer/components/SessionIndicator';
 import { TomatoVisual } from '@/features/timer';
 import { TodoItem } from '@@/ui/TodoItem';
@@ -135,7 +133,6 @@ export default function Main() {
 
                 <Modal
                     open={stopConfirmOpen}
-                    variant='standard'
                     tone='danger'
                     title='집중 세션 중단'
                     description={
