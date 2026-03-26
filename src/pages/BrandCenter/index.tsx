@@ -717,17 +717,8 @@ export default function BrandCenter() {
                                 <Modal
                                     inline
                                     description='다음 단계를 진행해주세요'
-                                    footer={
-                                        <ButtonGroup>
-                                            <Button
-                                                className='!border-transparent !bg-neutral-subtle !text-black'
-                                                variant='filled'
-                                            >
-                                                취소
-                                            </Button>
-                                            <Button>다음</Button>
-                                        </ButtonGroup>
-                                    }
+                                    cancelLabel='취소'
+                                    confirmLabel='다음'
                                     title='다음 단계'
                                 />
                             </div>
@@ -745,19 +736,8 @@ export default function BrandCenter() {
                                             그래도 삭제하시겠어요?
                                         </>
                                     }
-                                    footer={
-                                        <ButtonGroup>
-                                            <Button
-                                                className='!border-transparent !bg-neutral-subtle !text-black'
-                                                variant='filled'
-                                            >
-                                                취소
-                                            </Button>
-                                            <Button className='!bg-danger hover:!bg-danger-darker' variant='filled'>
-                                                삭제
-                                            </Button>
-                                        </ButtonGroup>
-                                    }
+                                    cancelLabel='취소'
+                                    confirmLabel='삭제'
                                     title='삭제하시겠어요?'
                                     tone='danger'
                                 />
