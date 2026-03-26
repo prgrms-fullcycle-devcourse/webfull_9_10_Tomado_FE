@@ -1,3 +1,13 @@
+export { Icon } from './Icon/Icon';
 export { Button } from './Button';
 export { ButtonGroup } from './ButtonGroup';
 export { PlayerButton } from './PlayerButton';
+export { Modal } from './Modal';
+export { PlayerModal } from './PlayerModal';
+export { Menu } from './Menu';
+// export { TodoItem } from './TodoItem';
+// export { Toast } from './Toast';
+// export { Tag } from './Tag';
+// export { Shortcut } from './Shortcut';
+// export { Badge } from './Badge';
+// export { Tooltip } from './Tooltip';
