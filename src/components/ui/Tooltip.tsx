@@ -1,18 +1,26 @@
+import type { HTMLAttributes, ReactNode } from 'react';
+
 import { Icon } from '@/components/ui/Icon';
 
-import {
-    dateClassName,
-    getMetricValueStateClassName,
-    metricLabelClassName,
-    metricRowClassName,
-    metricValueClassName,
-    metricsClassName,
-    rootClassName,
-} from './styles';
-import type { TooltipProps } from './types';
+export interface TooltipProps extends HTMLAttributes<HTMLDivElement> {
+    date: ReactNode;
+    pomodoroValue: ReactNode;
+    focusTimeValue: ReactNode;
+}
 
 const cx = (...classes: Array<string | false | null | undefined>) => {
     return classes.filter(Boolean).join(' ');
+};
+
+const rootClassName = 'flex h-[100px] w-fit flex-col justify-center gap-2 rounded-xl bg-gray-900 px-4 py-2';
+const dateClassName = 'text-base text-white';
+const metricsClassName = 'flex flex-col gap-1';
+const metricRowClassName = 'flex items-center gap-2 text-sm text-white';
+const metricLabelClassName = 'text-sm text-white';
+const metricValueClassName = 'text-sm text-white';
+
+const getMetricValueStateClassName = (empty = false) => {
+    return cx(empty && 'text-white/70');
 };
 
 export const Tooltip = ({ date, pomodoroValue, focusTimeValue, className, ...props }: TooltipProps) => {
