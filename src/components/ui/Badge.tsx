@@ -16,27 +16,27 @@ const cx = (...classes: Array<string | false | null | undefined>) => {
 
 const badgeSizeClassNames: Record<BadgeSize, { root: string; icon: number }> = {
     sm: {
-        root: 'min-h-8 rounded-full px-3 text-sm leading-none',
+        root: 'min-h-6 rounded-full px-3 text-sm leading-none',
         icon: 14,
     },
     md: {
-        root: 'min-h-11 rounded-full px-5 text-2xl leading-none',
+        root: 'min-h-8 rounded-full px-5 text-xl leading-none',
         icon: 18,
     },
 };
 
-const getBadgeClassName = ({ size = 'md' }: Pick<BadgeProps, 'size'>) => {
+const getBadgeClassName = ({ size = 'sm' }: Pick<BadgeProps, 'size'>) => {
     return cx(
         'inline-flex items-center justify-center gap-2 bg-neutral-darker font-medium text-white',
         badgeSizeClassNames[size].root
     );
 };
 
-const getBadgeIconSize = (size: BadgeSize = 'md') => badgeSizeClassNames[size].icon;
+const getBadgeIconSize = (size: BadgeSize = 'sm') => badgeSizeClassNames[size].icon;
 
 const badgeIconClassName = 'text-inherit';
 
-export const Badge = ({ label, iconName, size = 'md', className, ...props }: BadgeProps) => {
+export const Badge = ({ label, iconName, size = 'sm', className, ...props }: BadgeProps) => {
     return (
         <span {...props} className={cx(getBadgeClassName({ size }), className)}>
             {iconName ? (
