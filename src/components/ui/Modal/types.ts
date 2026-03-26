@@ -18,8 +18,12 @@ export interface ModalProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'
     description?: ReactNode;
     headerSlot?: ReactNode;
     footer?: ReactNode;
+    cancelLabel?: ReactNode;
+    confirmLabel?: ReactNode;
     closeButton?: boolean;
     onClose?: () => void;
+    onCancel?: () => void;
+    onConfirm?: () => void;
     onBackdropClick?: MouseEventHandler<HTMLButtonElement>;
     menuItems?: MenuModalItem[];
     playerVolume?: number;

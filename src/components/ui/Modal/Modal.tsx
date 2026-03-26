@@ -1,6 +1,6 @@
 import { Fragment } from 'react';
 
-import { Button } from '@/components/ui/Button';
+import { Button, ButtonGroup } from '@/components/ui/Button';
 import { Icon } from '@/components/ui/Icon';
 
 import {
@@ -36,6 +36,39 @@ import {
     standardFooterClassName,
 } from './styles';
 import type { ModalProps } from './types';
+
+const getDefaultConfirmLabel = (tone: ModalProps['tone']) => {
+    return tone === 'danger' ? '삭제' : '확인';
+};
+
+const renderStandardFooter = ({
+    tone = 'default',
+    cancelLabel,
+    confirmLabel,
+    onCancel,
+    onConfirm,
+}: Pick<ModalProps, 'tone' | 'cancelLabel' | 'confirmLabel' | 'onCancel' | 'onConfirm'>) => {
+    return (
+        <div className={standardFooterClassName}>
+            <ButtonGroup>
+                <Button
+                    className='!border-transparent !bg-neutral-subtle !text-black hover:!bg-neutral-subtle'
+                    onClick={onCancel}
+                    variant='filled'
+                >
+                    {cancelLabel ?? '취소'}
+                </Button>
+                <Button
+                    className={tone === 'danger' ? '!bg-danger hover:!bg-danger-darker' : undefined}
+                    onClick={onConfirm}
+                    variant='filled'
+                >
+                    {confirmLabel ?? getDefaultConfirmLabel(tone)}
+                </Button>
+            </ButtonGroup>
+        </div>
+    );
+};
 
 const renderCloseButton = (variant: ModalProps['variant'], tone: ModalProps['tone'], onClose?: () => void) => {
     if (!onClose) {
@@ -235,8 +268,12 @@ export const Modal = ({
     description,
     headerSlot,
     footer,
+    cancelLabel,
+    confirmLabel,
     closeButton = true,
     onClose,
+    onCancel,
+    onConfirm,
     onBackdropClick,
     menuItems,
     playerVolume = 40,
@@ -317,7 +354,13 @@ export const Modal = ({
                     {title ? <div className={getStandardTitleClassName(tone)}>{title}</div> : null}
                     {description ? <div className={getStandardDescriptionClassName(tone)}>{description}</div> : null}
                     <div className={standardBodyClassName}>{children}</div>
-                    {footer ? <div className={standardFooterClassName}>{footer}</div> : null}
+                    {renderStandardFooter({
+                        tone,
+                        cancelLabel,
+                        confirmLabel,
+                        onCancel: onCancel ?? onClose,
+                        onConfirm,
+                    })}
                 </div>
             </>
         );
