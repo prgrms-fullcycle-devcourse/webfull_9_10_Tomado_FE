@@ -1,13 +1,29 @@
 /* Global styles */
+@font-face {
+    font-family: 'Pretendard';
+    src: url('/PretendardVariable.woff2') format('woff2');
+    font-weight: 100 900;
+    font-style: normal;
+    font-display: swap;
+}
+
 html,
 body {
     margin: 0;
-    font-family: 'Noto Sans KR', sans-serif;
+    font-family:
+        'Pretendard',
+        -apple-system,
+        BlinkMacSystemFont,
+        'Apple SD Gothic Neo',
+        'Noto Sans KR',
+        'Segoe UI',
+        sans-serif;
     color: var(--color-black);
     background: var(--color-neutral-lighter);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
+
 #root {
     min-height: 100vh;
 }
