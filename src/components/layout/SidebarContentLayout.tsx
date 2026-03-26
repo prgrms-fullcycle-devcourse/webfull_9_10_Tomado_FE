@@ -1,5 +1,15 @@
-import { sidebarContentLayoutClassName, cx } from './styles';
-import type { SidebarContentLayoutProps } from './types';
+import type { HTMLAttributes } from 'react';
+
+export interface SidebarContentLayoutProps extends HTMLAttributes<HTMLDivElement> {
+    sidebarWidth?: string;
+    gap?: string;
+}
+
+const cx = (...classes: Array<string | false | null | undefined>) => {
+    return classes.filter(Boolean).join(' ');
+};
+
+const sidebarContentLayoutClassName = 'grid w-full items-start';
 
 export const SidebarContentLayout = ({
     className,
