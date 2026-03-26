@@ -71,10 +71,13 @@
 - 자동 저장
 - 검색 입력 지연 처리
 
-### useKeyboardShortcut
+### useInputFocus
 
-- 단축키 등록
-- F 키 검색 포커스
+- 입력 필드 포커스 단축키 등록
+
+### useOnBlur
+
+- 입력 필드 포커스 해제 처리
 - ESC 키 포커스모드 종료
 
 ---
