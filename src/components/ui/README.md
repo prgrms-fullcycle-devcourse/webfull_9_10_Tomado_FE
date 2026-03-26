@@ -160,6 +160,12 @@ BGM 플레이어 모달.
 <Shortcut keys={['⌘', 'K']} />
 ```
 
+스타일 스펙(고정):
+
+- `h-4`, `min-w-4`, `w-fit`
+- `rounded-xs`
+- `px-1`, `pb-[1px]`
+
 ## Card
 
 리스트 카드 UI.
