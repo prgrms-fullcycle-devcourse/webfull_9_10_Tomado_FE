@@ -1,8 +1,9 @@
-export { default as MainPage } from './Main';
-export { default as SignupPage } from './Signup';
-export { default as LoginPage } from './Login';
-export { default as MyPage } from './My';
-export { default as DailyLogPage } from './DailyLog';
-export { default as RetroPage } from './Retro';
-export { default as DashboardPage } from './Dashboard';
-export { default as BrandCenterPage } from './BrandCenter';
+export { default as Main } from './Main';
+export { default as Signup } from './Signup';
+export { default as Login } from './Login';
+export { default as My } from './My';
+export { default as DailyLog } from './DailyLog';
+export { default as Retro } from './Retro';
+export { default as Dashboard } from './Dashboard';
+export { default as BrandCenter } from './BrandCenter';
+export { default as Landing } from './Landing';

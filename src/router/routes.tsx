@@ -1,16 +1,6 @@
 import { Navigate } from 'react-router-dom';
-
-import AppShell from '@@/layout/AppShell';
-
-import Main from '@/pages/Main';
-import Landing from '@/pages/Landing';
-import Dashboard from '@/pages/Dashboard';
-import DailyLog from '@/pages/DailyLog';
-import Retro from '@/pages/Retro';
-import My from '@/pages/My';
-import Login from '@/pages/Login';
-import Signup from '@/pages/Signup';
-import BrandCenter from '@/pages/BrandCenter';
+import { AppShell } from '@@/layout';
+import { Main, Landing, Dashboard, DailyLog, Retro, My, Login, Signup, BrandCenter } from '@/pages';
 
 import ProtectedRoute from './ProtectedRoute';
 import PublicOnlyRoute from './PublicOnlyRoute';
