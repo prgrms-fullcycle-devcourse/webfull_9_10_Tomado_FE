@@ -40,6 +40,10 @@ export const getIconWrapperStyle = (size?: IconSize): CSSProperties => {
 };
 
 export const getIconSvgStyle = (color?: CSSProperties['color']) => {
+    if (!color) {
+        return undefined;
+    }
+
     return {
         color: resolveIconColor(color),
     } satisfies CSSProperties;
