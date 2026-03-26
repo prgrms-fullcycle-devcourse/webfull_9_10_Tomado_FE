@@ -1,107 +1,72 @@
-# components
+# Components
 
-`components`는 애플리케이션 전반에서 재사용되는 UI와 구조를 관리하는 폴더이다.  
-이 폴더는 역할에 따라 `ui`, `layout`, `overlays`로 분리된다.
+`components`는 화면 구현 시 재사용 가능한 조각을 모아둔 레이어입니다.  
+현재 구조는 `ui`, `form`, `layout` 3개로 분리합니다.
 
-## 구조
+## 폴더 구조
 
 ```txt
 components/
-├─ ui/
-├─ layout/
-└─ overlays/
+├─ ui/      # 버튼, 배지, 모달, 토스트 등 표시 중심 컴포넌트
+├─ form/    # 입력/선택/토글 등 폼 중심 컴포넌트
+└─ layout/  # 페이지 골조, 헤더, 컨테이너
 ```
-
----
-
-## 역할 정의
-
-### ui
-
-재사용 가능한 순수 UI 컴포넌트
-
-- 디자인 시스템 성격
-- 비즈니스 로직 없음
-- props 기반으로 동작
-
-예시:
-
-- Button
-- Input
-
-### layout
-
-페이지의 구조와 배치를 담당하는 컴포넌트
-
-- AppShell (앱 전체 구조)
-- Header (전역 상단 바)
-- Container (페이지 wrapper)
-- SplitLayout (좌/우 레이아웃)
-- DashboardLayout (대시보드 전용 구조)
-
-### overlays
-
-화면 위에 덮이는 전역 UI
-
-- 특정 페이지에 종속되지 않음
-- AppShell 위에서 렌더링됨
-
-예시:
-
-- FocusMode
-- Modal
-- Toast
-
----
 
 ## 분류 기준
 
-컴포넌트를 어디에 둘지 고민될 때는 아래 기준을 따른다.
+## ui
 
-### ui에 넣는 경우
+이런 경우 `ui`:
 
-- 여러 페이지에서 재사용 가능한가?
-- 단순 표현 컴포넌트인가?
+- 데이터 입력보다 "표현/동작"이 중심
+- 여러 페이지에서 그대로 재사용 가능
+- 예: `Button`, `Badge`, `Tag`, `Tooltip`, `Toast`, `Modal`
 
-### layout
+## form
 
-- 페이지 구조를 결정하는가?
-- children을 받아 배치를 하는가?
+이런 경우 `form`:
 
-### overlays
+- 값 입력/선택/변경이 중심
+- 상태(`value`, `checked`, `error`)를 받는 필드류
+- 예: `Input`, `SearchInput`, `TodoInput`, `TextArea`, `CheckBox`, `Radio`, `SegmentedControl`, `Toggle`
 
-- 화면 전체를 덮는가?
-- 특정 페이지가 아니라 전역에서 사용되는가?
+## layout
 
----
+이런 경우 `layout`:
+
+- 페이지 배치/골조를 결정
+- children/slot을 조합하는 역할
+- 예: `AppShell`, `Header`, `Container`, `CenteredLayout`, `DoubleColumnLayout`, `SidebarContentLayout`, `SectionHeader`
+
+## Import 규칙
+
+권장:
+
+```tsx
+import { Button, Modal, Toast } from '@/components/ui';
+import { Input, SearchInput, Toggle } from '@/components/form';
+import { Container, AppShell, SectionHeader } from '@/components/layout';
+```
+
+하위 폴더 경로 import는 레거시 호환 외에는 새 코드에서 지양.
 
 ## 설계 원칙
 
-1. 역할 분리
+1. 레이어 혼합 금지
 
-- UI / Layout / Overlay는 혼합하지 않는다.
+- `ui`에서 페이지 구조(`layout`) 책임을 갖지 않음
+- `layout`에서 비즈니스 폼 로직(`form`)을 직접 구현하지 않음
 
 2. 단일 책임
 
-- 하나의 컴포넌트는 하나의 역할만 가진다.
+- 컴포넌트 하나는 하나의 목적만 담당
 
-3. 재사용성
+3. 체리픽 가능성 우선
 
-- ui 컴포넌트는 가능한 범용적으로 설계한다.
+- 페이지에서 바로 복붙 가능한 API/props 유지
+- 기본값을 충분히 제공하고, `className` 확장 포인트 제공
 
 4. 의존성 방향
 
-- pages → features → components
-- components는 상위 레이어를 참조하지 않는다.
-
-예시:
-
-```tsx
-<PageContainer>
-    <SplitLayout left={<LogList />} right={<LogEditor />} />
-</PageContainer>
-```
-
-- PageContainer → layout
-- SplitLayout → layout
-- LogList / LogEditor → features
+- `pages -> features -> components`
+- `components`는 상위 레이어를 참조하지 않음
