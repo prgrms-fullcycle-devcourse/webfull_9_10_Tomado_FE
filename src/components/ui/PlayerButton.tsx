@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes, ForwardedRef, ReactElement, ReactNode } from 'react';
 import { cloneElement, forwardRef, isValidElement } from 'react';
 
-import { Icon } from './index';
+import { Icon } from '.';
 
 export type PlayerButtonVariant = 'filled' | 'outline' | 'ghost';
 export type PlayerButtonSize = 'lg' | 'md' | 'sm';

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { ButtonHTMLAttributes, HTMLAttributes, MouseEvent, MouseEventHandler } from 'react';
 
-import { Icon } from '@/components/ui/Icon';
+import { Icon } from '.';
 
 export type DailyLogCardState = 'default' | 'selected' | 'hover';
 export type RetroCardState = DailyLogCardState | 'empty';

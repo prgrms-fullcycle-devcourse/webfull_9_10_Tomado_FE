@@ -1,6 +1,6 @@
 import type { HTMLAttributes, MouseEventHandler, ReactNode } from 'react';
 
-import { Icon, Button, ButtonGroup } from './index';
+import { Icon, Button, ButtonGroup } from '.';
 
 export type ModalTone = 'default' | 'danger';
 

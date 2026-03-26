@@ -1,6 +1,6 @@
 import type { ChangeEventHandler, HTMLAttributes, MouseEventHandler } from 'react';
 
-import { Icon, PlayerButton } from './index';
+import { Icon, PlayerButton } from '.';
 
 export type PlayerModalTone = 'default' | 'focusmode';
 

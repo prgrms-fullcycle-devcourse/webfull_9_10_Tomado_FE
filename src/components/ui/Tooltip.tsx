@@ -1,6 +1,6 @@
 import type { HTMLAttributes, ReactNode } from 'react';
 
-import { Icon } from '@/components/ui/Icon';
+import { Icon } from '.';
 
 export interface TooltipProps extends HTMLAttributes<HTMLDivElement> {
     date: ReactNode;

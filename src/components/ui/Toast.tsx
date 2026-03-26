@@ -1,6 +1,6 @@
 import type { HTMLAttributes, ReactNode } from 'react';
 
-import { Icon } from '@/components/ui/Icon';
+import { Icon } from '.';
 
 export interface ToastProps extends HTMLAttributes<HTMLDivElement> {
     label: ReactNode;
