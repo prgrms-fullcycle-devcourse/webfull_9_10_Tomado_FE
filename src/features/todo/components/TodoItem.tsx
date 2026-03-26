@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { ButtonHTMLAttributes, HTMLAttributes, MouseEvent, MouseEventHandler } from 'react';
 
-import { Icon } from '../../../components/ui/index';
+import { Icon } from '@@/ui';
 
 export type TodoItemState = 'default' | 'filled' | 'focus' | 'empty';
 
