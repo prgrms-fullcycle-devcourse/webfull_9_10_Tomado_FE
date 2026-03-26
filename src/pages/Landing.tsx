@@ -1,5 +1,5 @@
-import { Icon, Button, Menu } from '@@/ui/index';
-import { SectionHeader } from '@/components/layout/SectionHeader/SectionHeader';
+import { Icon, Button, Menu } from '@@/ui';
+import { SectionHeader } from '@@/layout';
 
 export default function Landing() {
     return (

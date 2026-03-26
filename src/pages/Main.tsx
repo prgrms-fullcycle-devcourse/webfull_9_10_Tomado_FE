@@ -1,14 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 
-import { Container } from '@@/layout/Container';
-import { DoubleColumnLayout } from '@@/layout/DoubleColumnLayout';
-import { Icon, PlayerButton, Modal } from '@@/ui';
+import { SectionHeader, DoubleColumnLayout, Container } from '@@/layout';
+import { Icon, PlayerButton, Modal, Badge } from '@@/ui';
 import { TodoInput } from '@@/form';
-import { SectionHeader } from '@@/layout/SectionHeader';
-import { SessionIndicator } from '@/features/timer/components/SessionIndicator';
-import { TomatoVisual } from '@/features/timer';
-import { TodoItem } from '@@/ui/TodoItem';
-import { Badge } from '@@/ui/Badge';
+import { SessionIndicator, TomatoVisual } from '@@@/timer';
+import { TodoItem } from '@@@/todo';
 
 const panelClassName = 'flex flex-col items-center  h-full w-full rounded-2xl bg-white px-6 py-5 shadow-shadow-1';
 const panelHeadingRowClassName = 'flex items-start w-full justify-between';

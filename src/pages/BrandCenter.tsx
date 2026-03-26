@@ -1,19 +1,13 @@
 import { useState } from 'react';
 
-import { Button, ButtonGroup } from '@@/ui/index';
+import { Button, ButtonGroup, Badge, Modal, Shortcut, Toast, Tag, Tooltip } from '@@/ui';
+import { CheckBox, Radio, SegmentedControl, Toggle } from '@@/form';
+import { SectionHeader } from '@@/layout';
+
 import type { ButtonSize, ButtonVariant } from '@@/ui/Button';
-import { Badge } from '@@/ui/Badge';
-import { Checkbox } from '@@/ui/Checkbox';
-import { Modal } from '@@/ui/Modal';
-import { Radio } from '@@/ui/Radio';
-import { Shortcut } from '@@/ui/Shortcut';
-import { Toast } from '@@/ui/Toast';
-import { Tag } from '@@/ui/Tag';
-import { Tooltip } from '@@/ui/Tooltip';
-import { Toggle } from '@@/ui/Toggle';
-import { SessionIndicator } from '@/features/timer/components/SessionIndicator';
-import { SegmentedControl, type SegmentedControlOption } from '@@/ui/SegmentedControl';
-import { SectionHeader } from '@/components/layout/SectionHeader';
+import type { SegmentedControlOption } from '@@/form/SegmentedControl';
+
+import { SessionIndicator } from '@@@/timer';
 
 const standardVariants: Array<{ label: string; variant: ButtonVariant }> = [
     { label: 'Filled', variant: 'filled' },
