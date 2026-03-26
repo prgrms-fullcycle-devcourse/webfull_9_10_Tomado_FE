@@ -20,26 +20,29 @@ import { Input, SearchInput, TodoInput, TextArea, CheckBox, Radio, SegmentedCont
 
 핵심 props:
 
-- `state`: `default | filled | error`
+- `state`: `default | error | success`
 - `label?: string`
 - `helperText?: string`
 - `fieldClassName?`, `inputClassName?`: 내부 wrapper/input만 부분 커스터마이즈
 
 ## SearchInput
 
-검색 전용 입력 필드. 왼쪽 `search` 아이콘이 고정되고 우측에 `shortcutLabel` 또는 `endAdornment`를 표시합니다.
+검색 전용 입력 필드. 왼쪽 `search` 아이콘 + 우측 `Shortcut(F)`가 고정입니다.
 
 ```tsx
-<SearchInput placeholder='제목 또는 내용으로 검색하세요' shortcutLabel='F' />
-<SearchInput endAdornment={<span>⌘K</span>} />
+<SearchInput />
 <SearchInput disabled placeholder='검색' />
 ```
 
 핵심 props:
 
-- `state`: `default | filled | error`
-- `shortcutLabel?: string`
-- `endAdornment?: ReactNode` (`endAdornment`가 있으면 `shortcutLabel`보다 우선)
+- `className?`, `fieldClassName?`, `inputClassName?`
+- `disabled?`
+
+고정 동작:
+
+- 기본 placeholder: `제목 또는 내용으로 검색하세요`
+- 우측 shortcut 표시: `F`
 
 ## TodoInput
 
@@ -47,18 +50,18 @@ import { Input, SearchInput, TodoInput, TextArea, CheckBox, Radio, SegmentedCont
 
 ```tsx
 <TodoInput placeholder='할 일을 추가해보세요' />
-<TodoInput actionLabel='추가' onActionClick={() => console.log('add')} />
+<TodoInput onActionClick={() => console.log('add')} />
 <TodoInput value={value} onChange={(e) => setValue(e.target.value)} />
 ```
 
 핵심 props:
 
-- `state`: `default | filled | error`
-- `shortcutLabel?: string` (기본값: `T`)
-- `actionLabel?: string` (기본값: `Enter`)
 - `onActionClick?`
-- `actionButtonProps?`
-- `endAdornment?: ReactNode` (액션 버튼이 보이지 않는 상태에서만 표시)
+
+고정 동작:
+
+- 입력값이 비어 있으면 우측에 `Shortcut(T)` 표시
+- 입력값이 있으면 우측에 `Enter` 액션 버튼 표시
 
 ## TextArea
 
