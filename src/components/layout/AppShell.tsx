@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 
 import { DefaultHeader, GuestHeader } from '.';
+import { useSpaceKey, useToast } from '@/hooks';
 import { PlayerModal, Toast } from '@@/ui';
-import { useToast } from '@/hooks';
-import { FocusMode } from '@/features/timer';
+import { useBgmPlayer } from '@@@/settings';
+import { FocusMode } from '@@@/timer';
 
 export type AppShellProps = {
     headerVariant?: 'default' | 'guest';
@@ -15,6 +16,25 @@ export default function AppShell({ headerVariant = 'default' }: AppShellProps) {
     const [playerModalOpen, setPlayerModalOpen] = useState(false);
     const [isFocusMode, setIsFocusMode] = useState(false);
     const { toasts } = useToast();
+    const {
+        playerItems,
+        playerVolume,
+        playerPlaying,
+        onPlayerVolumeChange,
+        onPlayerToggle,
+        onPlayerPrevious,
+        onPlayerNext,
+        onPlayerItemSelect,
+    } = useBgmPlayer();
+
+    useSpaceKey(
+        () => {
+            onPlayerToggle();
+        },
+        {
+            enabled: headerVariant === 'default',
+        }
+    );
 
     const handleMusicClick = () => {
         setPlayerModalOpen(true);
@@ -32,6 +52,14 @@ export default function AppShell({ headerVariant = 'default' }: AppShellProps) {
                 onClose={() => setPlayerModalOpen(false)}
                 tone={isFocusMode ? 'focusmode' : 'default'}
                 open={playerModalOpen}
+                playerItems={playerItems}
+                playerPlaying={playerPlaying}
+                playerVolume={playerVolume}
+                onPlayerItemSelect={onPlayerItemSelect}
+                onPlayerNext={onPlayerNext}
+                onPlayerPrevious={onPlayerPrevious}
+                onPlayerToggle={onPlayerToggle}
+                onPlayerVolumeChange={onPlayerVolumeChange}
                 title='배경음악 플레이어'
             />
 
