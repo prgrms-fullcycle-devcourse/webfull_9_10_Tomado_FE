@@ -4,6 +4,7 @@ import { forwardRef } from 'react';
 import { Button, Icon, Shortcut } from '@@/ui';
 
 export interface TodoInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'size' | 'type'> {
+    state?: 'default' | 'error';
     className?: string;
     fieldClassName?: string;
     inputClassName?: string;
@@ -16,11 +17,18 @@ const cx = (...classes: Array<string | false | null | undefined>) => {
 
 const interactiveClassName = 'transition-shadow duration-200 ease-out hover:shadow-1 focus-within:border-neutral';
 
-const getTodoInputWrapperClassName = ({ disabled = false }: { disabled?: boolean }) => {
+const getTodoInputWrapperClassName = ({
+    disabled = false,
+    state = 'default',
+}: {
+    disabled?: boolean;
+    state?: TodoInputProps['state'];
+}) => {
     return cx(
-        'flex h-11 w-full items-center gap-2 rounded-xl bg-gray-50 px-4 border border-transparent',
+        'flex h-10 w-full items-center gap-2 rounded-xl bg-gray-50 px-4 border border-transparent',
         !disabled && interactiveClassName,
-        disabled && 'bg-neutral-subtle'
+        disabled && 'bg-neutral-subtle',
+        state === 'error' && '!bg-danger-lighter !border-danger'
     );
 };
 
@@ -52,13 +60,26 @@ const hasInputContent = (value: TodoInputProps['value'] | TodoInputProps['defaul
 };
 
 export const TodoInput = forwardRef<HTMLInputElement, TodoInputProps>(
-    ({ className, fieldClassName, inputClassName, onActionClick, disabled = false, value, ...props }, ref) => {
+    (
+        {
+            state = 'default',
+            className,
+            fieldClassName,
+            inputClassName,
+            onActionClick,
+            disabled = false,
+            value,
+            ...props
+        },
+        ref
+    ) => {
         const isControlled = value !== undefined;
         const shouldShowAction = isControlled ? hasInputContent(value) : false;
+        const shouldDisableAction = shouldShowAction && state === 'error';
 
         return (
             <div className={cx('flex w-full items-center gap-1', className)}>
-                <div className={cx(getTodoInputWrapperClassName({ disabled }), fieldClassName)}>
+                <div className={cx(getTodoInputWrapperClassName({ disabled, state }), fieldClassName)}>
                     <Icon className={getLeadingIconClassName({ disabled })} name='add' size={16} />
                     <input
                         {...props}
@@ -70,7 +91,11 @@ export const TodoInput = forwardRef<HTMLInputElement, TodoInputProps>(
                     />
                     {!shouldShowAction ? <Shortcut keys={['T']} /> : null}
                 </div>
-                {shouldShowAction ? <Button onClick={onActionClick}>Enter</Button> : null}
+                {shouldShowAction ? (
+                    <Button disabled={shouldDisableAction} onClick={onActionClick}>
+                        Enter
+                    </Button>
+                ) : null}
             </div>
         );
     }
