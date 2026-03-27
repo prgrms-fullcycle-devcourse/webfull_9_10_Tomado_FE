@@ -1,10 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { SectionHeader, DoubleColumnLayout, Container } from '@@/layout';
 import { Icon, PlayerButton, Modal, Badge } from '@@/ui';
 import { SessionIndicator, TomatoVisual } from '@@@/timer';
-import { TodoInput, TodoItem, TODO_MAX_CHARS, useTodoList } from '@@@/todo';
-import { useInputFocus } from '@/hooks';
+import { TodoPanel } from '@@@/todo';
 
 const panelClassName = 'flex flex-col items-center  h-full w-full rounded-2xl bg-white px-6 py-5 shadow-shadow-1';
 const panelHeadingRowClassName = 'flex items-start w-full justify-between';
@@ -25,8 +24,6 @@ export default function Main() {
     const [remainingSeconds, setRemainingSeconds] = useState(timerInitialSeconds);
     const [isRunning, setIsRunning] = useState(false);
     const [stopConfirmOpen, setStopConfirmOpen] = useState(false);
-
-    const todoInputRef = useRef<HTMLInputElement>(null);
     const hasStarted = remainingSeconds !== timerInitialSeconds;
 
     // ============================================================= 타이머 로직
@@ -72,20 +69,8 @@ export default function Main() {
         setStopConfirmOpen(false);
     };
 
-    // ============================================================= 투두 리스트 로직
-    // TODO: modularize ==> features/todo/components/TodoList.tsx (variant: 'default' | 'focus')
-    // TODO: in focus mode, more button should be hidden
-    useInputFocus(todoInputRef, ['t', 'ㅅ']);
-    const {
-        todos,
-        todoInputValue,
-        todoInputError,
-        handleTodoInputChange,
-        handleAddTodo,
-        updateTodoLabel,
-        updateTodoChecked,
-        removeTodo,
-    } = useTodoList();
+    const handleRequestStopTimer = useCallback(() => setStopConfirmOpen(true), []);
+    const handleCloseStopConfirm = useCallback(() => setStopConfirmOpen(false), []);
 
     return (
         <main>
@@ -93,86 +78,21 @@ export default function Main() {
                 <SectionHeader title='2026. 03. 18' />
 
                 <DoubleColumnLayout className='flex-1'>
-                    <section className={panelClassName}>
-                        <div className={panelHeadingRowClassName}>
-                            <h2 className={panelHeadingClassName}>TODAY</h2>
-                            <Badge label='0set' />
-                        </div>
-
-                        <div className='flex flex-col gap-5 mt-18 mb-8 items-center'>
-                            <SessionIndicator />
-                            <div className='flex gap-5 text-xl mb-8 font-bold'>
-                                <span>집중</span>
-                                <span>휴식</span>
-                                <span>장휴식</span>
-                            </div>
-                            <TomatoVisual size={200} progress={tomatoProgress} />
-                        </div>
-
-                        <div className='flex flex-col items-center gap-10'>
-                            <div className='flex w-[170px] items-center justify-center text-5xl font-bold tabular-nums'>
-                                <span className='inline-flex w-[2ch] justify-end'>{timerParts.minutes}</span>
-                                <span className='mx-1 shrink-0'>:</span>
-                                <span className='inline-flex w-[2ch] justify-start'>{timerParts.seconds}</span>
-                            </div>
-                            <div className='flex gap-5'>
-                                <PlayerButton
-                                    size='md'
-                                    aria-label={isRunning ? '일시정지' : '재생'}
-                                    icon={<Icon name={isRunning ? 'pause' : 'play'} />}
-                                    onClick={handleToggleTimer}
-                                />
-                                <PlayerButton
-                                    variant='outline'
-                                    size='md'
-                                    aria-label='정지'
-                                    icon={<Icon name='stop' />}
-                                    disabled={!isRunning && !hasStarted}
-                                    onClick={() => setStopConfirmOpen(true)}
-                                />
-                            </div>
-                        </div>
-                    </section>
-
+                    <TimerPanel
+                        hasStarted={hasStarted}
+                        isRunning={isRunning}
+                        timerMinutes={timerParts.minutes}
+                        timerSeconds={timerParts.seconds}
+                        tomatoProgress={tomatoProgress}
+                        onRequestStop={handleRequestStopTimer}
+                        onToggleTimer={handleToggleTimer}
+                    />
                     <section className={`${panelClassName} relative`}>
                         <div className={panelHeadingRowClassName}>
                             <h2 className={panelHeadingClassName}>TODO</h2>
                             <Badge label='1/3' />
                         </div>
-
-                        <div className='flex flex-col mt-5 gap-2.5 w-full'>
-                            <TodoInput
-                                ref={todoInputRef}
-                                placeholder='할 일을 추가해보세요'
-                                state={todoInputError ? 'error' : 'default'}
-                                value={todoInputValue}
-                                onChange={(event) => handleTodoInputChange(event.target.value)}
-                                onActionClick={handleAddTodo}
-                                onKeyDown={(event) => {
-                                    if (event.nativeEvent.isComposing || event.keyCode === 229) {
-                                        return;
-                                    }
-
-                                    if (event.key === 'Enter') {
-                                        event.preventDefault();
-                                        handleAddTodo();
-                                    }
-                                }}
-                            />
-                            {todos.map((todo) => (
-                                <TodoItem
-                                    key={todo.id}
-                                    checked={todo.checked}
-                                    label={todo.label}
-                                    maxChars={TODO_MAX_CHARS}
-                                    moreButton
-                                    onCheckedChange={(checked) => updateTodoChecked(todo.id, checked)}
-                                    onDelete={() => removeTodo(todo.id)}
-                                    onEmptyBlur={() => removeTodo(todo.id)}
-                                    onLabelChange={(nextLabel) => updateTodoLabel(todo.id, nextLabel)}
-                                />
-                            ))}
-                        </div>
+                        <TodoPanel className='mt-5' tone='default' />
                     </section>
                 </DoubleColumnLayout>
 
@@ -187,12 +107,77 @@ export default function Main() {
                             그래도 중단 하시겠어요?
                         </>
                     }
-                    onClose={() => setStopConfirmOpen(false)}
+                    onClose={handleCloseStopConfirm}
                     confirmLabel='중단하기'
-                    onCancel={() => setStopConfirmOpen(false)}
+                    onCancel={handleCloseStopConfirm}
                     onConfirm={handleConfirmStopTimer}
                 />
             </Container>
         </main>
     );
 }
+
+interface TimerPanelProps {
+    hasStarted: boolean;
+    isRunning: boolean;
+    timerMinutes: string;
+    timerSeconds: string;
+    tomatoProgress: number;
+    onRequestStop: () => void;
+    onToggleTimer: () => void;
+}
+
+const TimerPanel = memo(
+    ({
+        hasStarted,
+        isRunning,
+        timerMinutes,
+        timerSeconds,
+        tomatoProgress,
+        onRequestStop,
+        onToggleTimer,
+    }: TimerPanelProps) => {
+        return (
+            <section className={panelClassName}>
+                <div className={panelHeadingRowClassName}>
+                    <h2 className={panelHeadingClassName}>TODAY</h2>
+                    <Badge label='0set' />
+                </div>
+
+                <div className='flex flex-col gap-5 mt-18 mb-8 items-center'>
+                    <SessionIndicator />
+                    <div className='flex gap-5 text-xl mb-8 font-bold'>
+                        <span>집중</span>
+                        <span>휴식</span>
+                        <span>장휴식</span>
+                    </div>
+                    <TomatoVisual size={200} progress={tomatoProgress} />
+                </div>
+
+                <div className='flex flex-col items-center gap-10'>
+                    <div className='flex w-[170px] items-center justify-center text-5xl font-bold tabular-nums'>
+                        <span className='inline-flex w-[2ch] justify-end'>{timerMinutes}</span>
+                        <span className='mx-1 shrink-0'>:</span>
+                        <span className='inline-flex w-[2ch] justify-start'>{timerSeconds}</span>
+                    </div>
+                    <div className='flex gap-5'>
+                        <PlayerButton
+                            size='md'
+                            aria-label={isRunning ? '일시정지' : '재생'}
+                            icon={<Icon name={isRunning ? 'pause' : 'play'} />}
+                            onClick={onToggleTimer}
+                        />
+                        <PlayerButton
+                            variant='outline'
+                            size='md'
+                            aria-label='정지'
+                            icon={<Icon name='stop' />}
+                            disabled={!isRunning && !hasStarted}
+                            onClick={onRequestStop}
+                        />
+                    </div>
+                </div>
+            </section>
+        );
+    }
+);
