@@ -3,3 +3,5 @@ export type { TomatoVisualProps } from './components/TomatoVisual';
 
 export { SessionIndicator } from './components/SessionIndicator';
 export type { SessionIndicatorProps } from './components/SessionIndicator';
+
+export { FocusMode } from './components/FocusMode';
