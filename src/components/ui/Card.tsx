@@ -125,6 +125,7 @@ export const DailyLogCard = ({
     className,
     onMouseEnter,
     onMouseLeave,
+    onClick,
     ...props
 }: DailyLogCardProps) => {
     const [isHovered, setIsHovered] = useState(false);
