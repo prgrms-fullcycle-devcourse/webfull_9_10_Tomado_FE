@@ -3,21 +3,13 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { SectionHeader, DoubleColumnLayout, Container } from '@@/layout';
 import { Icon, PlayerButton, Modal, Badge } from '@@/ui';
 import { SessionIndicator, TomatoVisual } from '@@@/timer';
-import { TodoInput, TodoItem } from '@@@/todo';
-import { useInputLimit, useInputFocus, useToast } from '@/hooks';
+import { TodoInput, TodoItem, TODO_MAX_CHARS, useTodoList } from '@@@/todo';
+import { useInputFocus } from '@/hooks';
 
 const panelClassName = 'flex flex-col items-center  h-full w-full rounded-2xl bg-white px-6 py-5 shadow-shadow-1';
 const panelHeadingRowClassName = 'flex items-start w-full justify-between';
 const panelHeadingClassName = 'text-2xl font-bold gray-900';
 const timerInitialSeconds = 1 * 60; // 세션 시간 조정
-const TODO_MAX_CHARS = 30;
-const TODO_LIMIT_TOAST_MESSAGE = '입력 가능한 글자 수를 초과하였습니다.';
-
-interface Todo {
-    id: number;
-    label: string;
-    checked: boolean;
-}
 
 const formatTimeParts = (totalSeconds: number) => {
     const minutes = Math.floor(totalSeconds / 60);
@@ -33,13 +25,13 @@ export default function Main() {
     const [remainingSeconds, setRemainingSeconds] = useState(timerInitialSeconds);
     const [isRunning, setIsRunning] = useState(false);
     const [stopConfirmOpen, setStopConfirmOpen] = useState(false);
-    const [todos, setTodos] = useState<Todo[]>([]);
-    const { showToast } = useToast();
 
     const todoInputRef = useRef<HTMLInputElement>(null);
     const hasStarted = remainingSeconds !== timerInitialSeconds;
 
     // ============================================================= 타이머 로직
+    // TODO: timer hooks 분리
+    // TODO: timer component 분리 + 전역 상태 관리 적용
     useEffect(() => {
         if (!isRunning) {
             return;
@@ -84,69 +76,16 @@ export default function Main() {
     // TODO: modularize ==> features/todo/components/TodoList.tsx (variant: 'default' | 'focus')
     // TODO: in focus mode, more button should be hidden
     useInputFocus(todoInputRef, ['t', 'ㅅ']);
-
     const {
-        value: todoInputValue,
-        hasError: todoInputError,
-        setLimitedValue,
-    } = useInputLimit({
-        maxChars: TODO_MAX_CHARS,
-        toastMessage: TODO_LIMIT_TOAST_MESSAGE,
-    });
-
-    const handleTodoInputChange = (value: string) => {
-        setLimitedValue(value);
-    };
-
-    const handleAddTodo = () => {
-        const nextTodo = todoInputValue.trim();
-
-        if (!nextTodo || todoInputError) {
-            return;
-        }
-
-        setTodos((prev) => [{ id: Date.now(), label: nextTodo, checked: false }, ...prev]);
-        setLimitedValue('');
-    };
-
-    const updateTodoLabel = (id: number, nextLabel: string) => {
-        setTodos((prev) => prev.map((todo) => (todo.id === id ? { ...todo, label: nextLabel } : todo)));
-    };
-
-    const updateTodoChecked = (id: number, checked: boolean) => {
-        setTodos((prev) => prev.map((todo) => (todo.id === id ? { ...todo, checked } : todo)));
-    };
-
-    const removeTodo = (id: number) => {
-        const deletedIndex = todos.findIndex((todo) => todo.id === id);
-
-        if (deletedIndex < 0) {
-            return;
-        }
-
-        const deletedTodo = todos[deletedIndex];
-
-        setTodos((prev) => prev.filter((todo) => todo.id !== id));
-
-        showToast(`투두 항목을 삭제했어요`, {
-            icon: <Icon name='delete' size={16} />,
-            textButton: true,
-            textButtonLabel: '취소',
-            durationMs: 5000,
-            onTextButtonClick: () => {
-                setTodos((prev) => {
-                    if (prev.some((todo) => todo.id === deletedTodo.id)) {
-                        return prev;
-                    }
-
-                    const nextTodos = [...prev];
-                    const restoredIndex = Math.min(deletedIndex, nextTodos.length);
-                    nextTodos.splice(restoredIndex, 0, deletedTodo);
-                    return nextTodos;
-                });
-            },
-        });
-    };
+        todos,
+        todoInputValue,
+        todoInputError,
+        handleTodoInputChange,
+        handleAddTodo,
+        updateTodoLabel,
+        updateTodoChecked,
+        removeTodo,
+    } = useTodoList();
 
     return (
         <main>
