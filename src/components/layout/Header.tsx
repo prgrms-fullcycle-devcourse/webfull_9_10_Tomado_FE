@@ -34,7 +34,7 @@ const cx = (...classes: Array<string | false | null | undefined>) => {
 };
 
 const headerClassName = 'sticky top-0 z-40 w-full bg-white/95 backdrop-blur';
-const headerInnerClassName = 'mx-auto flex min-h-[60px] max-w-[1200px] items-center justify-between gap-6 px-5';
+const headerInnerClassName = 'mx-auto flex min-h-[60px] max-w-[1200px] items-center justify-between gap-6';
 const headerSlotClassName = 'flex min-w-0 items-center';
 const headerLeftClassName = 'flex-1 justify-start';
 const headerCenterClassName = 'max-[600px]:hidden justify-center';
@@ -59,11 +59,13 @@ const defaultNavItems = [
 export const Header = ({ leftSlot, centerSlot, rightSlot, className, ...props }: HeaderProps) => {
     return (
         <header {...props} className={cx(headerClassName, className)}>
-            <div className={headerInnerClassName}>
-                <div className={cx(headerSlotClassName, headerLeftClassName)}>{leftSlot}</div>
-                <div className={headerTrailingGroupClassName}>
-                    <div className={cx(headerSlotClassName, headerCenterClassName)}>{centerSlot}</div>
-                    <div className={cx(headerSlotClassName, headerRightClassName)}>{rightSlot}</div>
+            <div className='px-5'>
+                <div className={headerInnerClassName}>
+                    <div className={cx(headerSlotClassName, headerLeftClassName)}>{leftSlot}</div>
+                    <div className={headerTrailingGroupClassName}>
+                        <div className={cx(headerSlotClassName, headerCenterClassName)}>{centerSlot}</div>
+                        <div className={cx(headerSlotClassName, headerRightClassName)}>{rightSlot}</div>
+                    </div>
                 </div>
             </div>
         </header>
