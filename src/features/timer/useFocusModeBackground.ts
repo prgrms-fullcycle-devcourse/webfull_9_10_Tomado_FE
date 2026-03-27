@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useFocusModeBackgroundStore } from './useFocusModeStore';
 
 type SlideDirection = 'next' | 'prev';
@@ -92,35 +92,45 @@ export const useFocusModeBackground = ({ backgroundIndex }: UseFocusModeBackgrou
         return () => window.clearTimeout(timeoutId);
     }, [backgroundTransition]);
 
-    const startBackgroundTransition = (direction: SlideDirection) => {
-        if (focusModeBackgrounds.length <= 1 || backgroundTransition) {
-            return;
-        }
+    const startBackgroundTransition = useCallback(
+        (direction: SlideDirection) => {
+            if (focusModeBackgrounds.length <= 1 || backgroundTransition) {
+                return;
+            }
 
-        const nextIndex =
-            direction === 'next'
-                ? currentBackgroundIndex === focusModeBackgrounds.length - 1
-                    ? 0
-                    : currentBackgroundIndex + 1
-                : currentBackgroundIndex === 0
-                  ? focusModeBackgrounds.length - 1
-                  : currentBackgroundIndex - 1;
+            const nextIndex =
+                direction === 'next'
+                    ? currentBackgroundIndex === focusModeBackgrounds.length - 1
+                        ? 0
+                        : currentBackgroundIndex + 1
+                    : currentBackgroundIndex === 0
+                      ? focusModeBackgrounds.length - 1
+                      : currentBackgroundIndex - 1;
 
-        setBackgroundTransition({
-            previousIndex: currentBackgroundIndex,
-            currentIndex: nextIndex,
-            direction,
-            phase: 'prepare',
-        });
-        setCurrentBackgroundIndex(nextIndex);
-        setPersistedBackgroundIndex(nextIndex);
-    };
+            setBackgroundTransition({
+                previousIndex: currentBackgroundIndex,
+                currentIndex: nextIndex,
+                direction,
+                phase: 'prepare',
+            });
+            setCurrentBackgroundIndex(nextIndex);
+            setPersistedBackgroundIndex(nextIndex);
+        },
+        [backgroundTransition, currentBackgroundIndex, setPersistedBackgroundIndex]
+    );
+
+    const backgroundSlideClassNames = useMemo(() => {
+        return focusModeBackgrounds.map((_, index) =>
+            getSlideClassName(index, currentBackgroundIndex, backgroundTransition)
+        );
+    }, [backgroundTransition, currentBackgroundIndex]);
 
     return {
         focusModeBackgrounds,
+        backgroundSlideClassNames,
         currentBackgroundIndex,
-        handlePrevBackground: () => startBackgroundTransition('prev'),
-        handleNextBackground: () => startBackgroundTransition('next'),
+        handlePrevBackground: useCallback(() => startBackgroundTransition('prev'), [startBackgroundTransition]),
+        handleNextBackground: useCallback(() => startBackgroundTransition('next'), [startBackgroundTransition]),
         getBackgroundSlideClassName: (index: number) =>
             getSlideClassName(index, currentBackgroundIndex, backgroundTransition),
     };
