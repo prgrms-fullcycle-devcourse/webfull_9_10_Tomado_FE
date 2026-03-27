@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import type { HTMLAttributes, ReactNode } from 'react';
 
-import { useDirectionKey, useEscapeKey, useInputFocus, useToast } from '@/hooks';
+import { useDirectionKey, useEscapeKey, useToast } from '@/hooks';
 import { Button, Icon, PlayerButton } from '@@/ui';
-import { TODO_MAX_CHARS, TodoInput, TodoItem, useTodoList } from '@@@/todo';
+import { TodoPanel } from '@@@/todo';
 import { SessionIndicator, focusModeBackgrounds, useFocusModeBackground } from '@@@/timer';
 
 const backgroundNavButtonWrapperClassName = 'bottom-0 group absolute inset-y-40 z-30 w-28 hover:cursor-pointer';
@@ -35,30 +35,19 @@ export const FocusMode = ({
     children,
     ...props
 }: FocusModeProps) => {
-    const todoInputRef = useRef<HTMLInputElement>(null);
     const wasOpenRef = useRef(false);
     const [isTodoExpanded, setIsTodoExpanded] = useState(false);
     const { showToast } = useToast();
-    const { getBackgroundSlideClassName, handleNextBackground, handlePrevBackground } = useFocusModeBackground({
+    const { backgroundSlideClassNames, handleNextBackground, handlePrevBackground } = useFocusModeBackground({
         backgroundIndex,
     });
-    const {
-        todos,
-        todoInputValue,
-        todoInputError,
-        handleTodoInputChange,
-        handleAddTodo,
-        updateTodoLabel,
-        updateTodoChecked,
-        removeTodo,
-    } = useTodoList();
+    const handleClose = useCallback(() => onClose?.(), [onClose]);
+    const handleToggleTodoExpanded = useCallback(() => setIsTodoExpanded((prev) => !prev), []);
+    const handleTodoExpand = useCallback(() => setIsTodoExpanded(true), []);
+    const handleTodoCollapse = useCallback(() => setIsTodoExpanded(false), []);
 
-    useInputFocus(todoInputRef, ['t', 'ㅅ']);
-
-    useEscapeKey(() => onClose?.(), { enabled: open && Boolean(onClose) });
-
-    useDirectionKey(
-        (direction) => {
+    const handleDirection = useCallback(
+        (direction: 'left' | 'right' | 'up' | 'down') => {
             if (direction === 'left') {
                 handlePrevBackground();
                 return;
@@ -70,17 +59,19 @@ export const FocusMode = ({
             }
 
             if (direction === 'up') {
-                setIsTodoExpanded(false);
+                handleTodoCollapse();
                 return;
             }
 
             if (direction === 'down') {
-                setIsTodoExpanded(true);
-                return;
+                handleTodoExpand();
             }
         },
-        { enabled: open }
+        [handleNextBackground, handlePrevBackground, handleTodoCollapse, handleTodoExpand]
     );
+
+    useEscapeKey(handleClose, { enabled: open && Boolean(onClose) });
+    useDirectionKey(handleDirection, { enabled: open });
 
     useEffect(() => {
         if (!open) {
@@ -105,22 +96,10 @@ export const FocusMode = ({
 
     return (
         <div {...props} className={cx('fixed inset-0 z-50 overflow-hidden', className)}>
-            <div className='absolute inset-0 z-0 overflow-hidden'>
-                {focusModeBackgrounds.map((src, index) => (
-                    <img
-                        key={src}
-                        alt=''
-                        className={cx(
-                            'absolute top-0 -left-px h-full w-[calc(100%+2px)] max-w-none object-cover transition-transform duration-500 ease-in-out will-change-transform',
-                            getBackgroundSlideClassName(index)
-                        )}
-                        src={src}
-                    />
-                ))}
-            </div>
-
-            {/* 살짝 어둡게 하려면 투명도 조절 필요 */}
-            <div className='absolute inset-0 z-10 bg-black/10' />
+            <FocusModeBackgroundLayer
+                backgroundSlideClassNames={backgroundSlideClassNames}
+                backgroundSources={focusModeBackgrounds}
+            />
             <div className='min-h-screen w-full p-8'>
                 <div className='relative z-20 h-[calc(100vh-4rem)] w-full'>
                     {/* Timer + Todo */}
@@ -154,48 +133,14 @@ export const FocusMode = ({
                                 <button
                                     aria-label={isTodoExpanded ? '투두 접기' : '투두 펼치기'}
                                     className='inline-flex size-8 items-center justify-center rounded-full text-white hover:bg-white/10 hover:cursor-pointer'
-                                    onClick={() => setIsTodoExpanded((prev) => !prev)}
+                                    onClick={handleToggleTodoExpanded}
                                     type='button'
                                 >
                                     <Icon color='white' name={isTodoExpanded ? 'arrow_up' : 'arrow_down'} size={20} />
                                 </button>
                             </div>
 
-                            {isTodoExpanded ? (
-                                <div className='mt-4 flex flex-col gap-2.5'>
-                                    <TodoInput
-                                        ref={todoInputRef}
-                                        placeholder='할 일을 추가해보세요'
-                                        state={todoInputError ? 'error' : 'default'}
-                                        value={todoInputValue}
-                                        onChange={(event) => handleTodoInputChange(event.target.value)}
-                                        onActionClick={handleAddTodo}
-                                        onKeyDown={(event) => {
-                                            if (event.nativeEvent.isComposing || event.keyCode === 229) {
-                                                return;
-                                            }
-
-                                            if (event.key === 'Enter') {
-                                                event.preventDefault();
-                                                handleAddTodo();
-                                            }
-                                        }}
-                                    />
-                                    {todos.map((todo) => (
-                                        <TodoItem
-                                            key={todo.id}
-                                            checked={todo.checked}
-                                            label={todo.label}
-                                            maxChars={TODO_MAX_CHARS}
-                                            moreButton={false}
-                                            onCheckedChange={(checked) => updateTodoChecked(todo.id, checked)}
-                                            onDelete={() => removeTodo(todo.id)}
-                                            onEmptyBlur={() => removeTodo(todo.id)}
-                                            onLabelChange={(nextLabel) => updateTodoLabel(todo.id, nextLabel)}
-                                        />
-                                    ))}
-                                </div>
-                            ) : null}
+                            {isTodoExpanded ? <TodoPanel className='mt-4' tone='focus' /> : null}
                         </div>
                     </section>
 
@@ -213,7 +158,7 @@ export const FocusMode = ({
                         <Button
                             className={mainButtonClassName}
                             icon={<Icon color='white' name='fullscreen_close' />}
-                            onClick={onClose}
+                            onClick={handleClose}
                             size='md'
                             variant='outline'
                         >
@@ -249,3 +194,32 @@ export const FocusMode = ({
         </div>
     );
 };
+
+interface FocusModeBackgroundLayerProps {
+    backgroundSources: string[];
+    backgroundSlideClassNames: string[];
+}
+
+const FocusModeBackgroundLayer = memo(
+    ({ backgroundSources, backgroundSlideClassNames }: FocusModeBackgroundLayerProps) => {
+        return (
+            <>
+                <div className='absolute inset-0 z-0 overflow-hidden'>
+                    {backgroundSources.map((src, index) => (
+                        <img
+                            key={src}
+                            alt=''
+                            className={cx(
+                                'absolute top-0 -left-px h-full w-[calc(100%+2px)] max-w-none object-cover transition-transform duration-500 ease-in-out will-change-transform',
+                                backgroundSlideClassNames[index]
+                            )}
+                            src={src}
+                        />
+                    ))}
+                </div>
+                {/* 살짝 어둡게 하려면 투명도 조절 필요 */}
+                <div className='absolute inset-0 z-10 bg-black/10' />
+            </>
+        );
+    }
+);
