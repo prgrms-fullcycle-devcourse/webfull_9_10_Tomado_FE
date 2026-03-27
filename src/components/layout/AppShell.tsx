@@ -4,6 +4,7 @@ import { Outlet } from 'react-router-dom';
 import { DefaultHeader, GuestHeader } from '.';
 import { PlayerModal, Toast } from '@@/ui';
 import { useToast } from '@/hooks';
+import { FocusMode } from '@/features/timer';
 
 export type AppShellProps = {
     headerVariant?: 'default' | 'guest';
@@ -12,6 +13,7 @@ export type AppShellProps = {
 export default function AppShell({ headerVariant = 'default' }: AppShellProps) {
     const HeaderComponent = headerVariant === 'guest' ? GuestHeader : DefaultHeader;
     const [playerModalOpen, setPlayerModalOpen] = useState(false);
+    const [isFocusMode, setIsFocusMode] = useState(false);
     const { toasts } = useToast();
 
     const handleMusicClick = () => {
@@ -20,10 +22,19 @@ export default function AppShell({ headerVariant = 'default' }: AppShellProps) {
 
     return (
         <>
-            <HeaderComponent onMusicClick={handleMusicClick} />
+            <HeaderComponent onMusicClick={handleMusicClick} onFocusModeClick={() => setIsFocusMode(true)} />
+
             <Outlet />
-            {/* FocusModeOverlay는 나중에 여기서 전역으로 렌더링 */}
-            <PlayerModal onClose={() => setPlayerModalOpen(false)} open={playerModalOpen} title='배경음악 플레이어' />
+
+            <FocusMode open={isFocusMode} onMusicClick={handleMusicClick} onClose={() => setIsFocusMode(false)} />
+
+            <PlayerModal
+                onClose={() => setPlayerModalOpen(false)}
+                tone={isFocusMode ? 'focusmode' : 'default'}
+                open={playerModalOpen}
+                title='배경음악 플레이어'
+            />
+
             {toasts.length ? (
                 <div className='pointer-events-none fixed right-6 bottom-6 z-[70] flex flex-col items-end gap-2'>
                     {toasts.map((toast) => (
