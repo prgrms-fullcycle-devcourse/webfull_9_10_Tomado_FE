@@ -2,6 +2,7 @@ import type { ChangeEventHandler, HTMLAttributes, MouseEventHandler } from 'reac
 
 import { Icon, PlayerButton } from '.';
 import { useEscapeKey } from '@/hooks';
+import type { BgmPlayerItem } from '@@@/settings';
 
 export type PlayerModalTone = 'default' | 'focusmode';
 
@@ -16,6 +17,8 @@ export interface PlayerModalProps extends HTMLAttributes<HTMLDivElement> {
     playerVolume?: number;
     onPlayerVolumeChange?: ChangeEventHandler<HTMLInputElement>;
     playerPlaying?: boolean;
+    playerItems?: Array<BgmPlayerItem & { active?: boolean }>;
+    onPlayerItemSelect?: (itemId: string) => void;
     onPlayerPrevious?: () => void;
     onPlayerToggle?: () => void;
     onPlayerNext?: () => void;
@@ -87,9 +90,8 @@ const getPlayerCardInnerClassName = (active = false, tone: PlayerModalTone = 'de
               : 'border-neutral-subtle bg-transparent hover:border-neutral-lighter hover:bg-neutral-subtle'
     );
 };
-const renderCloseButton = (tone: PlayerModalTone = 'default', onClose?: () => void) => {
-    useEscapeKey(() => onClose?.(), { enabled: Boolean(onClose) });
 
+const renderCloseButton = (tone: PlayerModalTone = 'default', onClose?: () => void) => {
     if (!onClose) {
         return null;
     }
@@ -107,17 +109,19 @@ const renderCard = ({
     imageSrc,
     active = false,
     tone = 'default',
+    onClick,
 }: {
     title: string;
     description: string;
     imageSrc: string;
     active?: boolean;
     tone?: PlayerModalTone;
+    onClick?: () => void;
 }) => {
     return (
         <div className={playerCardItemClassName}>
             <div className={playerCardClassName}>
-                <button className={getPlayerCardInnerClassName(active, tone)} type='button'>
+                <button className={getPlayerCardInnerClassName(active, tone)} onClick={onClick} type='button'>
                     <div className={playerCardTextClassName}>
                         <p className={cx(playerCardTitleClassName, tone === 'focusmode' && 'text-white')}>{title}</p>
                         <p className={cx(playerCardDescriptionClassName, tone === 'focusmode' && 'text-white/70')}>
@@ -142,15 +146,21 @@ export const PlayerModal = ({
     playerVolume = 40,
     onPlayerVolumeChange,
     playerPlaying = true,
+    playerItems,
+    onPlayerItemSelect,
     onPlayerPrevious,
     onPlayerToggle,
     onPlayerNext,
     className,
     ...props
 }: PlayerModalProps) => {
+    useEscapeKey(() => onClose?.(), { enabled: open && Boolean(onClose) });
+
     if (!open) {
         return null;
     }
+
+    const modalPlayerItems = playerItems?.length ? playerItems : [];
 
     return (
         <div className={getOverlayClassName(inline)}>
@@ -181,25 +191,16 @@ export const PlayerModal = ({
 
                 <div>
                     <div className={playerCardsClassName}>
-                        {renderCard({
-                            title: 'Lo-fi',
-                            description: '아날로그 감성',
-                            imageSrc: '/img_player_01.png',
-                            tone,
-                        })}
-                        {renderCard({
-                            title: '빗소리',
-                            description: '집중을 돕는 빗소리',
-                            imageSrc: '/img_player_02.png',
-                            active: true,
-                            tone,
-                        })}
-                        {renderCard({
-                            title: '카페',
-                            description: '편안한 백색소음',
-                            imageSrc: '/img_player_03.png',
-                            tone,
-                        })}
+                        {modalPlayerItems.map((item) =>
+                            renderCard({
+                                title: item.title,
+                                description: item.description,
+                                imageSrc: item.imageSrc,
+                                active: item.active,
+                                tone,
+                                onClick: () => onPlayerItemSelect?.(item.id),
+                            })
+                        )}
                     </div>
 
                     <div className={playerVolumeSectionClassName}>
