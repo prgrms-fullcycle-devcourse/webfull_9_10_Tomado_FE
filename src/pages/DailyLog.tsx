@@ -1,5 +1,5 @@
 import { Input, SearchInput } from '@/components/form';
-import MdEditor from '@/components/form/MdEditor';
+import MdEditor from '@/features/log/components/MdEditor';
 import { Container, SectionHeader, SidebarContentLayout } from '@/components/layout';
 import { Badge, Button, DailyLogCard } from '@/components/ui';
 import { useState } from 'react';
@@ -21,7 +21,7 @@ export default function DailyLog() {
                 >
                     <aside className='h-full min-h-0'>
                         <section className={panelClassName}>
-                            <SearchInput placeholder='제목 또는 내용으로 검색하세요' shortcutLabel='F' />
+                            <SearchInput placeholder='제목 또는 내용으로 검색하세요' />
                             <div className='mt-4 mb-2 flex w-full justify-between'>
                                 <p className='text-neutral-darker'>전체</p>
                                 <Badge label='총 0건' />
@@ -50,7 +50,7 @@ export default function DailyLog() {
                                 title='2026년 3월 18일 수요일'
                                 type='sub'
                             />
-                            <Input className='mt-5 mb-2' placeholder='제목을 입력해 주세요' />
+                            <Input className='mt-5 mb-3' placeholder='제목을 입력해 주세요' />
                             <MdEditor content={content} contentChange={(value) => setContent(value || '')}></MdEditor>
                         </section>
                     </section>
