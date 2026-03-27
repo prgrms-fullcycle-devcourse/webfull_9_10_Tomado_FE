@@ -1,4 +1,5 @@
 import type { HTMLAttributes, ReactNode } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 import { Button, Icon } from '@@/ui';
 
@@ -81,6 +82,8 @@ export const DefaultHeader = ({
     onFocusModeClick,
     ...props
 }: DefaultHeaderProps) => {
+    const navigate = useNavigate();
+
     return (
         <Header
             {...props}
@@ -90,7 +93,7 @@ export const DefaultHeader = ({
                         <Button
                             key={`${item.href ?? item.label}-${item.label}`}
                             className={getNavItemClassName(item.active)}
-                            onClick={() => item.href && window.location.assign(item.href)}
+                            onClick={() => item.href && navigate(item.href)}
                             size='md'
                             variant='ghost'
                         >
@@ -100,9 +103,9 @@ export const DefaultHeader = ({
                 </nav>
             }
             leftSlot={
-                <a aria-label='메인으로 이동' href='/main'>
+                <Link aria-label='메인으로 이동' to='/main'>
                     <img alt='Toma:do' className={logoClassName} src='/logo.svg' />
-                </a>
+                </Link>
             }
             rightSlot={
                 <>
@@ -149,27 +152,29 @@ export const GuestHeader = ({
     brandHref = '/brandcenter',
     ...props
 }: GuestHeaderProps) => {
+    const navigate = useNavigate();
+
     return (
         <Header
             {...props}
             leftSlot={
-                <a aria-label='메인으로 이동' href='/main'>
+                <Link aria-label='메인으로 이동' to='/main'>
                     <img alt='Toma:do' className={logoClassName} src='/logo.svg' />
-                </a>
+                </Link>
             }
             centerSlot={
                 <div>
-                    <Button onClick={() => window.location.assign(brandHref)} size='md' variant='ghost'>
+                    <Button onClick={() => navigate(brandHref)} size='md' variant='ghost'>
                         브랜드센터
                     </Button>
                 </div>
             }
             rightSlot={
                 <div className={utilityActionsClassName}>
-                    <Button onClick={() => window.location.assign(signupHref)} size='md' variant='outline'>
+                    <Button onClick={() => navigate(signupHref)} size='md' variant='outline'>
                         회원가입
                     </Button>
-                    <Button onClick={() => window.location.assign(loginHref)} size='md'>
+                    <Button onClick={() => navigate(loginHref)} size='md'>
                         로그인
                     </Button>
                 </div>
