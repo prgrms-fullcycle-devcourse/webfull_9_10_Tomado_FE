@@ -110,7 +110,7 @@ export const useBgmPlayer = () => {
     const playerVolume = useBgmPlayerStore((state) => state.playerVolume);
     const playerPlaying = useBgmPlayerStore((state) => state.playerPlaying);
     const currentTrackId = useBgmPlayerStore((state) => state.currentTrackId);
-    const currentTime = useBgmPlayerStore((state) => state.currentTime);
+    // const currentTime = useBgmPlayerStore((state) => state.currentTime);
     const setPlayerVolume = useBgmPlayerStore((state) => state.setPlayerVolume);
     const setPlayerPlaying = useBgmPlayerStore((state) => state.setPlayerPlaying);
     const setCurrentTrackId = useBgmPlayerStore((state) => state.setCurrentTrackId);
