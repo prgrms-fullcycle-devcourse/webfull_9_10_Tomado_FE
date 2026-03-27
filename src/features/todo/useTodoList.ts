@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 
 import { useInputLimit, useToast } from '@/hooks';
 
@@ -23,11 +23,14 @@ export const useTodoList = () => {
         toastMessage: TODO_LIMIT_TOAST_MESSAGE,
     });
 
-    const handleTodoInputChange = (value: string) => {
-        setLimitedValue(value);
-    };
+    const handleTodoInputChange = useCallback(
+        (value: string) => {
+            setLimitedValue(value);
+        },
+        [setLimitedValue]
+    );
 
-    const handleAddTodo = () => {
+    const handleAddTodo = useCallback(() => {
         const nextTodo = todoInputValue.trim();
 
         if (!nextTodo || todoInputError) {
@@ -36,46 +39,49 @@ export const useTodoList = () => {
 
         setTodos((prev) => [{ id: Date.now(), label: nextTodo, checked: false }, ...prev]);
         setLimitedValue('');
-    };
+    }, [todoInputError, todoInputValue, setLimitedValue]);
 
-    const updateTodoLabel = (id: number, nextLabel: string) => {
+    const updateTodoLabel = useCallback((id: number, nextLabel: string) => {
         setTodos((prev) => prev.map((todo) => (todo.id === id ? { ...todo, label: nextLabel } : todo)));
-    };
+    }, []);
 
-    const updateTodoChecked = (id: number, checked: boolean) => {
+    const updateTodoChecked = useCallback((id: number, checked: boolean) => {
         setTodos((prev) => prev.map((todo) => (todo.id === id ? { ...todo, checked } : todo)));
-    };
+    }, []);
 
-    const removeTodo = (id: number) => {
-        const deletedIndex = todos.findIndex((todo) => todo.id === id);
+    const removeTodo = useCallback(
+        (id: number) => {
+            const deletedIndex = todos.findIndex((todo) => todo.id === id);
 
-        if (deletedIndex < 0) {
-            return;
-        }
+            if (deletedIndex < 0) {
+                return;
+            }
 
-        const deletedTodo = todos[deletedIndex];
+            const deletedTodo = todos[deletedIndex];
 
-        setTodos((prev) => prev.filter((todo) => todo.id !== id));
+            setTodos((prev) => prev.filter((todo) => todo.id !== id));
 
-        showToast(`투두 항목을 삭제했어요`, {
-            icon: true,
-            textButton: true,
-            textButtonLabel: '취소',
-            durationMs: 5000,
-            onTextButtonClick: () => {
-                setTodos((prev) => {
-                    if (prev.some((todo) => todo.id === deletedTodo.id)) {
-                        return prev;
-                    }
+            showToast(`투두 항목을 삭제했어요`, {
+                icon: true,
+                textButton: true,
+                textButtonLabel: '취소',
+                durationMs: 5000,
+                onTextButtonClick: () => {
+                    setTodos((prev) => {
+                        if (prev.some((todo) => todo.id === deletedTodo.id)) {
+                            return prev;
+                        }
 
-                    const nextTodos = [...prev];
-                    const restoredIndex = Math.min(deletedIndex, nextTodos.length);
-                    nextTodos.splice(restoredIndex, 0, deletedTodo);
-                    return nextTodos;
-                });
-            },
-        });
-    };
+                        const nextTodos = [...prev];
+                        const restoredIndex = Math.min(deletedIndex, nextTodos.length);
+                        nextTodos.splice(restoredIndex, 0, deletedTodo);
+                        return nextTodos;
+                    });
+                },
+            });
+        },
+        [todos, showToast]
+    );
 
     return {
         todos,
