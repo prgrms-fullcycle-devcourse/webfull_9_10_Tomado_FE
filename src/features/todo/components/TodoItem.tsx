@@ -1,83 +1,87 @@
 import { useEffect, useState } from 'react';
-import type { ButtonHTMLAttributes, HTMLAttributes, MouseEvent, MouseEventHandler } from 'react';
+import type { ChangeEventHandler, FocusEventHandler, HTMLAttributes, MouseEvent, MouseEventHandler } from 'react';
 
-import { Icon } from '@@/ui';
-
-export type TodoItemState = 'default' | 'filled' | 'focus' | 'empty';
+import { CheckBox } from '@@/form';
+import { Icon, Menu } from '@@/ui';
+import { useInputLimit } from '@/hooks';
 
 export interface TodoItemProps extends HTMLAttributes<HTMLDivElement> {
-    state?: TodoItemState;
     checked?: boolean;
     defaultChecked?: boolean;
     label?: string;
-    emptyText?: string;
+    placeholder?: string;
+    disabled?: boolean;
+    moreButton?: boolean;
+    maxChars?: number;
     checkboxLabel?: string;
     dragHandleLabel?: string;
-    checkboxButtonProps?: ButtonHTMLAttributes<HTMLButtonElement>;
-    dragHandleButtonProps?: ButtonHTMLAttributes<HTMLButtonElement>;
-    onCheckClick?: MouseEventHandler<HTMLButtonElement>;
-    onDragHandleClick?: MouseEventHandler<HTMLButtonElement>;
     onCheckedChange?: (checked: boolean) => void;
+    onLabelChange?: (label: string) => void;
+    onEmptyBlur?: () => void;
+    onMoveDate?: () => void;
+    onDelete?: () => void;
+    onDragHandleClick?: MouseEventHandler<HTMLButtonElement>;
 }
 
 const cx = (...classes: Array<string | false | null | undefined>) => {
     return classes.filter(Boolean).join(' ');
 };
 
-const todoItemStateClassNames: Record<Exclude<TodoItemState, 'empty'>, string> = {
-    default: 'bg-white',
-    filled: 'bg-white',
-    focus: 'bg-white shadow-md/10',
-};
-
-const getTodoItemClassName = (state: Exclude<TodoItemState, 'empty'> = 'default') => {
+const getTodoItemClassName = ({ focused = false, error = false }: { focused?: boolean; error?: boolean }) => {
     return cx(
-        'mx-2 my-3 flex w-full items-center gap-3 rounded-[0.65rem] px-3 py-2 transition-shadow duration-200 ease-out hover:cursor-pointer hover:shadow-md/10',
-        todoItemStateClassNames[state]
+        'relative flex h-10 w-full pl-1 pr-3 items-center gap-1 rounded-xl border-1 border-neutral-subtle bg-white transition-shadow duration-200 ease-out hover:shadow-2',
+        focused && 'border-1 border-primary',
+        error && 'border-1 border-danger'
     );
 };
 
-const todoItemEmptyClassName =
-    'mx-2 my-3 flex min-h-10 w-full items-center text-base leading-tight font-medium text-neutral';
+const buttonClassName =
+    'inline-flex h-10 shrink-0 items-center justify-center text-neutral hover:text-neutral-darker hover:cursor-pointer';
 
-const dragHandleButtonClassName =
-    'inline-flex h-7 shrink-0 items-center justify-center rounded-xl text-neutral transition-colors duration-200 ease-out hover:bg-neutral-subtle hover:text-neutral-darker focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20';
+const middleGroupClassName = 'flex min-w-0 flex-1 items-center gap-2.5';
+const textInputClassName =
+    'w-full min-w-0 border-none bg-transparent text-base font-medium text-ellipsis placeholder:text-neutral focus:outline-none';
 
-const dragHandleIconClassName = 'text-inherit';
-const checkboxIconClassName = 'text-inherit';
-
-const getCheckboxButtonClassName = ({ checked = false }: Pick<TodoItemProps, 'checked'>) => {
-    return cx(
-        'inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border-2 transition-colors duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20',
-        checked ? 'border-primary bg-primary text-white' : 'border-neutral-lighter bg-white text-transparent'
-    );
-};
-
-const getTodoLabelClassName = ({ state = 'default', checked = false }: Pick<TodoItemProps, 'state' | 'checked'>) => {
+const getTodoLabelClassName = ({ checked = false, filled = false }: { checked?: boolean; filled?: boolean }) => {
     if (checked) {
-        return 'truncate text-base font-medium text-neutral';
+        return 'text-neutral line-through decoration-neutral';
     }
 
-    return cx('truncate text-base font-medium', state === 'default' ? 'text-neutral' : 'text-black');
+    return filled ? 'text-gray-900' : 'text-neutral';
 };
 
 export const TodoItem = ({
-    state = 'default',
     checked,
     defaultChecked = false,
     label = '할일 작성',
-    emptyText = '아직 작성된 할 일이 없습니다',
+    placeholder = '할일 작성',
+    disabled = false,
+    moreButton = false,
+    maxChars = 30,
     checkboxLabel,
     dragHandleLabel = '순서 변경',
-    checkboxButtonProps,
-    dragHandleButtonProps,
-    onCheckClick,
+    onLabelChange,
+    onEmptyBlur,
+    onMoveDate,
+    onDelete,
     onDragHandleClick,
     onCheckedChange,
+    onFocus,
+    onBlur,
     className,
     ...props
 }: TodoItemProps) => {
     const [localChecked, setLocalChecked] = useState(checked ?? defaultChecked);
+    const [isFocused, setIsFocused] = useState(false);
+    const [menuOpen, setMenuOpen] = useState(false);
+    const {
+        value: draftLabel,
+        hasError: hasLengthError,
+        setLimitedValue,
+    } = useInputLimit({
+        maxChars,
+        toastMessage: '입력 가능한 글자 수를 초과하였습니다.',
+    });
 
     useEffect(() => {
         if (checked !== undefined) {
@@ -85,62 +89,120 @@ export const TodoItem = ({
         }
     }, [checked]);
 
+    useEffect(() => {
+        setLimitedValue(label);
+    }, [label, setLimitedValue]);
+
     const isChecked = localChecked;
+    const trimmedLabel = draftLabel.trim();
+    const isFilled = trimmedLabel.length > 0;
     const resolvedCheckboxLabel = checkboxLabel ?? (isChecked ? '완료한 할 일' : '미완료 할 일');
 
-    if (state === 'empty') {
-        return (
-            <div {...props} className={cx(todoItemEmptyClassName, className)}>
-                <p>{emptyText}</p>
-            </div>
-        );
-    }
-
-    const handleCheckClick = (event: MouseEvent<HTMLButtonElement>) => {
-        checkboxButtonProps?.onClick?.(event);
-        onCheckClick?.(event);
-
-        if (event.defaultPrevented) {
-            return;
-        }
-
-        const nextChecked = !isChecked;
+    const handleCheckedChange = (nextChecked: boolean) => {
         setLocalChecked(nextChecked);
         onCheckedChange?.(nextChecked);
     };
 
     const handleDragHandleClick = (event: MouseEvent<HTMLButtonElement>) => {
-        dragHandleButtonProps?.onClick?.(event);
+        if (disabled) {
+            return;
+        }
+
         onDragHandleClick?.(event);
     };
 
+    const handleInputChange: ChangeEventHandler<HTMLInputElement> = (event) => {
+        const nextLabel = setLimitedValue(event.target.value);
+        onLabelChange?.(nextLabel);
+    };
+
+    const handleInputFocus: FocusEventHandler<HTMLInputElement> = (event) => {
+        setIsFocused(true);
+        onFocus?.(event);
+    };
+
+    const handleInputBlur: FocusEventHandler<HTMLInputElement> = (event) => {
+        setIsFocused(false);
+        onBlur?.(event);
+
+        if (!event.target.value.trim()) {
+            onEmptyBlur?.();
+        }
+    };
+
     return (
-        <div {...props} className={cx(getTodoItemClassName(state), className)}>
+        <div {...props} className={cx(getTodoItemClassName({ focused: isFocused, error: hasLengthError }), className)}>
             <button
-                {...dragHandleButtonProps}
-                aria-label={dragHandleButtonProps?.['aria-label'] ?? dragHandleLabel}
-                className={cx(dragHandleButtonClassName, dragHandleButtonProps?.className)}
+                aria-label={dragHandleLabel}
+                className={buttonClassName}
+                disabled={disabled}
                 onClick={handleDragHandleClick}
-                type={dragHandleButtonProps?.type ?? 'button'}
+                type='button'
             >
-                <Icon className={dragHandleIconClassName} name='drag_indicator' size={18} />
+                <Icon name='drag_indicator' color='neutral' size={24} />
             </button>
 
-            <button
-                {...checkboxButtonProps}
-                aria-checked={isChecked}
-                aria-label={checkboxButtonProps?.['aria-label'] ?? resolvedCheckboxLabel}
-                className={cx(getCheckboxButtonClassName({ checked: isChecked }), checkboxButtonProps?.className)}
-                onClick={handleCheckClick}
-                role='checkbox'
-                type={checkboxButtonProps?.type ?? 'button'}
-            >
-                {isChecked ? <Icon className={checkboxIconClassName} name='check' size={18} /> : null}
-            </button>
+            <div className={middleGroupClassName}>
+                <CheckBox
+                    ariaLabel={resolvedCheckboxLabel}
+                    checked={isChecked}
+                    disabled={disabled}
+                    onCheckedChange={handleCheckedChange}
+                    size={24}
+                />
+                <input
+                    className={cx(textInputClassName, getTodoLabelClassName({ checked: isChecked, filled: isFilled }))}
+                    disabled={disabled}
+                    onBlur={handleInputBlur}
+                    onChange={handleInputChange}
+                    onFocus={handleInputFocus}
+                    placeholder={placeholder}
+                    type='text'
+                    value={draftLabel}
+                />
+            </div>
 
-            <p className={getTodoLabelClassName({ state, checked: isChecked })} style={{ lineHeight: 'normal' }}>
-                {label}
-            </p>
+            {moreButton ? (
+                <div
+                    className='relative -m-2 flex h-full items-center p-2'
+                    onMouseEnter={() => setMenuOpen(true)}
+                    onMouseLeave={() => setMenuOpen(false)}
+                >
+                    <button
+                        aria-label='더보기'
+                        className={buttonClassName}
+                        disabled={disabled}
+                        onClick={() => setMenuOpen((prev) => !prev)}
+                        type='button'
+                    >
+                        <Icon name='more' size={24} />
+                    </button>
+                    {menuOpen ? (
+                        <div className='absolute top-5 right-0 z-20 p-2'>
+                            <Menu
+                                inline
+                                items={[
+                                    {
+                                        label: '날짜 이동하기',
+                                        onClick: () => {
+                                            onMoveDate?.();
+                                            setMenuOpen(false);
+                                        },
+                                    },
+                                    {
+                                        label: '삭제하기',
+                                        tone: 'danger',
+                                        onClick: () => {
+                                            onDelete?.();
+                                            setMenuOpen(false);
+                                        },
+                                    },
+                                ]}
+                            />
+                        </div>
+                    ) : null}
+                </div>
+            ) : null}
         </div>
     );
 };

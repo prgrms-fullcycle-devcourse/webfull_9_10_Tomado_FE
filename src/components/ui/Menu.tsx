@@ -38,7 +38,7 @@ const getOverlayClassName = (inline = false) => {
 };
 
 const getSurfaceClassName = () => {
-    return 'relative w-[200px] overflow-hidden rounded-xl border border-neutral-lighter bg-white text-black shadow-shadow-1';
+    return 'relative w-[200px] overflow-hidden rounded-xl bg-white text-black shadow-3';
 };
 
 const getMenuItemClassName = (tone: MenuItemTone = 'default') => {

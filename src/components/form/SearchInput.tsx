@@ -17,7 +17,7 @@ const interactiveClassName = 'transition-shadow duration-200 ease-out hover:shad
 
 const getSearchInputWrapperClassName = ({ disabled = false }: { disabled?: boolean }) => {
     return cx(
-        'flex h-11 w-full items-center gap-2 rounded-xl border border-transparent bg-gray-50 px-4',
+        'flex h-10 w-full items-center gap-2 rounded-xl border border-transparent bg-gray-50 px-4',
         !disabled && interactiveClassName,
         disabled && 'bg-neutral-subtle'
     );
