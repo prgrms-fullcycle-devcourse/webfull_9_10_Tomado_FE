@@ -14,7 +14,8 @@ const cx = (...classes: Array<string | false | null | undefined>) => {
     return classes.filter(Boolean).join(' ');
 };
 
-const rootClassName = 'flex h-[48px] min-w-[300px] items-center gap-4 rounded-xl bg-gray-900 px-4 text-base text-white';
+const rootClassName =
+    'flex h-[48px] min-w-[300px] items-center gap-4 rounded-xl bg-gray-900/90 px-4 text-base text-white';
 
 const iconClassName = 'shrink-0 text-white';
 const labelClassName = 'truncate text-base text-white';
