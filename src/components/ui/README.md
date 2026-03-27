@@ -128,8 +128,20 @@ BGM 플레이어 모달.
 
 ```tsx
 <Badge label='0set' />
-<Badge label='1/3' tone='info' />
+<Badge iconName='check' label='1/3' />
 ```
+
+핵심 props:
+
+- `label: ReactNode` (필수)
+- `iconName?: string` (값이 있으면 아이콘 노출)
+
+스타일 스펙:
+
+- `h-5`, `w-fit`, `rounded-full`
+- 배경 `bg-neutral-darker`
+- 텍스트 `text-xs text-white`
+- 아이콘 `12px`, `white`
 
 ## Tag
 
@@ -147,6 +159,12 @@ BGM 플레이어 모달.
 ```tsx
 <Shortcut keys={['⌘', 'K']} />
 ```
+
+스타일 스펙(고정):
+
+- `h-4`, `min-w-4`, `w-fit`
+- `rounded-xs`
+- `px-1`, `pb-[1px]`
 
 ## Card
 

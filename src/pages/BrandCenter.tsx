@@ -647,7 +647,7 @@ export default function BrandCenter() {
                             <div className={selectionControlPreviewClassName}>
                                 <div className='flex flex-col items-center gap-8'>
                                     <Shortcut keys={['T', 'F', '+', '-', 'Esc']} />
-                                    <Shortcut keys={['Cmd', 'K']} size='sm' />
+                                    <Shortcut keys={['K']} />
                                 </div>
                             </div>
                         </article>

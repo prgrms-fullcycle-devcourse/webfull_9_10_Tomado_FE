@@ -2,46 +2,24 @@ import type { HTMLAttributes, ReactNode } from 'react';
 
 import { Icon } from '.';
 
-export type BadgeSize = 'sm' | 'md';
-
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
     label: ReactNode;
     iconName?: string;
-    size?: BadgeSize;
 }
 
 const cx = (...classes: Array<string | false | null | undefined>) => {
     return classes.filter(Boolean).join(' ');
 };
 
-const badgeSizeClassNames: Record<BadgeSize, { root: string; icon: number }> = {
-    sm: {
-        root: 'min-h-8 rounded-full px-3 text-sm leading-none',
-        icon: 14,
-    },
-    md: {
-        root: 'min-h-11 rounded-full px-5 text-2xl leading-none',
-        icon: 18,
-    },
-};
-
-const getBadgeClassName = ({ size = 'md' }: Pick<BadgeProps, 'size'>) => {
-    return cx(
-        'inline-flex items-center justify-center gap-2 bg-neutral-darker font-medium text-white',
-        badgeSizeClassNames[size].root
-    );
-};
-
-const getBadgeIconSize = (size: BadgeSize = 'md') => badgeSizeClassNames[size].icon;
+const badgeClassName =
+    'inline-flex h-5 w-fit items-center justify-center gap-1 rounded-full bg-neutral-darker px-2 text-xs leading-none font-medium text-white';
 
 const badgeIconClassName = 'text-inherit';
 
-export const Badge = ({ label, iconName, size = 'md', className, ...props }: BadgeProps) => {
+export const Badge = ({ label, iconName, className, ...props }: BadgeProps) => {
     return (
-        <span {...props} className={cx(getBadgeClassName({ size }), className)}>
-            {iconName ? (
-                <Icon className={badgeIconClassName} color='white' name={iconName} size={getBadgeIconSize(size)} />
-            ) : null}
+        <span {...props} className={cx(badgeClassName, className)}>
+            {iconName ? <Icon className={badgeIconClassName} color='white' name={iconName} size={12} /> : null}
             <span>{label}</span>
         </span>
     );

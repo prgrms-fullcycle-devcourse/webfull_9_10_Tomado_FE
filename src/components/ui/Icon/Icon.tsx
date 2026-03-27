@@ -37,6 +37,8 @@ export const Icon = forwardRef<HTMLSpanElement, IconProps>(
     ({ name, size = 24, color, className, label, ...props }, ref) => {
         const SvgComponent = iconComponentMap[name];
         const assetSrc = iconSrcMap[name];
+        const wrapperStyle = getFixedIconStyle(size);
+        const svgColorStyle = getIconSvgStyle(color);
 
         if (!SvgComponent && !assetSrc) {
             if (import.meta.env.DEV) {
@@ -74,7 +76,7 @@ export const Icon = forwardRef<HTMLSpanElement, IconProps>(
         }
 
         return (
-            <span {...sharedProps} style={{ ...getFixedIconStyle(size), ...getIconSvgStyle(color) }}>
+            <span {...sharedProps} style={svgColorStyle ? { ...wrapperStyle, ...svgColorStyle } : wrapperStyle}>
                 <SvgComponent
                     aria-hidden='true'
                     className='block'

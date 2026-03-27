@@ -1,6 +1,8 @@
 import type { ChangeEventHandler, HTMLAttributes, MouseEventHandler } from 'react';
 
 import { Icon, PlayerButton } from '.';
+import { useEscapeKey } from '@/hooks';
+import type { BgmPlayerItem } from '@@@/settings';
 
 export type PlayerModalTone = 'default' | 'focusmode';
 
@@ -15,6 +17,8 @@ export interface PlayerModalProps extends HTMLAttributes<HTMLDivElement> {
     playerVolume?: number;
     onPlayerVolumeChange?: ChangeEventHandler<HTMLInputElement>;
     playerPlaying?: boolean;
+    playerItems?: Array<BgmPlayerItem & { active?: boolean }>;
+    onPlayerItemSelect?: (itemId: string) => void;
     onPlayerPrevious?: () => void;
     onPlayerToggle?: () => void;
     onPlayerNext?: () => void;
@@ -34,8 +38,12 @@ const playerCardDescriptionClassName = 'truncate text-xs text-neutral';
 const playerCardImageClassName =
     'pointer-events-none absolute top-1/2 right-0 h-[66px] -translate-y-1/2 object-contain';
 const playerVolumeSectionClassName = 'flex items-center gap-3 px-4 py-2.5';
-const playerVolumeRangeClassName =
-    'h-1 w-full cursor-pointer appearance-none rounded-full bg-neutral-lighter accent-primary';
+const playerVolumeRangeClassName = (tone: PlayerModalTone = 'default') => {
+    return cx(
+        'h-1 w-full cursor-pointer appearance-none rounded-full bg-neutral-lighter',
+        tone === 'focusmode' ? 'accent-white' : 'accent-primary'
+    );
+};
 const playerTransportClassName = 'flex items-center justify-center gap-2.5 px-4 py-2.5';
 const playerHeaderClassName = 'p-1 bg-neutral-subtle';
 const playerHeaderInnerClassName = 'flex h-8 items-center justify-between bg-neutral-subtle px-2 text-neutral-darker';
@@ -52,9 +60,7 @@ const getOverlayClassName = (inline = false) => {
 const getSurfaceClassName = (tone: PlayerModalTone = 'default') => {
     return cx(
         'absolute top-[54px] right-[170px] w-full max-w-[221px] overflow-hidden rounded-2xl border shadow-shadow-1',
-        tone === 'focusmode'
-            ? 'border-white/15 bg-white/10 text-white backdrop-blur-2xl'
-            : 'border-neutral-lighter bg-white text-black'
+        tone === 'focusmode' ? '!glass-effect-base' : 'border-neutral-lighter bg-white text-black'
     );
 };
 
@@ -68,16 +74,20 @@ const getHeaderClassName = (tone: PlayerModalTone = 'default') => {
 
 const getCloseButtonClassName = (tone: PlayerModalTone = 'default') => {
     return tone === 'focusmode'
-        ? 'inline-flex size-6 cursor-pointer items-center justify-center text-white/80 transition-colors'
+        ? 'inline-flex size-6 cursor-pointer items-center justify-center !text-white/80 transition-colors'
         : 'inline-flex size-6 cursor-pointer items-center justify-center text-neutral-darker transition-colors';
 };
 
-const getPlayerCardInnerClassName = (active = false) => {
+const getPlayerCardInnerClassName = (active = false, tone: PlayerModalTone = 'default') => {
     return cx(
-        'relative flex w-full cursor-pointer items-center overflow-hidden rounded-xl border px-3 py-2.5 pr-[92px] transition-colors',
+        'relative flex w-full cursor-pointer items-center overflow-hidden !rounded-xl border px-3 py-2.5 pr-[92px] transition-colors',
         active
-            ? 'border-primary bg-primary-subtle'
-            : 'border-neutral-subtle bg-transparent hover:border-neutral-lighter hover:bg-neutral-subtle'
+            ? tone === 'focusmode'
+                ? '!glass-effect-strong'
+                : 'border-primary bg-primary-subtle'
+            : tone === 'focusmode'
+              ? 'bg-transparent border-white/5 hover:!border-white'
+              : 'border-neutral-subtle bg-transparent hover:border-neutral-lighter hover:bg-neutral-subtle'
     );
 };
 
@@ -99,17 +109,19 @@ const renderCard = ({
     imageSrc,
     active = false,
     tone = 'default',
+    onClick,
 }: {
     title: string;
     description: string;
     imageSrc: string;
     active?: boolean;
     tone?: PlayerModalTone;
+    onClick?: () => void;
 }) => {
     return (
         <div className={playerCardItemClassName}>
             <div className={playerCardClassName}>
-                <button className={getPlayerCardInnerClassName(active)} type='button'>
+                <button className={getPlayerCardInnerClassName(active, tone)} onClick={onClick} type='button'>
                     <div className={playerCardTextClassName}>
                         <p className={cx(playerCardTitleClassName, tone === 'focusmode' && 'text-white')}>{title}</p>
                         <p className={cx(playerCardDescriptionClassName, tone === 'focusmode' && 'text-white/70')}>
@@ -134,15 +146,21 @@ export const PlayerModal = ({
     playerVolume = 40,
     onPlayerVolumeChange,
     playerPlaying = true,
+    playerItems,
+    onPlayerItemSelect,
     onPlayerPrevious,
     onPlayerToggle,
     onPlayerNext,
     className,
     ...props
 }: PlayerModalProps) => {
+    useEscapeKey(() => onClose?.(), { enabled: open && Boolean(onClose) });
+
     if (!open) {
         return null;
     }
+
+    const modalPlayerItems = playerItems?.length ? playerItems : [];
 
     return (
         <div className={getOverlayClassName(inline)}>
@@ -161,7 +179,9 @@ export const PlayerModal = ({
                 role='dialog'
             >
                 <div className={getHeaderClassName(tone)}>
-                    <div className={cx(playerHeaderInnerClassName, tone === 'focusmode' && 'bg-white/6 text-white')}>
+                    <div
+                        className={cx(playerHeaderInnerClassName, tone === 'focusmode' && 'bg-transparent text-white')}
+                    >
                         <div className={cx(playerTitleClassName, tone === 'focusmode' && 'text-white')}>
                             {title ?? '배경음악 플레이어'}
                         </div>
@@ -171,36 +191,27 @@ export const PlayerModal = ({
 
                 <div>
                     <div className={playerCardsClassName}>
-                        {renderCard({
-                            title: 'Lo-fi',
-                            description: '아날로그 감성',
-                            imageSrc: '/img_player_01.png',
-                            tone,
-                        })}
-                        {renderCard({
-                            title: '빗소리',
-                            description: '집중을 돕는 빗소리',
-                            imageSrc: '/img_player_02.png',
-                            active: true,
-                            tone,
-                        })}
-                        {renderCard({
-                            title: '카페',
-                            description: '편안한 백색소음',
-                            imageSrc: '/img_player_03.png',
-                            tone,
-                        })}
+                        {modalPlayerItems.map((item) =>
+                            renderCard({
+                                title: item.title,
+                                description: item.description,
+                                imageSrc: item.imageSrc,
+                                active: item.active,
+                                tone,
+                                onClick: () => onPlayerItemSelect?.(item.id),
+                            })
+                        )}
                     </div>
 
                     <div className={playerVolumeSectionClassName}>
                         <Icon
-                            color={tone === 'focusmode' ? 'white' : 'color-neutral-darker'}
+                            color={tone === 'focusmode' ? 'color-white' : 'color-neutral-darker'}
                             name='volume_off'
                             size={16}
                         />
                         <input
                             aria-label='볼륨'
-                            className={playerVolumeRangeClassName}
+                            className={playerVolumeRangeClassName(tone)}
                             max={100}
                             min={0}
                             onChange={onPlayerVolumeChange}
@@ -208,7 +219,7 @@ export const PlayerModal = ({
                             value={playerVolume}
                         />
                         <Icon
-                            color={tone === 'focusmode' ? 'white' : 'color-neutral-darker'}
+                            color={tone === 'focusmode' ? 'color-white' : 'color-neutral-darker'}
                             name='volume_on'
                             size={16}
                         />
