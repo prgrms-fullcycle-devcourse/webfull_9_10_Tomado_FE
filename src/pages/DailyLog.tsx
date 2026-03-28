@@ -2,24 +2,31 @@ import { Input, SearchInput } from '@/components/form';
 import MdEditor from '@/features/log/components/MdEditor';
 import { Container, SectionHeader, SidebarContentLayout } from '@/components/layout';
 import { Badge, Button, DailyLogCard } from '@/components/ui';
-import { useState, useEffect } from 'react';
+import { useState, useRef } from 'react';
 
 export default function DailyLog() {
     const [content, setContent] = useState('');
+    const [title, setTitle] = useState('');
     const [autoSaveText, setAutoSaveText] = useState('');
     const [autoSaveSate, setAutoSaveSate] = useState<'' | 'writing' | 'saving' | 'saved' | 'error'>('');
+    const [isAutoSaveProgresing, setIsAutoSaveProgresing] = useState(false);
+    const [activeLog, setActiveLog] = useState<null | Log>(null);
 
     type Log = {
         id: string;
         user_id: string;
         log_date: string;
         content: string;
+        title: string;
         tags: string[];
         is_dirty: boolean;
         draft_content: null;
         created_at: string;
         updated_at: string;
     };
+
+    const panelClassName =
+        'flex h-full min-h-0 w-full flex-col items-center rounded-2xl bg-white px-6 py-5 shadow-shadow-1';
 
     const testLogArr = [
         {
@@ -72,26 +79,37 @@ export default function DailyLog() {
         },
     ];
 
-    useEffect(() => {
-        if (!content) return;
+    const contentChangeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-        setAutoSaveText('작성중... ');
-        const timer = setTimeout(() => {
+    const handleContentChange = (value: string) => {
+        setContent(value);
+
+        if (isAutoSaveProgresing) return;
+
+        setAutoSaveSate('writing');
+        setAutoSaveText('작성중...');
+
+        if (contentChangeTimerRef.current) {
+            clearTimeout(contentChangeTimerRef.current);
+        }
+
+        contentChangeTimerRef.current = setTimeout(() => {
             saveContent();
         }, 2000);
-
-        return () => clearTimeout(timer);
-    }, [content]);
+    };
 
     const saveContent = (): void => {
         setAutoSaveSate('saving');
-        setAutoSaveText('저장중... ');
+        setAutoSaveText('저장중...');
 
+        setIsAutoSaveProgresing(true);
         // TODO: 저장 API 다녀온 후
         setTimeout(() => {
             setAutoSaveSate('saved');
             setAutoSaveText('마지막 저장 방금 전');
-        }, 1000);
+
+            setIsAutoSaveProgresing(false);
+        }, 2000);
     };
 
     const relativeDate = (targetDate: string): string => {
@@ -109,16 +127,67 @@ export default function DailyLog() {
         if (diffDays <= 3) return `${diffDays}일 전`;
 
         // 그 이상은 날짜 출력
-        const m = String(target.getMonth() + 1).padStart(1, '0');
-        const d = String(target.getDate()).padStart(1, '0');
+        const m = String(target.getMonth() + 1);
+        const d = String(target.getDate());
 
         return `${m}월 ${d}일`;
     };
 
-    const handleLogClick = (log: Log): void => {};
+    const formatKoreanTime = (date: Date): string => {
+        const hours = date.getHours();
+        const minutes = String(date.getMinutes()).padStart(2, '0');
 
-    const panelClassName =
-        'flex h-full min-h-0 w-full flex-col items-center rounded-2xl bg-white px-6 py-5 shadow-shadow-1';
+        const period = hours < 12 ? '오전' : '오후';
+        const displayHour = hours % 12 === 0 ? 12 : hours % 12;
+
+        return `${period} ${displayHour}:${minutes}`;
+    };
+
+    const formatLastSaved = (targetDate: string): string => {
+        const now = new Date();
+        const target = new Date(targetDate);
+
+        if (Number.isNaN(target.getTime())) {
+            return '마지막 저장 -';
+        }
+
+        const diffMs = now.getTime() - target.getTime();
+        const diffSeconds = Math.floor(diffMs / 1000);
+        const diffMinutes = Math.floor(diffMs / (1000 * 60));
+        const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+
+        const relative = relativeDate(targetDate);
+
+        if (diffSeconds < 60) return '마지막 저장 방금 전';
+        if (diffMinutes < 60) return `마지막 저장 ${diffMinutes}분 전`;
+        if (diffHours < 12) return `마지막 저장 ${diffHours}시간 전`;
+
+        if (relative === '오늘') {
+            return `마지막 저장 ${formatKoreanTime(target)}`;
+        }
+
+        if (relative === '어제') {
+            return `마지막 저장 1일 전 ${formatKoreanTime(target)}`;
+        }
+
+        if (relative.includes('일 전')) {
+            return `마지막 저장 ${relative} ${formatKoreanTime(target)}`;
+        }
+
+        const yy = String(target.getFullYear()).slice(-2);
+        const mm = String(target.getMonth() + 1).padStart(2, '0');
+        const dd = String(target.getDate()).padStart(2, '0');
+
+        return `마지막 저장 ${yy}. ${mm}. ${dd} ${formatKoreanTime(target)}`;
+    };
+
+    const handleLogClick = (log: Log): void => {
+        setContent(log.content);
+        setTitle(log.title);
+        setActiveLog(log);
+        const lastSaved = formatLastSaved(log.updated_at);
+        setAutoSaveText(lastSaved);
+    };
 
     return (
         <Container className='overflow-hidden'>
@@ -172,9 +241,23 @@ export default function DailyLog() {
                                     {autoSaveText}
                                 </div>
                             </div>
-                            <Input className='mt-5 mb-3' placeholder='제목을 입력해 주세요' />
-                            <MdEditor content={content} contentChange={(value) => setContent(value || '')}></MdEditor>
-                            <Button className='mt-3 px-10' variant='filled' size='lg' disabled={!content}>
+                            <Input
+                                className='mt-5 mb-3'
+                                placeholder='제목을 입력해 주세요'
+                                value={title}
+                                onChange={(e) => setTitle(e.target.value)}
+                            />
+                            <MdEditor
+                                content={content}
+                                contentChange={(value) => handleContentChange(value || '')}
+                            ></MdEditor>
+                            <Button
+                                className='mt-3 px-10'
+                                variant='filled'
+                                size='lg'
+                                disabled={!content}
+                                onClick={saveContent}
+                            >
                                 저장
                             </Button>
                         </section>
