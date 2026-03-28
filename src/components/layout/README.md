@@ -49,7 +49,7 @@ import {
 
 ## Header
 
-헤더 shell + variant 묶음입니다.  
+헤더 shell + variant 묶음입니다.
 실사용은 대부분 `DefaultHeader`, `GuestHeader`로 시작하면 됩니다.
 
 ```tsx
@@ -129,7 +129,7 @@ import {
 
 ```tsx
 <SectionHeader title='2026. 03. 18' type='main' />
-<SectionHeader datePicker onNextClick={() => {}} onPrevClick={() => {}} title='2026년 3월 18일 수요일' type='sub' />
+<SectionHeader datePicker onNextClick={() => {}} onPreviousClick={() => {}} title='2026년 3월 18일 수요일' type='sub' />
 ```
 
 ## 체리픽 가이드

@@ -60,13 +60,13 @@ const categoryToneClassNames: Record<RetroCategoryTone, string> = {
 const cardDeleteButtonClassName =
     'inline-flex h-9 w-9 items-center justify-center rounded-xl text-neutral transition-colors duration-200 ease-out hover:bg-neutral-subtle hover:text-neutral-darker focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20';
 
-const cardDeleteIconClassName = 'text-inherit';
+const cardDeleteIconClassName = 'text-inherit hover:cursor-pointer';
 
 const getDailyLogCardClassName = (state: DailyLogCardState = 'default', hovered = false) => {
     const resolvedState = state === 'default' && hovered ? 'hover' : state;
 
     return cx(
-        'relative flex w-full flex-col justify-between gap-6 rounded-[1.75rem] px-6 py-7 text-left',
+        'relative flex w-full flex-col justify-between rounded-xl p-4 text-left',
         interactiveCardClassName,
         state === 'default' && 'hover:cursor-pointer',
         dailyLogCardStateClassNames[resolvedState]
@@ -74,12 +74,12 @@ const getDailyLogCardClassName = (state: DailyLogCardState = 'default', hovered 
 };
 
 const dailyLogHeaderClassName = 'flex items-start justify-between gap-4';
-const dailyLogContentClassName = 'flex min-w-0 flex-1 flex-col justify-between gap-6';
+const dailyLogContentClassName = 'flex min-w-0 flex-1 flex-col justify-between gap-3';
 const dailyLogTitleClassName =
-    'block h-[1em] min-w-0 max-w-full overflow-hidden text-ellipsis whitespace-nowrap align-bottom text-3xl leading-[1em] font-bold text-black';
+    'block overflow-hidden text-ellipsis whitespace-nowrap align-bottom text-lg leading-[1em] font-bold text-black';
 
 const getDailyLogDateClassName = (state: DailyLogCardState = 'default') => {
-    return cx('text-2xl leading-tight font-semibold', state === 'selected' ? 'text-primary' : 'text-neutral');
+    return cx('text-sm leading-tight font-normal', state === 'selected' ? 'text-primary' : 'text-neutral');
 };
 
 const getRetroCardClassName = (state: Exclude<RetroCardState, 'empty'> = 'default', hovered = false) => {
