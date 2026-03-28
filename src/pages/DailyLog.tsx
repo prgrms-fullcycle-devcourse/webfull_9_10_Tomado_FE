@@ -17,23 +17,23 @@ export default function DailyLog() {
     const [isOpenCalendar, setIsOpenCalendar] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date>(new Date('2026-03-18T00:00:00'));
 
-    const testdata = [
-        {
-            focus_date: '2026-03-26',
-            total_focus_sec: 5200,
-            completed_sessions: 3,
-        },
-        {
-            focus_date: '2026-03-27',
-            total_focus_sec: 7200,
-            completed_sessions: 4,
-        },
-        {
-            focus_date: '2026-03-28',
-            total_focus_sec: 4200,
-            completed_sessions: 2,
-        },
-    ];
+    // const testdata = [
+    //     {
+    //         focus_date: '2026-03-26',
+    //         total_focus_sec: 5200,
+    //         completed_sessions: 3,
+    //     },
+    //     {
+    //         focus_date: '2026-03-27',
+    //         total_focus_sec: 7200,
+    //         completed_sessions: 4,
+    //     },
+    //     {
+    //         focus_date: '2026-03-28',
+    //         total_focus_sec: 4200,
+    //         completed_sessions: 2,
+    //     },
+    // ];
 
     type Log = {
         id: string;
