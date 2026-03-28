@@ -1,7 +1,10 @@
-import { SectionHeader, DoubleColumnLayout, Container } from '@@/layout';
-import { Badge } from '@@/ui';
-import { TimerPanel, useTimerSession } from '@@@/timer';
-import { TodoPanel } from '@@@/todo';
+import { Container } from '@@/layout/Container';
+import { DoubleColumnLayout } from '@@/layout/DoubleColumnLayout';
+import { SectionHeader } from '@@/layout/SectionHeader';
+import { Badge } from '@@/ui/Badge';
+import { TimerPanel } from '@@@/timer/components/TimerPanel';
+import { useTimerSession } from '@@@/timer/useTimerSession';
+import { TodoPanel } from '@@@/todo/components/TodoPanel';
 
 const panelClassName = 'flex flex-col items-center  h-full w-full rounded-2xl bg-white px-6 py-5 shadow-shadow-1';
 const panelHeadingRowClassName = 'flex items-start w-full justify-between';

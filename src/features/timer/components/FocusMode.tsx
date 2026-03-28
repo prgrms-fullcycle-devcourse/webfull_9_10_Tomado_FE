@@ -2,7 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { HTMLAttributes, ReactNode } from 'react';
 
 import { useDirectionKey, useEscapeKey, useToast } from '@/hooks';
-import { Button, Icon, PlayerButton } from '@@/ui';
+import { Button } from '@@/ui/Button';
+import { Icon } from '@@/ui/Icon/Icon';
+import { PlayerButton } from '@@/ui/PlayerButton';
 import { TodoPanel } from '@@@/todo';
 import {
     SessionIndicator,
