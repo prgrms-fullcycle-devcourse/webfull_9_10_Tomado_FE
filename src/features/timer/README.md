@@ -15,8 +15,40 @@
     - `tone='default' | 'focusmode'` 지원
 - `TomatoVisual`
     - 토마토 시각화 컴포넌트
+- `TimerPanel`
+    - 메인 화면 타이머 UI
+    - 시간 문자열, 진행률, 재생/정지 액션을 props로 받아 렌더링만 담당
 - `FocusMode`
     - 집중 모드 컴포넌트
+
+## 파일별 역할
+
+- `useTimerStore.ts`
+    - 타이머의 전역 원본 상태를 저장하는 zustand store
+    - `sessionType`, `remainingSeconds`, `isRunning`, `stopConfirmOpen`, `lastTickAt`, `activeSessionId`를 관리
+    - 집중/휴식/장휴식 세션 상태머신과 4세션 1세트 규칙을 관리
+    - 시작/일시정지/토글/tick/중단 확인 관련 액션을 제공
+- `useTimerSession.ts`
+    - store를 읽어서 화면에서 바로 쓰기 좋은 값으로 조합하는 도메인 훅
+    - `timerParts`, `progress`, `hasStarted`, `sessionLabel` 같은 파생값을 계산
+    - UI에서 쓰는 액션 이름으로 store 액션을 다시 노출
+- `components/TimerTicker.tsx`
+    - 전역 타이머를 실제로 진행시키는 실행기
+    - 앱 루트에서 한 번만 마운트되어 1초마다 `tick()`을 호출
+    - 여러 화면이 같은 타이머를 봐도 interval이 중복 생성되지 않게 함
+- `components/TimerPanel.tsx`
+    - 타이머 UI 전용 프리젠테이셔널 컴포넌트
+    - store를 직접 읽지 않고 props만 받아 렌더링
+- `components/FocusMode.tsx`
+    - 전역 오버레이 집중 모드 UI
+    - 배경 슬라이더, 좌우 배경 전환, TODO 접힘/펼침을 담당
+    - 타이머는 `useTimerSession`을 통해 메인 화면과 같은 세션 상태를 공유
+- `useFocusModeBackground.ts`
+    - 집중 모드 배경 슬라이드 애니메이션 상태 관리 훅
+    - 이전/다음 배경 전환과 각 배경 이미지의 slide class 계산을 담당
+- `useFocusModeStore.ts`
+    - 집중 모드 배경 index를 persist하는 store
+    - 앱을 다시 열어도 마지막 배경 선택값을 유지
 
 ## 최근 작업 로그
 
