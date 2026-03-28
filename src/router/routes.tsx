@@ -1,10 +1,22 @@
+import { Suspense, lazy } from 'react';
 import { Navigate } from 'react-router-dom';
 import { AppShell } from '@@/layout';
-import { Main, Landing, Dashboard, DailyLog, Retro, My, Login, Signup, BrandCenter } from '@/pages';
 
 import ProtectedRoute from './ProtectedRoute';
 import PublicOnlyRoute from './PublicOnlyRoute';
 import { isAuthenticated } from './auth';
+
+const Main = lazy(() => import('@/pages/Main'));
+const Landing = lazy(() => import('@/pages/Landing'));
+const Dashboard = lazy(() => import('@/pages/Dashboard'));
+const DailyLog = lazy(() => import('@/pages/DailyLog'));
+const Retro = lazy(() => import('@/pages/Retro'));
+const My = lazy(() => import('@/pages/My'));
+const Login = lazy(() => import('@/pages/Login'));
+const Signup = lazy(() => import('@/pages/Signup'));
+const BrandCenter = lazy(() => import('@/pages/BrandCenter'));
+
+const withSuspense = (element: React.ReactNode) => <Suspense fallback={null}>{element}</Suspense>;
 
 export const routes = [
     {
@@ -12,27 +24,19 @@ export const routes = [
         children: [
             {
                 path: '/',
-                element: isAuthenticated ? <Navigate to='/main' replace /> : <Landing />,
+                element: isAuthenticated ? <Navigate to='/main' replace /> : withSuspense(<Landing />),
             },
             {
                 path: '/login',
-                element: (
-                    <PublicOnlyRoute>
-                        <Login />
-                    </PublicOnlyRoute>
-                ),
+                element: <PublicOnlyRoute>{withSuspense(<Login />)}</PublicOnlyRoute>,
             },
             {
                 path: '/signup',
-                element: (
-                    <PublicOnlyRoute>
-                        <Signup />
-                    </PublicOnlyRoute>
-                ),
+                element: <PublicOnlyRoute>{withSuspense(<Signup />)}</PublicOnlyRoute>,
             },
             {
                 path: '/brandcenter',
-                element: <BrandCenter />,
+                element: withSuspense(<BrandCenter />),
             },
         ],
     },
@@ -41,43 +45,23 @@ export const routes = [
         children: [
             {
                 path: '/main',
-                element: (
-                    <ProtectedRoute>
-                        <Main />
-                    </ProtectedRoute>
-                ),
+                element: <ProtectedRoute>{withSuspense(<Main />)}</ProtectedRoute>,
             },
             {
                 path: '/dashboard',
-                element: (
-                    <ProtectedRoute>
-                        <Dashboard />
-                    </ProtectedRoute>
-                ),
+                element: <ProtectedRoute>{withSuspense(<Dashboard />)}</ProtectedRoute>,
             },
             {
                 path: '/dailylog',
-                element: (
-                    <ProtectedRoute>
-                        <DailyLog />
-                    </ProtectedRoute>
-                ),
+                element: <ProtectedRoute>{withSuspense(<DailyLog />)}</ProtectedRoute>,
             },
             {
                 path: '/retro',
-                element: (
-                    <ProtectedRoute>
-                        <Retro />
-                    </ProtectedRoute>
-                ),
+                element: <ProtectedRoute>{withSuspense(<Retro />)}</ProtectedRoute>,
             },
             {
                 path: '/my',
-                element: (
-                    <ProtectedRoute>
-                        <My />
-                    </ProtectedRoute>
-                ),
+                element: <ProtectedRoute>{withSuspense(<My />)}</ProtectedRoute>,
             },
         ],
     },
