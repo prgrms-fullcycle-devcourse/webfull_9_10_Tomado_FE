@@ -1,16 +1,39 @@
 import { Input, SearchInput } from '@/components/form';
 import MdEditor from '@/features/log/components/MdEditor';
 import { Container, SectionHeader, SidebarContentLayout } from '@/components/layout';
-import { Badge, Button, DailyLogCard } from '@/components/ui';
-import { useState, useRef } from 'react';
+import { Badge, Button, DailyLogCard, Icon } from '@/components/ui';
+import { useEffect, useRef, useState } from 'react';
+import Calendar from '@/components/ui/Calendar';
 
 export default function DailyLog() {
+    const today = new Date();
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
     const [content, setContent] = useState('');
     const [title, setTitle] = useState('');
     const [autoSaveText, setAutoSaveText] = useState('');
     const [autoSaveSate, setAutoSaveSate] = useState<'' | 'writing' | 'saving' | 'saved' | 'error'>('');
     const [isAutoSaveProgresing, setIsAutoSaveProgresing] = useState(false);
-    const [activeLog, setActiveLog] = useState<null | Log>(null);
+    const [isOpenCalendar, setIsOpenCalendar] = useState(false);
+    const [selectedDate, setSelectedDate] = useState<Date>(new Date('2026-03-18T00:00:00'));
+
+    const testdata = [
+        {
+            focus_date: '2026-03-26',
+            total_focus_sec: 5200,
+            completed_sessions: 3,
+        },
+        {
+            focus_date: '2026-03-27',
+            total_focus_sec: 7200,
+            completed_sessions: 4,
+        },
+        {
+            focus_date: '2026-03-28',
+            total_focus_sec: 4200,
+            completed_sessions: 2,
+        },
+    ];
 
     type Log = {
         id: string;
@@ -80,6 +103,25 @@ export default function DailyLog() {
     ];
 
     const contentChangeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const calendarWrapperRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        if (!isOpenCalendar) {
+            return;
+        }
+
+        const handlePointerDownOutside = (event: MouseEvent) => {
+            if (!calendarWrapperRef.current?.contains(event.target as Node)) {
+                setIsOpenCalendar(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handlePointerDownOutside);
+
+        return () => {
+            document.removeEventListener('mousedown', handlePointerDownOutside);
+        };
+    }, [isOpenCalendar]);
 
     const handleContentChange = (value: string) => {
         setContent(value);
@@ -184,9 +226,40 @@ export default function DailyLog() {
     const handleLogClick = (log: Log): void => {
         setContent(log.content);
         setTitle(log.title);
-        setActiveLog(log);
+        setSelectedDate(new Date(`${log.log_date}T00:00:00`));
         const lastSaved = formatLastSaved(log.updated_at);
         setAutoSaveText(lastSaved);
+    };
+
+    const formatSectionHeaderDate = (date: Date): string => {
+        return date.toLocaleDateString('ko-KR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            weekday: 'long',
+        });
+    };
+
+    const handleCalendarDateSelect = (date: Date) => {
+        if (date.getTime() > todayStart.getTime()) {
+            return;
+        }
+
+        setSelectedDate(date);
+        setIsOpenCalendar(false);
+    };
+
+    const moveSelectedDate = (days: number) => {
+        setSelectedDate((currentDate) => {
+            const nextDate = new Date(currentDate);
+            nextDate.setDate(currentDate.getDate() + days);
+
+            if (nextDate.getTime() > todayStart.getTime()) {
+                return currentDate;
+            }
+
+            return nextDate;
+        });
     };
 
     return (
@@ -224,14 +297,40 @@ export default function DailyLog() {
                     </aside>
                     <section className='h-full min-h-0'>
                         <section className={panelClassName + ' items-end'}>
-                            <div className='flex w-full'>
-                                <SectionHeader
-                                    datePicker
-                                    onNextClick={() => {}}
-                                    onPreviousClick={() => {}}
-                                    title='2026년 3월 18일 수요일'
-                                    type='sub'
-                                />
+                            <div
+                                ref={calendarWrapperRef}
+                                className='relative flex w-full items-center justify-between gap-4'
+                            >
+                                <div className='flex min-w-0 items-center gap-2.5'>
+                                    <button
+                                        aria-label='이전 날짜로 이동'
+                                        className='inline-flex shrink-0 items-center justify-center rounded-lg text-gray-700 transition-colors hover:text-neutral-darker hover:cursor-pointer'
+                                        onClick={() => moveSelectedDate(-1)}
+                                        type='button'
+                                    >
+                                        <Icon name='arrow_left' size={20} />
+                                    </button>
+
+                                    <button
+                                        className='inline-flex min-w-0 items-center rounded-lg px-3 py-2 transition-colors hover:bg-neutral-subtle hover:cursor-pointer'
+                                        onClick={() => setIsOpenCalendar((prev) => !prev)}
+                                        type='button'
+                                    >
+                                        <p className='truncate text-2xl leading-none font-bold text-black'>
+                                            {formatSectionHeaderDate(selectedDate)}
+                                        </p>
+                                    </button>
+
+                                    <button
+                                        aria-label='다음 날짜로 이동'
+                                        className='inline-flex shrink-0 items-center justify-center rounded-lg text-gray-700 transition-colors hover:text-neutral-darker disabled:text-neutral disabled:cursor-not-allowed hover:cursor-pointer'
+                                        disabled={selectedDate.getTime() >= todayStart.getTime()}
+                                        onClick={() => moveSelectedDate(1)}
+                                        type='button'
+                                    >
+                                        <Icon name='arrow_right' size={20} />
+                                    </button>
+                                </div>
                                 <div className='flex items-center text-neutral text-sm whitespace-nowrap'>
                                     {autoSaveSate === 'saving' ? (
                                         <div className='animate-spin h-4 w-4 border-3 border-gray-300 border-t-primary rounded-full mr-1' />
@@ -240,7 +339,18 @@ export default function DailyLog() {
                                     )}
                                     {autoSaveText}
                                 </div>
+
+                                {isOpenCalendar ? (
+                                    <div className='absolute top-full left-0 z-20 mt-2 w-[22rem] max-w-full rounded-2xl border border-neutral-lighter bg-white p-4 shadow-shadow-1'>
+                                        <Calendar
+                                            maxDate={todayStart}
+                                            selectedDate={selectedDate}
+                                            onSelectDate={handleCalendarDateSelect}
+                                        />
+                                    </div>
+                                ) : null}
                             </div>
+
                             <Input
                                 className='mt-5 mb-3'
                                 placeholder='제목을 입력해 주세요'
