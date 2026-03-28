@@ -3,9 +3,9 @@ import { Outlet } from 'react-router-dom';
 
 import { DefaultHeader, GuestHeader } from '.';
 import { useSpaceKey, useToast } from '@/hooks';
-import { PlayerModal, Toast } from '@@/ui';
+import { Modal, PlayerModal, Toast } from '@@/ui';
 import { useBgmPlayer } from '@@@/settings';
-import { FocusMode } from '@@@/timer';
+import { FocusMode, useTimerSession } from '@@@/timer';
 
 export type AppShellProps = {
     headerVariant?: 'default' | 'guest';
@@ -16,6 +16,7 @@ export default function AppShell({ headerVariant = 'default' }: AppShellProps) {
     const [playerModalOpen, setPlayerModalOpen] = useState(false);
     const [isFocusMode, setIsFocusMode] = useState(false);
     const { toasts } = useToast();
+    const { stopConfirmOpen, handleCloseStopConfirm, handleConfirmStopTimer } = useTimerSession();
     const {
         playerItems,
         playerVolume,
@@ -47,6 +48,23 @@ export default function AppShell({ headerVariant = 'default' }: AppShellProps) {
             <Outlet />
 
             <FocusMode open={isFocusMode} onMusicClick={handleMusicClick} onClose={() => setIsFocusMode(false)} />
+
+            <Modal
+                open={stopConfirmOpen}
+                tone='danger'
+                title='집중 세션 중단'
+                description={
+                    <>
+                        세션 중단 시 기록은 저장되지 않아요
+                        <br />
+                        그래도 중단 하시겠어요?
+                    </>
+                }
+                onClose={handleCloseStopConfirm}
+                confirmLabel='중단하기'
+                onCancel={handleCloseStopConfirm}
+                onConfirm={handleConfirmStopTimer}
+            />
 
             <PlayerModal
                 onClose={() => setPlayerModalOpen(false)}
