@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { ButtonHTMLAttributes, HTMLAttributes, MouseEvent, MouseEventHandler } from 'react';
 
-import { Icon } from '.';
+import { Icon, Tag } from '.';
 
 export type DailyLogCardState = 'default' | 'selected' | 'hover';
 export type RetroCardState = DailyLogCardState | 'empty';
@@ -51,22 +51,22 @@ const retroCardStateClassNames: Record<Exclude<RetroCardState, 'empty'>, string>
 };
 
 const categoryToneClassNames: Record<RetroCategoryTone, string> = {
-    danger: 'border-danger text-danger',
+    danger: '!border-danger !text-danger',
     warning: 'border-yellow-400 text-yellow-400',
-    info: 'border-info text-info',
+    info: '!border-info !text-info',
     success: 'border-success-darker text-success-darker',
 };
 
 const cardDeleteButtonClassName =
-    'inline-flex h-9 w-9 items-center justify-center rounded-xl text-neutral transition-colors duration-200 ease-out hover:bg-neutral-subtle hover:text-neutral-darker focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20';
+    'inline-flex p-1 justify-center rounded-xl text-neutral transition-colors duration-200 ease-out hover:bg-neutral-subtle hover:text-neutral-darker focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20';
 
-const cardDeleteIconClassName = 'text-inherit';
+const cardDeleteIconClassName = 'text-inherit hover:cursor-pointer';
 
 const getDailyLogCardClassName = (state: DailyLogCardState = 'default', hovered = false) => {
     const resolvedState = state === 'default' && hovered ? 'hover' : state;
 
     return cx(
-        'relative flex w-full flex-col justify-between gap-6 rounded-[1.75rem] px-6 py-7 text-left',
+        'relative flex w-full flex-col justify-between rounded-xl p-4 text-left',
         interactiveCardClassName,
         state === 'default' && 'hover:cursor-pointer',
         dailyLogCardStateClassNames[resolvedState]
@@ -74,19 +74,19 @@ const getDailyLogCardClassName = (state: DailyLogCardState = 'default', hovered 
 };
 
 const dailyLogHeaderClassName = 'flex items-start justify-between gap-4';
-const dailyLogContentClassName = 'flex min-w-0 flex-1 flex-col justify-between gap-6';
+const dailyLogContentClassName = 'flex min-w-0 flex-1 flex-col justify-between gap-3';
 const dailyLogTitleClassName =
-    'block h-[1em] min-w-0 max-w-full overflow-hidden text-ellipsis whitespace-nowrap align-bottom text-3xl leading-[1em] font-bold text-black';
+    'block overflow-hidden text-ellipsis whitespace-nowrap align-bottom text-lg leading-[1em] font-bold text-black';
 
 const getDailyLogDateClassName = (state: DailyLogCardState = 'default') => {
-    return cx('text-2xl leading-tight font-semibold', state === 'selected' ? 'text-primary' : 'text-neutral');
+    return cx('text-sm leading-tight font-normal', state === 'selected' ? 'text-primary' : 'text-neutral');
 };
 
 const getRetroCardClassName = (state: Exclude<RetroCardState, 'empty'> = 'default', hovered = false) => {
     const resolvedState = state === 'default' && hovered ? 'hover' : state;
 
     return cx(
-        'relative flex w-full flex-col gap-7 rounded-[1.75rem] px-6 py-7 text-left',
+        'relative flex w-full flex-col justify-between rounded-xl p-4 text-left',
         interactiveCardClassName,
         state === 'default' && 'hover:cursor-pointer',
         retroCardStateClassNames[resolvedState]
@@ -94,17 +94,13 @@ const getRetroCardClassName = (state: Exclude<RetroCardState, 'empty'> = 'defaul
 };
 
 const retroDateRowClassName = 'flex items-start justify-between gap-4';
-const retroDateClassName = 'block min-w-0 max-w-full truncate pr-4 pb-2 text-3xl leading-none font-medium text-black';
-const retroCategoryListClassName = 'flex flex-wrap items-center gap-2.5';
+const retroDateClassName = 'block min-w-0 max-w-full truncate pb-4 text-lg leading-none font-medium text-black';
+const retroCategoryListClassName = 'flex flex-wrap items-center gap-1';
 
 const getRetroCategoryItemClassName = (tone: RetroCategoryTone) => {
-    return cx(
-        'inline-flex h-11 items-center gap-2 rounded-xl border bg-white/60 px-4 text-xl leading-none font-medium',
-        categoryToneClassNames[tone]
-    );
+    return cx(categoryToneClassNames[tone]);
 };
 
-const retroCategoryIconClassName = 'text-inherit';
 const retroEmptyClassName =
     'flex min-h-44 w-full items-center justify-center rounded-[1.75rem] text-center text-3xl leading-tight font-bold text-neutral';
 
@@ -166,7 +162,7 @@ export const DailyLogCard = ({
                         onClick={handleDeleteClick}
                         type={deleteButtonProps?.type ?? 'button'}
                     >
-                        <Icon className={cardDeleteIconClassName} name='delete' size={22} />
+                        <Icon className={cardDeleteIconClassName} name='delete' size={20} />
                     </button>
                 ) : null}
             </div>
@@ -231,7 +227,7 @@ export const RetroCard = ({
                         onClick={handleDeleteClick}
                         type={deleteButtonProps?.type ?? 'button'}
                     >
-                        <Icon className={cardDeleteIconClassName} name='delete' size={22} />
+                        <Icon className={cardDeleteIconClassName} name='delete' size={20} />
                     </button>
                 ) : null}
             </div>
@@ -239,13 +235,12 @@ export const RetroCard = ({
             <div className={retroCategoryListClassName}>
                 {categories.map((category) => {
                     return (
-                        <span
+                        <Tag
                             key={`${category.iconName}-${category.label}`}
+                            iconName={category.iconName}
+                            label={category.label}
                             className={getRetroCategoryItemClassName(category.tone)}
-                        >
-                            <Icon className={retroCategoryIconClassName} name={category.iconName} size={18} />
-                            <span>{category.label}</span>
-                        </span>
+                        />
                     );
                 })}
             </div>

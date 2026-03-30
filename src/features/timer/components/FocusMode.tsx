@@ -1,10 +1,18 @@
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { HTMLAttributes, ReactNode } from 'react';
 
 import { useDirectionKey, useEscapeKey, useToast } from '@/hooks';
-import { Button, Icon, PlayerButton } from '@@/ui';
+import { Button } from '@@/ui/Button';
+import { Icon } from '@@/ui/Icon/Icon';
+import { PlayerButton } from '@@/ui/PlayerButton';
 import { TodoPanel } from '@@@/todo';
-import { SessionIndicator, focusModeBackgrounds, useFocusModeBackground } from '@@@/timer';
+import {
+    SessionIndicator,
+    focusModeBackgrounds,
+    useFocusModeBackground,
+    FocusModeBackgroundLayer,
+    useTimerSession,
+} from '@@@/timer';
 
 const backgroundNavButtonWrapperClassName = 'bottom-0 group absolute inset-y-40 z-30 w-28 hover:cursor-pointer';
 
@@ -41,6 +49,14 @@ export const FocusMode = ({
     const { backgroundSlideClassNames, handleNextBackground, handlePrevBackground } = useFocusModeBackground({
         backgroundIndex,
     });
+    const {
+        isRunning,
+        hasStarted,
+        sessionIndicatorFilledCount,
+        timerParts,
+        handleToggleTimer,
+        handleRequestStopTimer,
+    } = useTimerSession();
     const handleClose = useCallback(() => onClose?.(), [onClose]);
     const handleToggleTodoExpanded = useCallback(() => setIsTodoExpanded((prev) => !prev), []);
     const handleTodoExpand = useCallback(() => setIsTodoExpanded(true), []);
@@ -106,13 +122,16 @@ export const FocusMode = ({
                     <section className='absolute top-0 left-0 z-100 flex w-[360px] flex-col gap-2'>
                         <div className='glass-effect-base px-5 py-4 text-white'>
                             <div className='flex flex-col items-center gap-2.5'>
-                                <SessionIndicator tone='focusmode' />
-                                <div className='text-4xl font-bold tabular-nums h-15 flex items-center'>23:12</div>
+                                <SessionIndicator filledCount={sessionIndicatorFilledCount} tone='focusmode' />
+                                <div className='text-4xl font-bold tabular-nums h-15 flex items-center'>
+                                    {timerParts.minutes}:{timerParts.seconds}
+                                </div>
                                 <div className='flex items-center gap-6'>
                                     <PlayerButton
-                                        aria-label='일시정지'
+                                        aria-label={isRunning ? '일시정지' : '재생'}
                                         className='!border-white !bg-transparent !text-white hover:!bg-white/10'
-                                        icon={<Icon color='white' name='pause' />}
+                                        icon={<Icon color='white' name={isRunning ? 'pause' : 'play'} />}
+                                        onClick={handleToggleTimer}
                                         size='sm'
                                         variant='outline'
                                     />
@@ -120,6 +139,8 @@ export const FocusMode = ({
                                         aria-label='정지'
                                         className='!border-transparent !bg-transparent !text-white hover:!bg-white/10'
                                         icon={<Icon color='white' name='stop' />}
+                                        disabled={!isRunning && !hasStarted}
+                                        onClick={handleRequestStopTimer}
                                         size='sm'
                                         variant='ghost'
                                     />
@@ -194,32 +215,3 @@ export const FocusMode = ({
         </div>
     );
 };
-
-interface FocusModeBackgroundLayerProps {
-    backgroundSources: string[];
-    backgroundSlideClassNames: string[];
-}
-
-const FocusModeBackgroundLayer = memo(
-    ({ backgroundSources, backgroundSlideClassNames }: FocusModeBackgroundLayerProps) => {
-        return (
-            <>
-                <div className='absolute inset-0 z-0 overflow-hidden'>
-                    {backgroundSources.map((src, index) => (
-                        <img
-                            key={src}
-                            alt=''
-                            className={cx(
-                                'absolute top-0 -left-px h-full w-[calc(100%+2px)] max-w-none object-cover transition-transform duration-500 ease-in-out will-change-transform',
-                                backgroundSlideClassNames[index]
-                            )}
-                            src={src}
-                        />
-                    ))}
-                </div>
-                {/* 살짝 어둡게 하려면 투명도 조절 필요 */}
-                <div className='absolute inset-0 z-10 bg-black/10' />
-            </>
-        );
-    }
-);

@@ -37,7 +37,7 @@ const getLeadingIconClassName = ({ disabled = false }: { disabled?: boolean }) =
 export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
     ({ className, fieldClassName, inputClassName, disabled = false, ...props }, ref) => {
         return (
-            <div className={className}>
+            <div className={cx('w-full', className)}>
                 <div className={cx(getSearchInputWrapperClassName({ disabled }), fieldClassName)}>
                     <Icon className={getLeadingIconClassName({ disabled })} name='search' size={16} />
                     <input
