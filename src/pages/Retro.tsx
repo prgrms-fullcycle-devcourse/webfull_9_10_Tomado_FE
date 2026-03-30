@@ -49,18 +49,18 @@ export default function Retro() {
         tech: ['배운 기술이에요', ' 적용한 기술이에요', '기술적 어려움 이에요', '다음에 시도할 내용이에요'],
     });
 
-    type Retro = {
-        id: string;
-        user_id: string;
-        log_date: string;
-        content: string;
-        title: string;
-        tags: string[];
-        is_dirty: boolean;
-        draft_content: null;
-        created_at: string;
-        updated_at: string;
-    };
+    // type Retro = {
+    //     id: string;
+    //     user_id: string;
+    //     log_date: string;
+    //     content: string;
+    //     title: string;
+    //     tags: string[];
+    //     is_dirty: boolean;
+    //     draft_content: null;
+    //     created_at: string;
+    //     updated_at: string;
+    // };
 
     type ContentState = {
         [key: string]: string[];
@@ -102,12 +102,18 @@ export default function Retro() {
         });
     };
 
-    const handleRetroClick = (retro: Retro): void => {
-        // setContent(log.content);
-        // setTitle(log.title);
-        // setSelectedDate(new Date(`${log.log_date}T00:00:00`));
-        // const lastSaved = formatLastSaved(log.updated_at);
-        // setAutoSaveText(lastSaved);
+    // const handleRetroClick = (retro: Retro): void => {
+    // setContent(log.content);
+    // setTitle(log.title);
+    // setSelectedDate(new Date(`${log.log_date}T00:00:00`));
+    // const lastSaved = formatLastSaved(log.updated_at);
+    // setAutoSaveText(lastSaved);
+    // };
+
+    const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>, type: string, index: number) => {
+        const newArr = [...(content[type] || [])];
+        newArr[index] = e.target.value;
+        setContent({ [type]: newArr });
     };
 
     const relativeDate = (targetDate: string): string => {
@@ -237,24 +243,28 @@ export default function Retro() {
                                     label='오늘 배운 기술'
                                     placeholder='어떤 기술이나 도구를 배웠나요?'
                                     value={content['tech'][0]}
+                                    onChange={(e) => handleTextareaChange(e, 'tech', 0)}
                                 />
                                 <TextArea
                                     className='h-full flex flex-col min-h-0 [&_label+div]:flex-1 [&_textarea]:flex-1 [&_textarea]:min-h-0 [&_textarea]:resize-none [&_textarea]:overflow-y-auto'
                                     label='적용한 기술'
                                     placeholder='실제로 어떻게 적용했나요?'
                                     value={content['tech'][1]}
+                                    onChange={(e) => handleTextareaChange(e, 'tech', 1)}
                                 />
                                 <TextArea
                                     className='h-full flex flex-col min-h-0 [&_label+div]:flex-1 [&_textarea]:flex-1 [&_textarea]:min-h-0 [&_textarea]:resize-none [&_textarea]:overflow-y-auto'
                                     label='기술적 어려움'
                                     placeholder='어떤 기술적 문제를 만났나요?'
                                     value={content['tech'][2]}
+                                    onChange={(e) => handleTextareaChange(e, 'tech', 2)}
                                 />
                                 <TextArea
                                     className='h-full flex flex-col min-h-0 [&_label+div]:flex-1 [&_textarea]:flex-1 [&_textarea]:min-h-0 [&_textarea]:resize-none [&_textarea]:overflow-y-auto'
                                     label='다음에 시도할 것'
                                     placeholder='다음에 시도해볼 기술은 무엇인가요?'
                                     value={content['tech'][3]}
+                                    onChange={(e) => handleTextareaChange(e, 'tech', 3)}
                                 />
                             </div>
 
