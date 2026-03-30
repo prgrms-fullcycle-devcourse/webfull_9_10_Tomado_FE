@@ -1,6 +1,18 @@
 import { useState } from 'react';
 
-import { Button, ButtonGroup, Badge, Modal, Shortcut, Toast, Tag, StatsTooltip, Menu, PlayerModal } from '@@/ui';
+import {
+    Button,
+    ButtonGroup,
+    Badge,
+    Modal,
+    Shortcut,
+    Toast,
+    Tag,
+    StatsTooltip,
+    Menu,
+    PlayerModal,
+    Tooltip,
+} from '@@/ui';
 import { CheckBox, Radio, SegmentedControl, Toggle } from '@@/form';
 import { SectionHeader } from '@@/layout';
 
@@ -752,6 +764,7 @@ export default function BrandCenter() {
                                 </Button>
                             </div>
                             <div className={playerModalFocusMode ? focusPreviewClassName : modalPreviewClassName}>
+                                {/* TODO: modal import 변경된 방식(Lazy Layer)으로 적용 */}
                                 <PlayerModal
                                     inline
                                     title='배경음악 플레이어'
@@ -780,13 +793,16 @@ export default function BrandCenter() {
                         <p className={headingClassName}>Feedback</p>
                         <h2 className='mt-2 text-2xl font-semibold text-black'>Tooltip</h2>
                         <p className='mt-2 text-sm text-neutral-darker sm:text-base'>
-                            날짜와 포모도로 요약 정보를 보여주는 툴팁 기본형입니다.
+                            히트맵 요약 정보 또는 타이머의 남은 실행 시간을 보여주는 툴팁입니다.
                         </p>
                     </div>
 
                     <div className='grid gap-5 lg:grid-cols-2'>
                         <article className={panelClassName}>
                             <StatsTooltip date='2026년 3월 18일' pomodoroValue='8세션' focusTimeValue='10시간 20분' />
+                        </article>
+                        <article className={panelClassName}>
+                            <Tooltip label='남은 시간 24분 46초' />
                         </article>
                     </div>
                 </section>
