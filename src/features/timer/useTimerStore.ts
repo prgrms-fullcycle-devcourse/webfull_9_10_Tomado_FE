@@ -32,6 +32,9 @@ interface TimerStoreState extends TimerDurations {
     focusSessionInSet: number;
     completedFocusSessions: number;
     completedSets: number;
+    // INFO: 자연 종료로 세션이 전환되면, 어떤 세션이 끝났는지 알림 훅에서 읽을 수 있도록 기록한다.
+    lastCompletedSessionType: TimerSessionType | null;
+    lastCompletedAt: number | null;
     // INFO: 마지막 tick 시각을 기준으로 실제 경과 시간을 계산한다.
     lastTickAt: number | null;
     setDurations: (durations: Partial<TimerDurations>, options?: SetDurationsOptions) => void;
@@ -122,6 +125,8 @@ export const useTimerStore = create<TimerStoreState>()((set) => ({
     focusSessionInSet: 1,
     completedFocusSessions: 0,
     completedSets: 0,
+    lastCompletedSessionType: null,
+    lastCompletedAt: null,
     lastTickAt: null,
     setDurations: (durations, options) =>
         set((state) => {
@@ -197,6 +202,8 @@ export const useTimerStore = create<TimerStoreState>()((set) => ({
                 return {
                     ...state,
                     ...getNextSessionState(state, { autoStart: true, now }),
+                    lastCompletedSessionType: state.sessionType,
+                    lastCompletedAt: now,
                 };
             }
 
