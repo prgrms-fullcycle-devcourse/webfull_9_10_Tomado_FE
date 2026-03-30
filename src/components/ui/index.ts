@@ -11,6 +11,7 @@ export { Shortcut } from './Shortcut';
 export { Badge } from './Badge';
 export { Tooltip, StatsTooltip } from './Tooltip';
 export { DailyLogCard, RetroCard } from './Card';
+export { Calendar } from './Calendar';
 
 export type {
     CardActionProps,

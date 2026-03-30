@@ -1,7 +1,6 @@
-import { SearchInput, SegmentedControl, TextArea } from '@/components/form';
-import { Container, SectionHeader, SidebarContentLayout } from '@/components/layout';
-import { Badge, Button, Icon, RetroCard } from '@/components/ui';
-import Calendar from '@/components/ui/Calendar';
+import { SearchInput, SegmentedControl, TextArea } from '@@/form';
+import { Container, SectionHeader, SidebarContentLayout } from '@@/layout';
+import { Badge, Button, Calendar, Icon, RetroCard } from '@@/ui';
 import { useRef, useState } from 'react';
 
 export default function Retro() {

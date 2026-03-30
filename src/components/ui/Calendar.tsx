@@ -30,7 +30,7 @@ const formatDate = (date: Date): string => {
     return `${y}-${m}-${d}`;
 };
 
-const Calendar = ({ tileContent = [], selectedDate, onSelectDate, maxDate }: CalendarProps) => {
+export const Calendar = ({ tileContent = [], selectedDate, onSelectDate, maxDate }: CalendarProps) => {
     const mapByDate = tileContent.reduce(
         (acc, item) => {
             acc[item.focus_date] = item;
@@ -65,5 +65,3 @@ const Calendar = ({ tileContent = [], selectedDate, onSelectDate, maxDate }: Cal
         </div>
     );
 };
-
-export default Calendar;
