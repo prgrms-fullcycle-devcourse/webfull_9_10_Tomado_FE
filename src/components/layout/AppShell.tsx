@@ -1,10 +1,10 @@
 import { Suspense, lazy, useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 
 import { DefaultHeader, GuestHeader } from '.';
 import { useSpaceKey, useToast } from '@/hooks';
 import { Modal, Toast } from '@@/ui';
-import { FocusMode, useTimerSession } from '@@@/timer';
+import { FocusMode, TimerProgressBar, useTimerSession } from '@@@/timer';
 
 const LazyBgmPlayerLayer = lazy(() =>
     import('@@@/settings/components/BgmPlayerLayer').then((module) => ({
@@ -18,6 +18,7 @@ export type AppShellProps = {
 
 export default function AppShell({ headerVariant = 'default' }: AppShellProps) {
     const HeaderComponent = headerVariant === 'guest' ? GuestHeader : DefaultHeader;
+    const location = useLocation();
     const [playerModalOpen, setPlayerModalOpen] = useState(false);
     const [shouldLoadBgmPlayer, setShouldLoadBgmPlayer] = useState(false);
     const [pendingBgmToggle, setPendingBgmToggle] = useState(false);
@@ -44,9 +45,13 @@ export default function AppShell({ headerVariant = 'default' }: AppShellProps) {
         setIsFocusMode(true);
     };
 
+    const shouldShowTimerProgressBar = headerVariant === 'default' && location.pathname !== '/main' && !isFocusMode;
+
     return (
         <>
             <HeaderComponent onMusicClick={handleMusicClick} onFocusModeClick={handleFocusModeOpen} />
+
+            {shouldShowTimerProgressBar ? <TimerProgressBar /> : null}
 
             <Outlet />
 
