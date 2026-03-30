@@ -1,19 +1,20 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 
 import { useInputLimit, useToast } from '@/hooks';
+import { getTodayDate } from '../../utils/dateUtils';
+import { useTodoStore } from './useTodoStore';
 
 export const TODO_MAX_CHARS = 30;
 const TODO_LIMIT_TOAST_MESSAGE = '입력 가능한 글자 수를 초과하였습니다.';
 
-export interface Todo {
-    id: number;
-    label: string;
-    checked: boolean;
-}
-
 export const useTodoList = () => {
-    const [todos, setTodos] = useState<Todo[]>([]);
     const { showToast } = useToast();
+    const todos = useTodoStore((state) => state.todos);
+    const addTodo = useTodoStore((state) => state.addTodo);
+    const updateTodoLabel = useTodoStore((state) => state.updateTodoLabel);
+    const updateTodoChecked = useTodoStore((state) => state.updateTodoChecked);
+    const removeTodoFromStore = useTodoStore((state) => state.removeTodo);
+    const restoreTodo = useTodoStore((state) => state.restoreTodo);
     const {
         value: todoInputValue,
         hasError: todoInputError,
@@ -22,6 +23,11 @@ export const useTodoList = () => {
         maxChars: TODO_MAX_CHARS,
         toastMessage: TODO_LIMIT_TOAST_MESSAGE,
     });
+    const todayTodoDate = getTodayDate();
+    const visibleTodos = useMemo(
+        () => todos.filter((todo) => todo.assignedDate === todayTodoDate).sort((a, b) => a.order - b.order),
+        [todayTodoDate, todos]
+    );
 
     const handleTodoInputChange = useCallback(
         (value: string) => {
@@ -37,29 +43,23 @@ export const useTodoList = () => {
             return;
         }
 
-        setTodos((prev) => [{ id: Date.now(), label: nextTodo, checked: false }, ...prev]);
+        addTodo(nextTodo, todayTodoDate);
         setLimitedValue('');
-    }, [todoInputError, todoInputValue, setLimitedValue]);
-
-    const updateTodoLabel = useCallback((id: number, nextLabel: string) => {
-        setTodos((prev) => prev.map((todo) => (todo.id === id ? { ...todo, label: nextLabel } : todo)));
-    }, []);
-
-    const updateTodoChecked = useCallback((id: number, checked: boolean) => {
-        setTodos((prev) => prev.map((todo) => (todo.id === id ? { ...todo, checked } : todo)));
-    }, []);
+    }, [addTodo, todoInputError, todoInputValue, setLimitedValue, todayTodoDate]);
 
     const removeTodo = useCallback(
         (id: number) => {
-            const deletedIndex = todos.findIndex((todo) => todo.id === id);
+            const deletedIndex = visibleTodos.findIndex((todo) => todo.id === id);
 
             if (deletedIndex < 0) {
                 return;
             }
 
-            const deletedTodo = todos[deletedIndex];
+            const deletedTodo = removeTodoFromStore(id);
 
-            setTodos((prev) => prev.filter((todo) => todo.id !== id));
+            if (!deletedTodo) {
+                return;
+            }
 
             showToast(`투두 항목을 삭제했어요`, {
                 icon: true,
@@ -67,24 +67,15 @@ export const useTodoList = () => {
                 textButtonLabel: '취소',
                 durationMs: 5000,
                 onTextButtonClick: () => {
-                    setTodos((prev) => {
-                        if (prev.some((todo) => todo.id === deletedTodo.id)) {
-                            return prev;
-                        }
-
-                        const nextTodos = [...prev];
-                        const restoredIndex = Math.min(deletedIndex, nextTodos.length);
-                        nextTodos.splice(restoredIndex, 0, deletedTodo);
-                        return nextTodos;
-                    });
+                    restoreTodo(deletedTodo, deletedIndex);
                 },
             });
         },
-        [todos, showToast]
+        [removeTodoFromStore, restoreTodo, showToast, visibleTodos]
     );
 
     return {
-        todos,
+        todos: visibleTodos,
         todoInputValue,
         todoInputError,
         handleTodoInputChange,
