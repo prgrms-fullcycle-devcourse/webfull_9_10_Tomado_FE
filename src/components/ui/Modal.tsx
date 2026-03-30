@@ -20,10 +20,6 @@ export interface ModalProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'
     onBackdropClick?: MouseEventHandler<HTMLButtonElement>;
 }
 
-const cx = (...classes: Array<string | false | null | undefined>) => {
-    return classes.filter(Boolean).join(' ');
-};
-
 const overlayBackdropClassName = 'absolute inset-0';
 const standardCloseButtonWrapperClassName = 'absolute top-4 right-4';
 const standardContentClassName = 'flex flex-col items-center px-3 pt-12 pb-2 text-center';
