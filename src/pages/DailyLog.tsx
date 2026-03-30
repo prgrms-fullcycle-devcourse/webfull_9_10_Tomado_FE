@@ -3,7 +3,7 @@ import MdEditor from '@/features/log/components/MdEditor';
 import { Container, SectionHeader, SidebarContentLayout } from '@/components/layout';
 import { Badge, Button, DailyLogCard, Icon } from '@/components/ui';
 import { useEffect, useRef, useState } from 'react';
-import Calendar from '@/components/ui/Calendar';
+import { Calendar } from '@@/ui';
 
 export default function DailyLog() {
     const today = new Date();
