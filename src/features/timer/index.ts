@@ -8,6 +8,7 @@ export { TimerTicker } from './components/TimerTicker';
 
 export { useFocusModeBackground, focusModeBackgrounds } from './useFocusModeBackground';
 export { useTimerMetadata } from './useTimerMetadata';
+export { useTimerNotifications } from './useTimerNotifications';
 export { useTimerSession } from './useTimerSession';
 
 export { useFocusModeBackgroundStore } from './useFocusModeStore';
