@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { Button, ButtonGroup, Badge, Modal, Shortcut, Toast, Tag, Tooltip, Menu, PlayerModal } from '@@/ui';
+import { Button, ButtonGroup, Badge, Modal, Shortcut, Toast, Tag, StatsTooltip, Menu, PlayerModal } from '@@/ui';
 import { CheckBox, Radio, SegmentedControl, Toggle } from '@@/form';
 import { SectionHeader } from '@@/layout';
 
@@ -786,7 +786,7 @@ export default function BrandCenter() {
 
                     <div className='grid gap-5 lg:grid-cols-2'>
                         <article className={panelClassName}>
-                            <Tooltip date='2026년 3월 18일' pomodoroValue='8세션' focusTimeValue='10시간 20분' />
+                            <StatsTooltip date='2026년 3월 18일' pomodoroValue='8세션' focusTimeValue='10시간 20분' />
                         </article>
                     </div>
                 </section>
