@@ -88,7 +88,7 @@ const getNextSessionState = (state: TimerStoreState, options?: { autoStart?: boo
             ...runningState,
             focusSessionInSet: state.focusSessionInSet,
             completedFocusSessions: nextCompletedFocusSessions,
-            completedSets: state.completedSets,
+            completedSets: completedCurrentSet ? state.completedSets + 1 : state.completedSets,
         };
     }
 
@@ -109,7 +109,7 @@ const getNextSessionState = (state: TimerStoreState, options?: { autoStart?: boo
         ...runningState,
         focusSessionInSet: 1,
         completedFocusSessions: state.completedFocusSessions,
-        completedSets: state.completedSets + 1,
+        completedSets: state.completedSets,
     };
 };
 
