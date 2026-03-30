@@ -38,11 +38,8 @@ const getOverlayClassName = (inline = false) => {
     return 'fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4';
 };
 
-const getSurfaceClassName = (tone: ModalTone = 'default') => {
-    return cx(
-        'relative w-full max-w-[400px] min-w-[280px] rounded-3xl border bg-white p-4 shadow-shadow-1',
-        tone === 'danger' ? 'border-danger-lighter text-black' : 'border-neutral-lighter text-black'
-    );
+const getSurfaceClassName = () => {
+    return 'relative w-full max-w-[400px] min-w-[280px] rounded-3xl border bg-white p-4 shadow-1 border-neutral-lighter';
 };
 
 const getTitleClassName = () => {
@@ -139,12 +136,7 @@ export const Modal = ({
                     type='button'
                 />
             ) : null}
-            <div
-                {...props}
-                aria-modal={inline ? undefined : true}
-                className={cx(getSurfaceClassName(tone), className)}
-                role='dialog'
-            >
+            <div {...props} aria-modal={inline ? undefined : true} className={getSurfaceClassName()} role='dialog'>
                 {closeButton ? renderCloseButton(onClose) : null}
                 <div className={standardContentClassName}>
                     {title ? <div className={getTitleClassName()}>{title}</div> : null}
