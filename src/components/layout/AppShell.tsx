@@ -4,7 +4,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { DefaultHeader, GuestHeader } from '.';
 import { useSpaceKey, useToast } from '@/hooks';
 import { Modal, Toast } from '@@/ui';
-import { FocusMode, TimerProgressBar, useTimerMetadata, useTimerSession } from '@@@/timer';
+import { FocusMode, TimerProgressBar, useTimerMetadata, useTimerNotifications, useTimerSession } from '@@@/timer';
 
 const LazyBgmPlayerLayer = lazy(() =>
     import('@@@/settings/components/BgmPlayerLayer').then((module) => ({
@@ -33,6 +33,7 @@ export default function AppShell({ headerVariant = 'default' }: AppShellProps) {
         minutes: timerParts.minutes,
         seconds: timerParts.seconds,
     });
+    useTimerNotifications();
 
     useSpaceKey(
         () => {
