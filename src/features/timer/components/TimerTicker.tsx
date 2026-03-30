@@ -12,17 +12,12 @@ export const TimerTicker = () => {
 
         // INFO: TimerTicker는 전역 타이머를 실제로 진행시키는 실행기다.
         // INFO: Main, FocusMode 등 여러 화면이 같은 세션을 봐도 ticker는 앱 전체에서 하나만 돌도록 루트에 마운트한다.
-        // INFO: requestAnimationFrame으로 더 자주 시각을 확인해 setInterval 드리프트 때문에 2초씩 건너뛰어 보이는 현상을 줄인다.
-        let frameId = 0;
-
-        const run = () => {
+        // INFO: 백그라운드 탭에서도 멈추지 않도록 requestAnimationFrame 대신 interval로 tick을 발생시킨다.
+        const intervalId = window.setInterval(() => {
             tick(Date.now());
-            frameId = window.requestAnimationFrame(run);
-        };
+        }, 250);
 
-        frameId = window.requestAnimationFrame(run);
-
-        return () => window.cancelAnimationFrame(frameId);
+        return () => window.clearInterval(intervalId);
     }, [isRunning, tick]);
 
     return null;
