@@ -4,13 +4,7 @@ import { Outlet } from 'react-router-dom';
 import { DefaultHeader, GuestHeader } from '.';
 import { useSpaceKey, useToast } from '@/hooks';
 import { Modal, Toast } from '@@/ui';
-import { useTimerSession } from '@@@/timer';
-
-const LazyFocusMode = lazy(() =>
-    import('@@@/timer/components/FocusMode').then((module) => ({
-        default: module.FocusMode,
-    }))
-);
+import { FocusMode, useTimerSession } from '@@@/timer';
 
 const LazyBgmPlayerLayer = lazy(() =>
     import('@@@/settings/components/BgmPlayerLayer').then((module) => ({
@@ -28,7 +22,6 @@ export default function AppShell({ headerVariant = 'default' }: AppShellProps) {
     const [shouldLoadBgmPlayer, setShouldLoadBgmPlayer] = useState(false);
     const [pendingBgmToggle, setPendingBgmToggle] = useState(false);
     const [isFocusMode, setIsFocusMode] = useState(false);
-    const [shouldLoadFocusMode, setShouldLoadFocusMode] = useState(false);
     const { toasts } = useToast();
     const { stopConfirmOpen, handleCloseStopConfirm, handleConfirmStopTimer } = useTimerSession();
 
@@ -48,7 +41,6 @@ export default function AppShell({ headerVariant = 'default' }: AppShellProps) {
     };
 
     const handleFocusModeOpen = () => {
-        setShouldLoadFocusMode(true);
         setIsFocusMode(true);
     };
 
@@ -58,15 +50,7 @@ export default function AppShell({ headerVariant = 'default' }: AppShellProps) {
 
             <Outlet />
 
-            {shouldLoadFocusMode ? (
-                <Suspense fallback={null}>
-                    <LazyFocusMode
-                        open={isFocusMode}
-                        onMusicClick={handleMusicClick}
-                        onClose={() => setIsFocusMode(false)}
-                    />
-                </Suspense>
-            ) : null}
+            <FocusMode open={isFocusMode} onMusicClick={handleMusicClick} onClose={() => setIsFocusMode(false)} />
 
             <Modal
                 open={stopConfirmOpen}
