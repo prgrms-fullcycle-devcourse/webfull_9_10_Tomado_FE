@@ -42,7 +42,7 @@ const segmentedControlSizeClassNames: Record<SegmentedControlSize, { root: strin
 };
 
 const getSegmentedControlClassName = ({
-    size = 'lg',
+    size = 'sm',
     disabled = false,
 }: Pick<SegmentedControlProps, 'size' | 'disabled'>) => {
     return cx(
@@ -53,7 +53,7 @@ const getSegmentedControlClassName = ({
 };
 
 const getSegmentButtonClassName = ({
-    size = 'lg',
+    size = 'sm',
     selected = false,
     disabled = false,
 }: Pick<SegmentedControlProps, 'size' | 'disabled'> & { selected?: boolean }) => {
@@ -76,7 +76,7 @@ export const SegmentedControl = ({
     options,
     value,
     defaultValue,
-    size = 'lg',
+    size = 'sm',
     ariaLabel = 'Segmented control',
     onValueChange,
     className,
