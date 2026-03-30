@@ -20,6 +20,7 @@ export default function Main() {
         timerProgress,
         handleToggleTimer,
         handleRequestStopTimer,
+        completedSets,
     } = useTimerSession();
 
     return (
@@ -31,7 +32,7 @@ export default function Main() {
                     <section className={`${panelClassName} relative`}>
                         <div className={panelHeadingRowClassName}>
                             <h2 className={panelHeadingClassName}>TODAY</h2>
-                            <Badge label='0set' />
+                            <Badge label={`${completedSets}set`} />
                         </div>
                         <TimerPanel
                             hasStarted={hasStarted}
