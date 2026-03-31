@@ -1,7 +1,6 @@
 export { useDirectionKey } from './useDirectionKey';
-export { useEscapeKey } from './useEscapeKey';
+export { useGlobalKeyboardShortcuts } from './useGlobalKeyboardShortcuts';
 export { useInputFocus } from './useInputFocus';
 export { useInputLimit } from './useInputLimit';
-export { useSpaceKey } from './useSpaceKey';
 export { useSubmitOnEnter } from './useSubmitOnEnter';
 export { ToastProvider, useToast } from './useToast';
