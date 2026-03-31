@@ -7,7 +7,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { Modal, Calendar } from '@@/ui';
 import { useTodoList, TODO_MAX_CHARS, TodoInput, TodoItem, useTodoStore, type Todo } from '@@@/todo';
 import { useInputFocus, useSubmitOnEnter } from '@/hooks';
-import { getTodayDate, formatTodayDate, parseTodayDate } from '@/utils';
+import { getTodayDate, formatDate, parseDate } from '@/utils';
 
 type TodoPanelTone = 'default' | 'focus';
 
@@ -26,7 +26,7 @@ export const TodoPanel = memo(({ className, tone = 'default' }: TodoPanelProps) 
     const moveTodoDate = useTodoStore((state) => state.moveTodoDate);
     const reorderTodos = useTodoStore((state) => state.reorderTodos);
     const [moveTargetTodo, setMoveTargetTodo] = useState<Todo | null>(null);
-    const [selectedMoveDate, setSelectedMoveDate] = useState<Date>(() => parseTodayDate(getTodayDate()));
+    const [selectedMoveDate, setSelectedMoveDate] = useState<Date>(() => parseDate(getTodayDate()));
 
     useInputFocus(todoInputRef, ['t', 'ㅅ']);
 
@@ -56,14 +56,14 @@ export const TodoPanel = memo(({ className, tone = 'default' }: TodoPanelProps) 
     }, []);
     const handleOpenMoveModal = useCallback((todo: Todo) => {
         setMoveTargetTodo(todo);
-        setSelectedMoveDate(parseTodayDate(todo.assignedDate));
+        setSelectedMoveDate(parseDate(todo.assignedDate));
     }, []);
     const handleConfirmMoveDate = useCallback(() => {
         if (!moveTargetTodo) {
             return;
         }
 
-        moveTodoDate(moveTargetTodo.id, formatTodayDate(selectedMoveDate));
+        moveTodoDate(moveTargetTodo.id, formatDate(selectedMoveDate));
         setMoveTargetTodo(null);
     }, [moveTargetTodo, moveTodoDate, selectedMoveDate]);
     const handleDragEnd = useCallback(
