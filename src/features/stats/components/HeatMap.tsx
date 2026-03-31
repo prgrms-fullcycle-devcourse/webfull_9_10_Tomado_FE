@@ -19,10 +19,19 @@ interface TooltipPosition {
     top: number;
 }
 
-const wrapperClassName = 'relative w-full pb-[116px]';
+export interface HeatMapProps {
+    selectedDate?: string;
+    onSelectDate?: (date: string) => void;
+}
+
+const wrapperClassName = 'relative w-full border border-neutral-lighter rounded-2xl p-5';
 const scrollAreaClassName = 'w-full overflow-x-auto';
 const contentClassName = 'min-w-[860px]';
 const tooltipClassName = 'pointer-events-none absolute z-20';
+const legendWrapperClassName = 'flex w-full justify-end';
+const legendClassName = 'flex items-center gap-2 text-sm text-neutral-darker';
+const legendScaleClassName = 'flex items-center gap-1';
+const legendCellBaseClassName = 'h-[10px] w-[10px] rounded-[2px]';
 
 // TODO: Replace with actual data from API
 const heatMapData: HeatMapValue[] = [
@@ -33,7 +42,7 @@ const heatMapData: HeatMapValue[] = [
     { date: '2025-10-03', count: 8, focusTime: '10시간 20분' },
     { date: '2025-12-22', count: 4, focusTime: '7시간 45분' },
     { date: '2026-01-11', count: 3, focusTime: '5시간 10분' },
-    { date: '2026-03-28', count: 7, focusTime: '14시간 00분' },
+    { date: '2026-03-31', count: 7, focusTime: '14시간 00분' },
 ];
 
 const getCellClassName = (value?: HeatMapValue) => {
@@ -48,7 +57,7 @@ const getTooltipDate = (date: string) => {
     return formatDate(date, DATE_FORMAT.log);
 };
 
-export function HeatMap() {
+export function HeatMap({ selectedDate, onSelectDate }: HeatMapProps) {
     const endDate = new Date();
     const startDate = new Date();
     startDate.setFullYear(endDate.getFullYear() - 1);
@@ -72,8 +81,8 @@ export function HeatMap() {
 
         setHoveredValue(value);
         setTooltipPosition({
-            left: targetRect.left - wrapperRect.left + targetRect.width + 12,
-            top: targetRect.top - wrapperRect.top + targetRect.height + 12,
+            left: targetRect.left - wrapperRect.left + targetRect.width + 4,
+            top: targetRect.top - wrapperRect.top + targetRect.height + 4,
         });
     };
 
@@ -86,8 +95,19 @@ export function HeatMap() {
             <div className={scrollAreaClassName}>
                 <div className={contentClassName}>
                     <HeatMapComponent
+                        classForValue={(value) => {
+                            const baseClassName = getCellClassName(value as HeatMapValue | undefined);
+                            const isSelected = value?.date === selectedDate;
+
+                            return isSelected ? `${baseClassName} selected-cell` : baseClassName;
+                        }}
                         endDate={endDate}
                         gutterSize={1}
+                        onClick={(value) => {
+                            if (typeof value?.date === 'string') {
+                                onSelectDate?.(value.date);
+                            }
+                        }}
                         onMouseLeave={handleMouseLeave}
                         onMouseOver={(event, value) => {
                             handleMouseOver(value as HeatMapValue | undefined)(event);
@@ -95,8 +115,21 @@ export function HeatMap() {
                         showWeekdayLabels={true}
                         startDate={startDate}
                         values={heatMapData}
-                        classForValue={(value) => getCellClassName(value as HeatMapValue | undefined)}
                     />
+                </div>
+            </div>
+
+            <div className={legendWrapperClassName}>
+                <div className={legendClassName}>
+                    <span>적음</span>
+                    <div className={legendScaleClassName}>
+                        <span className={`${legendCellBaseClassName} bg-[var(--color-heatmap-1)]`} />
+                        <span className={`${legendCellBaseClassName} bg-[var(--color-heatmap-2)]`} />
+                        <span className={`${legendCellBaseClassName} bg-[var(--color-heatmap-3)]`} />
+                        <span className={`${legendCellBaseClassName} bg-[var(--color-heatmap-4)]`} />
+                        <span className={`${legendCellBaseClassName} bg-[var(--color-heatmap-5)]`} />
+                    </div>
+                    <span>많음</span>
                 </div>
             </div>
 
