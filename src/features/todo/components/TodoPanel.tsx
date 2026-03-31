@@ -166,7 +166,6 @@ const SortableTodoItemRow = memo((props: TodoItemRowProps) => {
                 moreButton={props.showMoreButton}
                 onCheckedChange={(checked) => props.onCheckedChange(props.todo.id, checked)}
                 onDelete={() => props.onDelete(props.todo.id)}
-                onEmptyBlur={() => props.onDelete(props.todo.id)}
                 onLabelChange={(nextLabel) => props.onLabelChange(props.todo.id, nextLabel)}
                 onMoveDate={() => props.onMoveDate(props.todo)}
             />
