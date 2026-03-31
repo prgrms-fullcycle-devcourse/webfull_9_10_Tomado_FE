@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import type { HTMLAttributes, ReactNode } from 'react';
 
 import { Icon } from '.';
@@ -31,6 +32,27 @@ export const Toast = ({
     className,
     ...props
 }: ToastProps) => {
+    const toastRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        if (!toastRef.current) {
+            return;
+        }
+
+        toastRef.current.animate(
+            [
+                { opacity: 1, transform: 'translateY(-18px) scale(0.98)' },
+                { opacity: 1, transform: 'translateY(8px) scale(1)', offset: 0.72 },
+                { opacity: 1, transform: 'translateY(0) scale(1)' },
+            ],
+            {
+                duration: 460,
+                easing: 'ease-in-out',
+                fill: 'both',
+            }
+        );
+    }, []);
+
     const renderIcon = () => {
         if (!icon) {
             return null;
@@ -44,7 +66,7 @@ export const Toast = ({
     };
 
     return (
-        <div {...props} className={cx(rootClassName, className)}>
+        <div {...props} className={cx(rootClassName, className)} ref={toastRef}>
             <div className='flex min-w-0 flex-1 items-center gap-2'>
                 {renderIcon()}
                 <p className={labelClassName}>{label}</p>

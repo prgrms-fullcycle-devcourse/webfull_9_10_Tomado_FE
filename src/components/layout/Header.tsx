@@ -1,7 +1,8 @@
+import { useEffect, useRef, useState } from 'react';
 import type { HTMLAttributes, ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
-import { Button, Icon } from '@@/ui';
+import { Button, Icon, Menu } from '@@/ui';
 
 export interface HeaderNavItem {
     label: string;
@@ -28,6 +29,7 @@ export interface DefaultHeaderProps extends HTMLAttributes<HTMLElement> {
     avatarSrc?: string;
     onMusicClick?: () => void;
     onFocusModeClick?: () => void;
+    onLogoutClick?: () => void;
 }
 
 const cx = (...classes: Array<string | false | null | undefined>) => {
@@ -48,6 +50,8 @@ const utilityActionsClassName = 'flex items-center gap-2.5';
 const profileBadgeClassName =
     'inline-flex size-8 items-center justify-center rounded-full text-white shadow-sm hover:cursor-pointer';
 const profileImageClassName = 'block size-8 bg-primary object-contain';
+const profileMenuWrapperClassName = 'relative flex items-center';
+const profileMenuLayerClassName = 'absolute top-[calc(100%+8px)] right-0 z-50 w-[200px]';
 
 const getNavItemClassName = (active = false) => cx(active && 'text-primary font-semibold');
 
@@ -80,9 +84,38 @@ export const DefaultHeader = ({
     avatarSrc,
     onMusicClick,
     onFocusModeClick,
+    onLogoutClick,
     ...props
 }: DefaultHeaderProps) => {
     const navigate = useNavigate();
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+    const profileMenuRef = useRef<HTMLDivElement | null>(null);
+
+    useEffect(() => {
+        if (!isProfileMenuOpen) {
+            return;
+        }
+
+        const handlePointerDown = (event: MouseEvent) => {
+            if (!profileMenuRef.current?.contains(event.target as Node)) {
+                setIsProfileMenuOpen(false);
+            }
+        };
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                setIsProfileMenuOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handlePointerDown);
+        document.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            document.removeEventListener('mousedown', handlePointerDown);
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [isProfileMenuOpen]);
 
     return (
         <Header
@@ -132,13 +165,45 @@ export const DefaultHeader = ({
                         )}
                     </div>
                     {profileSlot ?? (
-                        <span className={profileBadgeClassName}>
-                            {avatarSrc ? (
-                                <img alt='사용자 아바타' className={profileImageClassName} src={avatarSrc} />
-                            ) : (
-                                <Icon name='avatar' size={32} />
-                            )}
-                        </span>
+                        <div className={profileMenuWrapperClassName} ref={profileMenuRef}>
+                            <button
+                                aria-expanded={isProfileMenuOpen}
+                                aria-haspopup='menu'
+                                className={profileBadgeClassName}
+                                onClick={() => setIsProfileMenuOpen((prev) => !prev)}
+                                type='button'
+                            >
+                                {avatarSrc ? (
+                                    <img alt='사용자 아바타' className={profileImageClassName} src={avatarSrc} />
+                                ) : (
+                                    <Icon name='avatar' size={32} />
+                                )}
+                            </button>
+                            <div className={profileMenuLayerClassName}>
+                                <Menu
+                                    inline
+                                    items={[
+                                        {
+                                            label: '마이페이지',
+                                            onClick: () => {
+                                                setIsProfileMenuOpen(false);
+                                                navigate('/my');
+                                            },
+                                        },
+                                        {
+                                            label: '로그아웃',
+                                            onClick: () => {
+                                                setIsProfileMenuOpen(false);
+                                                onLogoutClick?.();
+                                            },
+                                            tone: 'danger',
+                                        },
+                                    ]}
+                                    onClose={() => setIsProfileMenuOpen(false)}
+                                    open={isProfileMenuOpen}
+                                />
+                            </div>
+                        </div>
                     )}
                 </>
             }

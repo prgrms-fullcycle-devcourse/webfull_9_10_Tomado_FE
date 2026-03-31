@@ -14,7 +14,7 @@ const centeredLayoutClassName = 'mx-auto flex w-full flex-col';
 export const CenteredLayout = ({
     className,
     maxWidth = '960px',
-    gap = '32px',
+    gap = '10px',
     style,
     ...props
 }: CenteredLayoutProps) => {

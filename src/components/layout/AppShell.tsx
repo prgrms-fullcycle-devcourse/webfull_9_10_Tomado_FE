@@ -2,7 +2,7 @@ import { Suspense, lazy, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 
 import { DefaultHeader, GuestHeader } from '.';
-import { useSpaceKey, useToast } from '@/hooks';
+import { useGlobalKeyboardShortcuts, useToast } from '@/hooks';
 import { Modal, Toast } from '@@/ui';
 import { FocusMode, TimerProgressBar, useTimerMetadata, useTimerNotifications, useTimerSession } from '@@@/timer';
 
@@ -17,12 +17,14 @@ export type AppShellProps = {
 };
 
 export default function AppShell({ headerVariant = 'default' }: AppShellProps) {
+
     const HeaderComponent = headerVariant === 'guest' ? GuestHeader : DefaultHeader;
     const location = useLocation();
     const [playerModalOpen, setPlayerModalOpen] = useState(false);
     const [shouldLoadBgmPlayer, setShouldLoadBgmPlayer] = useState(false);
     const [pendingBgmToggle, setPendingBgmToggle] = useState(false);
     const [isFocusMode, setIsFocusMode] = useState(false);
+    const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
     const { toasts } = useToast();
     const { isRunning, sessionType, timerParts, stopConfirmOpen, handleCloseStopConfirm, handleConfirmStopTimer } =
         useTimerSession();
@@ -35,15 +37,16 @@ export default function AppShell({ headerVariant = 'default' }: AppShellProps) {
     });
     useTimerNotifications();
 
-    useSpaceKey(
-        () => {
+    useGlobalKeyboardShortcuts({
+        enabled: headerVariant === 'default',
+        onShiftSpace: () => {
+            setIsFocusMode(true);
+        },
+        onSpace: () => {
             setShouldLoadBgmPlayer(true);
             setPendingBgmToggle(true);
         },
-        {
-            enabled: headerVariant === 'default',
-        }
-    );
+    });
 
     const handleMusicClick = () => {
         setShouldLoadBgmPlayer(true);
@@ -54,17 +57,50 @@ export default function AppShell({ headerVariant = 'default' }: AppShellProps) {
         setIsFocusMode(true);
     };
 
+    const handleLogoutModalOpen = () => {
+        setLogoutConfirmOpen(true);
+    };
+
+    const handleLogoutModalClose = () => {
+        setLogoutConfirmOpen(false);
+    };
+
     const shouldShowTimerProgressBar = headerVariant === 'default' && location.pathname !== '/main' && !isFocusMode;
 
     return (
         <>
-            <HeaderComponent onMusicClick={handleMusicClick} onFocusModeClick={handleFocusModeOpen} />
+            {headerVariant === 'guest' ? (
+                <GuestHeader />
+            ) : (
+                <DefaultHeader
+                    onFocusModeClick={handleFocusModeOpen}
+                    onLogoutClick={handleLogoutModalOpen}
+                    onMusicClick={handleMusicClick}
+                />
+            )}
 
             {shouldShowTimerProgressBar ? <TimerProgressBar /> : null}
 
             <Outlet />
 
             <FocusMode open={isFocusMode} onMusicClick={handleMusicClick} onClose={() => setIsFocusMode(false)} />
+
+            <Modal
+                open={logoutConfirmOpen}
+                tone='danger'
+                title='로그아웃 하시겠어요?'
+                description={
+                    <>
+                        로그아웃하면 다시 로그인해야 해요.
+                        <br />
+                        그래도 로그아웃 하시겠어요?
+                    </>
+                }
+                onClose={handleLogoutModalClose}
+                confirmLabel='로그아웃'
+                onCancel={handleLogoutModalClose}
+                onConfirm={handleLogoutModalClose}
+            />
 
             <Modal
                 open={stopConfirmOpen}
@@ -96,7 +132,7 @@ export default function AppShell({ headerVariant = 'default' }: AppShellProps) {
             ) : null}
 
             {toasts.length ? (
-                <div className='pointer-events-none fixed right-6 bottom-6 z-[70] flex flex-col items-end gap-2'>
+                <div className='pointer-events-none fixed top-20 left-1/2 z-[70] flex -translate-x-1/2 flex-col items-center gap-2'>
                     {toasts.map((toast) => (
                         <Toast
                             key={toast.id}

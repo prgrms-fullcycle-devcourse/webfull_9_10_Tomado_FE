@@ -1,3 +1,4 @@
+import { formatDate, getTodayDate, DATE_FORMAT } from '@/utils';
 import { Container } from '@@/layout/Container';
 import { DoubleColumnLayout } from '@@/layout/DoubleColumnLayout';
 import { SectionHeader } from '@@/layout/SectionHeader';
@@ -23,10 +24,12 @@ export default function Main() {
         completedSets,
     } = useTimerSession();
 
+    const today = formatDate(getTodayDate(), DATE_FORMAT.display);
+
     return (
         <main>
             <Container>
-                <SectionHeader title='2026. 03. 18' />
+                <SectionHeader title={today} />
 
                 <DoubleColumnLayout className='flex-1'>
                     <section className={`${panelClassName} relative`}>

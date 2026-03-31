@@ -2,6 +2,7 @@ import ReactCalendar from 'react-calendar';
 import type { Value } from 'react-calendar/dist/shared/types.js';
 import 'react-calendar/dist/Calendar.css';
 import { Badge } from './Badge';
+import { formatDate } from '@/utils';
 
 type tileContentItem = {
     focus_date: string;
@@ -22,15 +23,7 @@ const formatTileContent = (data: tileContentItem) => {
     return <Badge label={data.completed_sessions} />;
 };
 
-const formatDate = (date: Date): string => {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-
-    return `${y}-${m}-${d}`;
-};
-
-const Calendar = ({ tileContent = [], selectedDate, onSelectDate, maxDate }: CalendarProps) => {
+export const Calendar = ({ tileContent = [], selectedDate, onSelectDate, maxDate }: CalendarProps) => {
     const mapByDate = tileContent.reduce(
         (acc, item) => {
             acc[item.focus_date] = item;
@@ -65,5 +58,3 @@ const Calendar = ({ tileContent = [], selectedDate, onSelectDate, maxDate }: Cal
         </div>
     );
 };
-
-export default Calendar;

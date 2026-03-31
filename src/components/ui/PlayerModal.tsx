@@ -1,7 +1,7 @@
 import type { ChangeEventHandler, HTMLAttributes, MouseEventHandler } from 'react';
 
 import { Icon, PlayerButton } from '.';
-import { useEscapeKey } from '@/hooks';
+import { useGlobalKeyboardShortcuts } from '@/hooks';
 import type { BgmPlayerItem } from '@@@/settings';
 
 export type PlayerModalTone = 'default' | 'focusmode';
@@ -154,7 +154,10 @@ export const PlayerModal = ({
     className,
     ...props
 }: PlayerModalProps) => {
-    useEscapeKey(() => onClose?.(), { enabled: open && Boolean(onClose) });
+    useGlobalKeyboardShortcuts({
+        enabled: open,
+        onEscape: onClose,
+    });
 
     if (!open) {
         return null;
