@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { HTMLAttributes, ReactNode } from 'react';
 
-import { useDirectionKey, useEscapeKey, useToast } from '@/hooks';
+import { useDirectionKey, useGlobalKeyboardShortcuts, useToast } from '@/hooks';
 import { Button } from '@@/ui/Button';
 import { Icon } from '@@/ui/Icon/Icon';
 import { PlayerButton } from '@@/ui/PlayerButton';
@@ -86,7 +86,11 @@ export const FocusMode = ({
         [handleNextBackground, handlePrevBackground, handleTodoCollapse, handleTodoExpand]
     );
 
-    useEscapeKey(handleClose, { enabled: open && Boolean(onClose) });
+    useGlobalKeyboardShortcuts({
+        enabled: open,
+        onEscape: onClose,
+    });
+
     useDirectionKey(handleDirection, { enabled: open });
 
     useEffect(() => {
