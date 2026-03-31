@@ -23,6 +23,7 @@ export default function AppShell({ headerVariant = 'default' }: AppShellProps) {
     const [shouldLoadBgmPlayer, setShouldLoadBgmPlayer] = useState(false);
     const [pendingBgmToggle, setPendingBgmToggle] = useState(false);
     const [isFocusMode, setIsFocusMode] = useState(false);
+    const [logoutConfirmOpen, setLogoutConfirmOpen] = useState(false);
     const { toasts } = useToast();
     const { isRunning, sessionType, timerParts, stopConfirmOpen, handleCloseStopConfirm, handleConfirmStopTimer } =
         useTimerSession();
@@ -54,17 +55,50 @@ export default function AppShell({ headerVariant = 'default' }: AppShellProps) {
         setIsFocusMode(true);
     };
 
+    const handleLogoutModalOpen = () => {
+        setLogoutConfirmOpen(true);
+    };
+
+    const handleLogoutModalClose = () => {
+        setLogoutConfirmOpen(false);
+    };
+
     const shouldShowTimerProgressBar = headerVariant === 'default' && location.pathname !== '/main' && !isFocusMode;
 
     return (
         <>
-            <HeaderComponent onMusicClick={handleMusicClick} onFocusModeClick={handleFocusModeOpen} />
+            {headerVariant === 'guest' ? (
+                <GuestHeader />
+            ) : (
+                <DefaultHeader
+                    onFocusModeClick={handleFocusModeOpen}
+                    onLogoutClick={handleLogoutModalOpen}
+                    onMusicClick={handleMusicClick}
+                />
+            )}
 
             {shouldShowTimerProgressBar ? <TimerProgressBar /> : null}
 
             <Outlet />
 
             <FocusMode open={isFocusMode} onMusicClick={handleMusicClick} onClose={() => setIsFocusMode(false)} />
+
+            <Modal
+                open={logoutConfirmOpen}
+                tone='danger'
+                title='로그아웃 하시겠어요?'
+                description={
+                    <>
+                        로그아웃하면 다시 로그인해야 해요.
+                        <br />
+                        그래도 로그아웃 하시겠어요?
+                    </>
+                }
+                onClose={handleLogoutModalClose}
+                confirmLabel='로그아웃'
+                onCancel={handleLogoutModalClose}
+                onConfirm={handleLogoutModalClose}
+            />
 
             <Modal
                 open={stopConfirmOpen}
