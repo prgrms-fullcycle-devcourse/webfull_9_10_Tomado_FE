@@ -12,6 +12,7 @@ import { getTodayDate, formatDate, parseDate } from '@/utils';
 type TodoPanelTone = 'default' | 'focus';
 
 export interface TodoPanelProps {
+    assignedDate?: string;
     className?: string;
     tone?: TodoPanelTone;
 }
@@ -20,13 +21,13 @@ const cx = (...classes: Array<string | false | null | undefined>) => {
     return classes.filter(Boolean).join(' ');
 };
 
-export const TodoPanel = memo(({ className, tone = 'default' }: TodoPanelProps) => {
+export const TodoPanel = memo(({ assignedDate = getTodayDate(), className, tone = 'default' }: TodoPanelProps) => {
     const todoInputRef = useRef<HTMLInputElement>(null);
     const showMoreButton = tone === 'default';
     const moveTodoDate = useTodoStore((state) => state.moveTodoDate);
     const reorderTodos = useTodoStore((state) => state.reorderTodos);
     const [moveTargetTodo, setMoveTargetTodo] = useState<Todo | null>(null);
-    const [selectedMoveDate, setSelectedMoveDate] = useState<Date>(() => parseDate(getTodayDate()));
+    const [selectedMoveDate, setSelectedMoveDate] = useState<Date>(() => parseDate(assignedDate));
 
     useInputFocus(todoInputRef, ['t', 'ㅅ']);
 
@@ -39,7 +40,7 @@ export const TodoPanel = memo(({ className, tone = 'default' }: TodoPanelProps) 
         updateTodoLabel,
         updateTodoChecked,
         removeTodo,
-    } = useTodoList();
+    } = useTodoList({ assignedDate });
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -81,11 +82,11 @@ export const TodoPanel = memo(({ className, tone = 'default' }: TodoPanelProps) 
 
             const nextTodos = arrayMove(todos, oldIndex, newIndex);
             reorderTodos(
-                getTodayDate(),
+                assignedDate,
                 nextTodos.map((todo) => todo.id)
             );
         },
-        [reorderTodos, todos]
+        [assignedDate, reorderTodos, todos]
     );
 
     return (

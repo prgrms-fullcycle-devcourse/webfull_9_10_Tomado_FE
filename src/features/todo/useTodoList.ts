@@ -7,7 +7,11 @@ import { useTodoStore } from './useTodoStore';
 export const TODO_MAX_CHARS = 30;
 const TODO_LIMIT_TOAST_MESSAGE = '입력 가능한 글자 수를 초과하였습니다.';
 
-export const useTodoList = () => {
+interface UseTodoListOptions {
+    assignedDate?: string;
+}
+
+export const useTodoList = ({ assignedDate = getTodayDate() }: UseTodoListOptions = {}) => {
     const { showToast } = useToast();
     const todos = useTodoStore((state) => state.todos);
     const addTodo = useTodoStore((state) => state.addTodo);
@@ -23,10 +27,9 @@ export const useTodoList = () => {
         maxChars: TODO_MAX_CHARS,
         toastMessage: TODO_LIMIT_TOAST_MESSAGE,
     });
-    const todayTodoDate = getTodayDate();
     const visibleTodos = useMemo(
-        () => todos.filter((todo) => todo.assignedDate === todayTodoDate).sort((a, b) => a.order - b.order),
-        [todayTodoDate, todos]
+        () => todos.filter((todo) => todo.assignedDate === assignedDate).sort((a, b) => a.order - b.order),
+        [assignedDate, todos]
     );
 
     const handleTodoInputChange = useCallback(
@@ -43,9 +46,9 @@ export const useTodoList = () => {
             return;
         }
 
-        addTodo(nextTodo, todayTodoDate);
+        addTodo(nextTodo, assignedDate);
         setLimitedValue('');
-    }, [addTodo, todoInputError, todoInputValue, setLimitedValue, todayTodoDate]);
+    }, [addTodo, assignedDate, todoInputError, todoInputValue, setLimitedValue]);
 
     const removeTodo = useCallback(
         (id: number) => {
