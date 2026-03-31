@@ -2,7 +2,7 @@ import { Suspense, lazy, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 
 import { DefaultHeader, GuestHeader } from '.';
-import { useSpaceKey, useToast } from '@/hooks';
+import { useGlobalKeyboardShortcuts, useToast } from '@/hooks';
 import { Modal, Toast } from '@@/ui';
 import { FocusMode, TimerProgressBar, useTimerMetadata, useTimerNotifications, useTimerSession } from '@@@/timer';
 
@@ -37,15 +37,16 @@ export default function AppShell({ headerVariant = 'default' }: AppShellProps) {
     });
     useTimerNotifications();
 
-    useSpaceKey(
-        () => {
+    useGlobalKeyboardShortcuts({
+        enabled: headerVariant === 'default',
+        onShiftSpace: () => {
+            setIsFocusMode(true);
+        },
+        onSpace: () => {
             setShouldLoadBgmPlayer(true);
             setPendingBgmToggle(true);
         },
-        {
-            enabled: headerVariant === 'default',
-        }
-    );
+    });
 
     const handleMusicClick = () => {
         setShouldLoadBgmPlayer(true);
@@ -131,7 +132,7 @@ export default function AppShell({ headerVariant = 'default' }: AppShellProps) {
             ) : null}
 
             {toasts.length ? (
-                <div className='pointer-events-none fixed right-6 bottom-6 z-[70] flex flex-col items-end gap-2'>
+                <div className='pointer-events-none fixed top-20 left-1/2 z-[70] flex -translate-x-1/2 flex-col items-center gap-2'>
                     {toasts.map((toast) => (
                         <Toast
                             key={toast.id}
