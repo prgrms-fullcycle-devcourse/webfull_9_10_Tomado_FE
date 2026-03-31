@@ -4,7 +4,6 @@ import { AppShell } from '@@/layout';
 
 import ProtectedRoute from './ProtectedRoute';
 import PublicOnlyRoute from './PublicOnlyRoute';
-import { isAuthenticated } from './auth';
 
 const Main = lazy(() => import('@/pages/Main'));
 const Landing = lazy(() => import('@/pages/Landing'));
@@ -24,7 +23,7 @@ export const routes = [
         children: [
             {
                 path: '/',
-                element: isAuthenticated ? <Navigate to='/main' replace /> : withSuspense(<Landing />),
+                element: <PublicOnlyRoute>{withSuspense(<Landing />)}</PublicOnlyRoute>,
             },
             {
                 path: '/login',

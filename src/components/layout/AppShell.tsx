@@ -1,9 +1,10 @@
 import { Suspense, lazy, useState } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { DefaultHeader, GuestHeader } from '.';
 import { useGlobalKeyboardShortcuts, useToast } from '@/hooks';
 import { Modal, Toast } from '@@/ui';
+import { useAuthStore } from '@@@/auth';
 import { FocusMode, TimerProgressBar, useTimerMetadata, useTimerNotifications, useTimerSession } from '@@@/timer';
 
 const LazyBgmPlayerLayer = lazy(() =>
@@ -18,6 +19,8 @@ export type AppShellProps = {
 
 export default function AppShell({ headerVariant = 'default' }: AppShellProps) {
     const location = useLocation();
+    const navigate = useNavigate();
+    const logout = useAuthStore((state) => state.logout);
     const [playerModalOpen, setPlayerModalOpen] = useState(false);
     const [shouldLoadBgmPlayer, setShouldLoadBgmPlayer] = useState(false);
     const [pendingBgmToggle, setPendingBgmToggle] = useState(false);
@@ -63,6 +66,12 @@ export default function AppShell({ headerVariant = 'default' }: AppShellProps) {
         setLogoutConfirmOpen(false);
     };
 
+    const handleConfirmLogout = () => {
+        logout();
+        setLogoutConfirmOpen(false);
+        navigate('/', { replace: true });
+    };
+
     const shouldShowTimerProgressBar = headerVariant === 'default' && location.pathname !== '/main' && !isFocusMode;
 
     return (
@@ -97,7 +106,7 @@ export default function AppShell({ headerVariant = 'default' }: AppShellProps) {
                 onClose={handleLogoutModalClose}
                 confirmLabel='로그아웃'
                 onCancel={handleLogoutModalClose}
-                onConfirm={handleLogoutModalClose}
+                onConfirm={handleConfirmLogout}
             />
 
             <Modal

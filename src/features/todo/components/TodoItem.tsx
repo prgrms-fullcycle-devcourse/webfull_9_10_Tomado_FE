@@ -17,7 +17,6 @@ export interface TodoItemProps extends HTMLAttributes<HTMLDivElement> {
     dragHandleLabel?: string;
     onCheckedChange?: (checked: boolean) => void;
     onLabelChange?: (label: string) => void;
-    onEmptyBlur?: () => void;
     onMoveDate?: () => void;
     onDelete?: () => void;
     onDragHandleClick?: MouseEventHandler<HTMLButtonElement>;
@@ -65,7 +64,6 @@ export const TodoItem = ({
     checkboxLabel,
     dragHandleLabel = '순서 변경',
     onLabelChange,
-    onEmptyBlur,
     onMoveDate,
     onDelete,
     onDragHandleClick,
@@ -121,6 +119,11 @@ export const TodoItem = ({
 
     const handleInputChange: ChangeEventHandler<HTMLInputElement> = (event) => {
         const nextLabel = setLimitedValue(event.target.value);
+
+        if (!nextLabel.trim()) {
+            return;
+        }
+
         onLabelChange?.(nextLabel);
     };
 
@@ -134,7 +137,7 @@ export const TodoItem = ({
         onBlur?.(event);
 
         if (!event.target.value.trim()) {
-            onEmptyBlur?.();
+            setLimitedValue(label);
         }
     };
 
