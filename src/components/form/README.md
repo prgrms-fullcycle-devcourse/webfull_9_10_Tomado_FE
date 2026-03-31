@@ -134,7 +134,6 @@ import { Input, SearchInput, TodoInput, TextArea, CheckBox, Radio, SegmentedCont
 핵심 props:
 
 - `options: { value: string; label: ReactNode; disabled?: boolean }[]` (필수)
-- `size`: `sm | md | lg`
 - `value?`, `defaultValue?`
 - `onValueChange?: (value: string) => void`
 - `disabled?`

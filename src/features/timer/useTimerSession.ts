@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTimerStore } from './useTimerStore';
 
 const formatTimeParts = (totalSeconds: number) => {
@@ -18,6 +18,7 @@ export const useTimerSession = () => {
     const sessionType = useTimerStore((state) => state.sessionType);
     const remainingSeconds = useTimerStore((state) => state.remainingSeconds);
     const isRunning = useTimerStore((state) => state.isRunning);
+    const lastTickAt = useTimerStore((state) => state.lastTickAt);
     const stopConfirmOpen = useTimerStore((state) => state.stopConfirmOpen);
     const activeSessionId = useTimerStore((state) => state.activeSessionId);
     const focusSessionInSet = useTimerStore((state) => state.focusSessionInSet);
@@ -27,6 +28,24 @@ export const useTimerSession = () => {
     const openStopConfirm = useTimerStore((state) => state.openStopConfirm);
     const closeStopConfirm = useTimerStore((state) => state.closeStopConfirm);
     const confirmStop = useTimerStore((state) => state.confirmStop);
+    const [now, setNow] = useState(() => Date.now());
+
+    useEffect(() => {
+        if (!isRunning) {
+            return;
+        }
+
+        let frameId = 0;
+
+        const update = () => {
+            setNow(Date.now());
+            frameId = window.requestAnimationFrame(update);
+        };
+
+        frameId = window.requestAnimationFrame(update);
+
+        return () => window.cancelAnimationFrame(frameId);
+    }, [isRunning]);
 
     const initialSeconds = useMemo(() => {
         if (sessionType === 'shortBreak') {
@@ -40,10 +59,20 @@ export const useTimerSession = () => {
         return focusSeconds;
     }, [focusSeconds, longBreakSeconds, sessionType, shortBreakSeconds]);
 
-    const timerParts = useMemo(() => formatTimeParts(remainingSeconds), [remainingSeconds]);
+    const visualRemainingSeconds = useMemo(() => {
+        if (!isRunning || lastTickAt === null) {
+            return remainingSeconds;
+        }
+
+        const elapsedSeconds = Math.max(0, (now - lastTickAt) / 1000);
+
+        return Math.max(0, remainingSeconds - elapsedSeconds);
+    }, [isRunning, lastTickAt, now, remainingSeconds]);
+
+    const timerParts = useMemo(() => formatTimeParts(Math.ceil(visualRemainingSeconds)), [visualRemainingSeconds]);
     const progress = useMemo(
-        () => (initialSeconds - remainingSeconds) / initialSeconds,
-        [initialSeconds, remainingSeconds]
+        () => (initialSeconds - visualRemainingSeconds) / initialSeconds,
+        [initialSeconds, visualRemainingSeconds]
     );
     const sessionLabel = useMemo(() => {
         if (sessionType === 'shortBreak') {
@@ -60,6 +89,7 @@ export const useTimerSession = () => {
     return {
         initialSeconds,
         remainingSeconds,
+        visualRemainingSeconds,
         sessionType,
         sessionLabel,
         isRunning,

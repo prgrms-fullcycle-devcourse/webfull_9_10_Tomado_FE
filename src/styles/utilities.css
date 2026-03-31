@@ -74,21 +74,31 @@
 
 /* Glass helpers */
 @utility glass-effect-base {
-    background: rgba(255, 255, 255, 0);
+    --glass-bg: rgba(255, 255, 255, 0.08);
+    --glass-border: rgba(255, 255, 255, 0.27);
+    --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    --glass-blur: blur(2px);
+
+    background-color: var(--glass-bg);
     border-radius: 16px;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
-    border: 1px solid rgba(255, 255, 255, 0.27);
+    box-shadow: var(--glass-shadow);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
 }
 
 @utility glass-effect-strong {
-    background: rgba(255, 255, 255, 0);
+    --glass-bg: rgba(255, 255, 255, 0.14);
+    --glass-border: rgba(255, 255, 255, 0.6);
+    --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    --glass-blur: blur(4px);
+
+    background-color: var(--glass-bg);
     border-radius: 16px;
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow: var(--glass-shadow);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
 }
 
 /* Safe area helpers */
