@@ -220,7 +220,7 @@ export default function Dashboard() {
                                 onValueChange={(value) => setView(value as 'calendar' | 'history')}
                             />
                             {view === 'calendar' ? (
-                                <Calendar />
+                                <Calendar selectedDate={selectedDate} onSelectDate={setSelectedDate} />
                             ) : (
                                 <>
                                     <div className={'flex justify-center gap-2.5 my-5'}>
