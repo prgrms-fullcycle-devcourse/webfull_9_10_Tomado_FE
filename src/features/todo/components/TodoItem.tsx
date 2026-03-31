@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import type { ChangeEventHandler, FocusEventHandler, HTMLAttributes, MouseEvent, MouseEventHandler } from 'react';
+import type { ChangeEventHandler, FocusEventHandler, HTMLAttributes, MouseEvent, MouseEventHandler, Ref } from 'react';
 
 import { CheckBox } from '@@/form';
 import { Icon, Menu } from '@@/ui';
@@ -21,6 +21,10 @@ export interface TodoItemProps extends HTMLAttributes<HTMLDivElement> {
     onMoveDate?: () => void;
     onDelete?: () => void;
     onDragHandleClick?: MouseEventHandler<HTMLButtonElement>;
+    dragHandleAttributes?: HTMLAttributes<HTMLButtonElement>;
+    dragHandleListeners?: HTMLAttributes<HTMLButtonElement>;
+    dragHandleRef?: Ref<HTMLButtonElement>;
+    isDragging?: boolean;
 }
 
 const cx = (...classes: Array<string | false | null | undefined>) => {
@@ -65,6 +69,10 @@ export const TodoItem = ({
     onMoveDate,
     onDelete,
     onDragHandleClick,
+    dragHandleAttributes,
+    dragHandleListeners,
+    dragHandleRef,
+    isDragging = false,
     onCheckedChange,
     onFocus,
     onBlur,
@@ -131,13 +139,23 @@ export const TodoItem = ({
     };
 
     return (
-        <div {...props} className={cx(getTodoItemClassName({ focused: isFocused, error: hasLengthError }), className)}>
+        <div
+            {...props}
+            className={cx(
+                getTodoItemClassName({ focused: isFocused, error: hasLengthError }),
+                isDragging && 'shadow-2',
+                className
+            )}
+        >
             <button
                 aria-label={dragHandleLabel}
                 className={buttonClassName}
                 disabled={disabled}
                 onClick={handleDragHandleClick}
+                ref={dragHandleRef}
                 type='button'
+                {...dragHandleAttributes}
+                {...dragHandleListeners}
             >
                 <Icon name='drag_indicator' color='neutral' size={24} />
             </button>

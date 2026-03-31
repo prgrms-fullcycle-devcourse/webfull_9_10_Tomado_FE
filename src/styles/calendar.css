@@ -1,24 +1,24 @@
 .react-calendar__tile--now,
 .react-calendar__navigation button:enabled:focus {
-    background-color: var(--color-tomato-100);
+    background-color: var(--color-tomato-100) !important;
 }
 .react-calendar__tile--active {
-    background-color: var(--color-tomato-400);
+    background-color: var(--color-tomato-400) !important;
 }
 .react-calendar__tile:enabled:hover,
 .react-calendar__navigation button:enabled:hover {
-    background-color: var(--color-tomato-50);
+    background-color: var(--color-tomato-50) !important;
 }
 .react-calendar__tile--active:enabled:hover {
-    background-color: var(--color-tomato-300);
+    background-color: var(--color-tomato-300) !important;
 }
 
 .react-calendar__navigation button:disabled,
 .react-calendar__tile:disabled {
-    background-color: transparent;
-    color: var(--color-neutral);
+    background-color: transparent !important;
+    color: var(--color-neutral) !important;
 }
 
 .react-calendar__navigation button {
-    border-radius: 0.75rem;
+    border-radius: 0.75rem !important;
 }

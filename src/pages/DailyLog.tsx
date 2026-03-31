@@ -3,7 +3,7 @@ import MdEditor from '@/features/log/components/MdEditor';
 import { Container, SectionHeader, SidebarContentLayout } from '@/components/layout';
 import { Badge, Button, DailyLogCard, Icon } from '@/components/ui';
 import { useEffect, useRef, useState } from 'react';
-import Calendar from '@/components/ui/Calendar';
+import { Calendar } from '@@/ui';
 
 export default function DailyLog() {
     const today = new Date();
@@ -15,7 +15,7 @@ export default function DailyLog() {
     const [autoSaveSate, setAutoSaveSate] = useState<'' | 'writing' | 'saving' | 'saved' | 'error'>('');
     const [isAutoSaveProgresing, setIsAutoSaveProgresing] = useState(false);
     const [isOpenCalendar, setIsOpenCalendar] = useState(false);
-    const [selectedDate, setSelectedDate] = useState<Date>(new Date('2026-03-18T00:00:00'));
+    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
     // const testdata = [
     //     {

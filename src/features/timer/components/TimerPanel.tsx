@@ -42,7 +42,7 @@ export const TimerPanel = memo(
                             장휴식
                         </span>
                     </div>
-                    <TomatoVisual size={200} progress={tomatoProgress} />
+                    <TomatoVisual size={200} progress={tomatoProgress} sessionType={sessionType} />
                 </div>
 
                 <div className='flex flex-col items-center gap-10'>
