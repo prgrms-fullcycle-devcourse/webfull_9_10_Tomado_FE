@@ -17,8 +17,6 @@ export type AppShellProps = {
 };
 
 export default function AppShell({ headerVariant = 'default' }: AppShellProps) {
-
-    const HeaderComponent = headerVariant === 'guest' ? GuestHeader : DefaultHeader;
     const location = useLocation();
     const [playerModalOpen, setPlayerModalOpen] = useState(false);
     const [shouldLoadBgmPlayer, setShouldLoadBgmPlayer] = useState(false);
