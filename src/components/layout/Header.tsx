@@ -132,13 +132,21 @@ export const DefaultHeader = ({
                         )}
                     </div>
                     {profileSlot ?? (
-                        <span className={profileBadgeClassName}>
-                            {avatarSrc ? (
-                                <img alt='사용자 아바타' className={profileImageClassName} src={avatarSrc} />
-                            ) : (
-                                <Icon name='avatar' size={32} />
-                            )}
-                        </span>
+                        <>
+                            <span className={profileBadgeClassName}>
+                                {avatarSrc ? (
+                                    <img alt='사용자 아바타' className={profileImageClassName} src={avatarSrc} />
+                                ) : (
+                                    <Icon name='avatar' size={32} />
+                                )}
+                            </span>
+                            <div className='absolute top-[54px] right-[170px] w-full max-w-[221px] overflow-hidden rounded-2xl border shadow-shadow-1'>
+                                <ul className='p-1 bg-neutral-subtle'>
+                                    <li>마이페이지</li>
+                                    <li>로그아웃</li>
+                                </ul>
+                            </div>
+                        </>
                     )}
                 </>
             }
