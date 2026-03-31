@@ -1,17 +1,17 @@
 .color-empty {
-    fill: var(--color-heatmap-0);
-}
-.color-scale-1 {
     fill: var(--color-heatmap-1);
 }
-.color-scale-2 {
+.color-scale-1 {
     fill: var(--color-heatmap-2);
 }
-.color-scale-3 {
+.color-scale-2 {
     fill: var(--color-heatmap-3);
 }
-.color-scale-4 {
+.color-scale-3 {
     fill: var(--color-heatmap-4);
+}
+.color-scale-4 {
+    fill: var(--color-heatmap-5);
 }
 .react-calendar-heatmap rect {
     width: 10px;
@@ -24,4 +24,12 @@
 
 .react-calendar-heatmap rect:hover {
     stroke: none;
+}
+
+.react-calendar-heatmap .selected-cell {
+    stroke: none;
+}
+
+.react-calendar-heatmap .react-calendar-heatmap-weekday-labels text {
+    transform: translateX(-4px);
 }
