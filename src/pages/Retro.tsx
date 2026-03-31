@@ -1,3 +1,4 @@
+import { DATE_FORMAT, formatDate } from '@/utils';
 import { SearchInput, SegmentedControl, TextArea } from '@@/form';
 import { Container, SectionHeader, SidebarContentLayout } from '@@/layout';
 import { Badge, Button, Calendar, Icon, RetroCard } from '@@/ui';
@@ -69,15 +70,6 @@ export default function Retro() {
         'flex h-full min-h-0 w-full flex-col items-center rounded-2xl bg-white px-6 py-5 shadow-shadow-1';
 
     const calendarWrapperRef = useRef<HTMLDivElement | null>(null);
-
-    const formatSectionHeaderDate = (date: Date): string => {
-        return date.toLocaleDateString('ko-KR', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            weekday: 'long',
-        });
-    };
 
     const handleCalendarDateSelect = (date: Date) => {
         if (date.getTime() > todayStart.getTime()) {
@@ -190,7 +182,7 @@ export default function Retro() {
                                         type='button'
                                     >
                                         <p className='truncate text-2xl leading-none font-bold text-black'>
-                                            {formatSectionHeaderDate(selectedDate)}
+                                            {formatDate(selectedDate, DATE_FORMAT.log)}
                                         </p>
                                     </button>
 

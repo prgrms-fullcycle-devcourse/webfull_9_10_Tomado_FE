@@ -6,7 +6,7 @@ const cx = (...classes: Array<string | false | null | undefined>) => {
     return classes.filter(Boolean).join(' ');
 };
 
-const doubleColumnLayoutClassName = 'grid w-full gap-5 md:grid-cols-2';
+const doubleColumnLayoutClassName = 'grid w-full gap-2.5 md:grid-cols-2';
 
 export const DoubleColumnLayout = ({ className, ...props }: DoubleColumnLayoutProps) => {
     return <div {...props} className={cx(doubleColumnLayoutClassName, className)} />;

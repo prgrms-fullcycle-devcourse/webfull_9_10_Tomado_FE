@@ -7,11 +7,12 @@ import { CSS } from '@dnd-kit/utilities';
 import { Modal, Calendar } from '@@/ui';
 import { useTodoList, TODO_MAX_CHARS, TodoInput, TodoItem, useTodoStore, type Todo } from '@@@/todo';
 import { useInputFocus, useSubmitOnEnter } from '@/hooks';
-import { getTodayDate, formatTodayDate, parseTodayDate } from '@/utils';
+import { getTodayDate, formatDate, parseDate } from '@/utils';
 
 type TodoPanelTone = 'default' | 'focus';
 
 export interface TodoPanelProps {
+    assignedDate?: string;
     className?: string;
     tone?: TodoPanelTone;
 }
@@ -20,13 +21,13 @@ const cx = (...classes: Array<string | false | null | undefined>) => {
     return classes.filter(Boolean).join(' ');
 };
 
-export const TodoPanel = memo(({ className, tone = 'default' }: TodoPanelProps) => {
+export const TodoPanel = memo(({ assignedDate = getTodayDate(), className, tone = 'default' }: TodoPanelProps) => {
     const todoInputRef = useRef<HTMLInputElement>(null);
     const showMoreButton = tone === 'default';
     const moveTodoDate = useTodoStore((state) => state.moveTodoDate);
     const reorderTodos = useTodoStore((state) => state.reorderTodos);
     const [moveTargetTodo, setMoveTargetTodo] = useState<Todo | null>(null);
-    const [selectedMoveDate, setSelectedMoveDate] = useState<Date>(() => parseTodayDate(getTodayDate()));
+    const [selectedMoveDate, setSelectedMoveDate] = useState<Date>(() => parseDate(assignedDate));
 
     useInputFocus(todoInputRef, ['t', 'ㅅ']);
 
@@ -39,7 +40,7 @@ export const TodoPanel = memo(({ className, tone = 'default' }: TodoPanelProps) 
         updateTodoLabel,
         updateTodoChecked,
         removeTodo,
-    } = useTodoList();
+    } = useTodoList({ assignedDate });
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -56,14 +57,14 @@ export const TodoPanel = memo(({ className, tone = 'default' }: TodoPanelProps) 
     }, []);
     const handleOpenMoveModal = useCallback((todo: Todo) => {
         setMoveTargetTodo(todo);
-        setSelectedMoveDate(parseTodayDate(todo.assignedDate));
+        setSelectedMoveDate(parseDate(todo.assignedDate));
     }, []);
     const handleConfirmMoveDate = useCallback(() => {
         if (!moveTargetTodo) {
             return;
         }
 
-        moveTodoDate(moveTargetTodo.id, formatTodayDate(selectedMoveDate));
+        moveTodoDate(moveTargetTodo.id, formatDate(selectedMoveDate));
         setMoveTargetTodo(null);
     }, [moveTargetTodo, moveTodoDate, selectedMoveDate]);
     const handleDragEnd = useCallback(
@@ -81,11 +82,11 @@ export const TodoPanel = memo(({ className, tone = 'default' }: TodoPanelProps) 
 
             const nextTodos = arrayMove(todos, oldIndex, newIndex);
             reorderTodos(
-                getTodayDate(),
+                assignedDate,
                 nextTodos.map((todo) => todo.id)
             );
         },
-        [reorderTodos, todos]
+        [assignedDate, reorderTodos, todos]
     );
 
     return (

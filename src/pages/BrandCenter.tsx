@@ -412,13 +412,13 @@ export default function BrandCenter() {
                             <div className='mb-5 flex items-center justify-between border-b border-neutral pb-4'>
                                 <h3 className='text-lg font-semibold text-black'>Visual QA</h3>
                                 <span className='rounded-full bg-neutral-subtle px-3 py-1 text-xs font-semibold text-neutral-darker'>
-                                    lg
+                                    sm
                                 </span>
                             </div>
                             <div className='space-y-5'>
-                                <SegmentedControl defaultValue='label-1' size='lg' options={segmentedControlOptions} />
-                                <SegmentedControl defaultValue='label-2' size='md' options={segmentedControlOptions} />
-                                <SegmentedControl defaultValue='label-3' size='sm' options={segmentedControlOptions} />
+                                <SegmentedControl defaultValue='label-1' options={segmentedControlOptions} />
+                                <SegmentedControl defaultValue='label-2' options={segmentedControlOptions} />
+                                <SegmentedControl defaultValue='label-3' options={segmentedControlOptions} />
                                 <SegmentedControl
                                     defaultValue='label-4'
                                     disabled={true}
@@ -454,7 +454,6 @@ export default function BrandCenter() {
                                         { value: 'board', label: 'Board' },
                                         { value: 'calendar', label: 'Calendar' },
                                     ]}
-                                    size='md'
                                 />
                             </div>
                         </article>
