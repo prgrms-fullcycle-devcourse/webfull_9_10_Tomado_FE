@@ -2,9 +2,9 @@ import { create } from 'zustand';
 
 // INFO: 현재는 25분 집중, 5분 휴식, 15분 장휴식을 기본값으로 사용한다.
 // INFO: 추후 사용자 설정 API가 붙으면 setDurations로 이 값을 갱신할 수 있다.
-const DEFAULT_FOCUS_SECONDS = 0.5 * 60;
-const DEFAULT_SHORT_BREAK_SECONDS = 0.1 * 60;
-const DEFAULT_LONG_BREAK_SECONDS = 0.5 * 60;
+const DEFAULT_FOCUS_SECONDS = 0.16 * 60;
+const DEFAULT_SHORT_BREAK_SECONDS = 0.16 * 60;
+const DEFAULT_LONG_BREAK_SECONDS = 0.2 * 60;
 const FOCUS_SESSIONS_PER_SET = 4;
 
 export type TimerSessionType = 'focus' | 'shortBreak' | 'longBreak';
