@@ -100,10 +100,10 @@ export const FocusMode = ({
         }
 
         if (!wasOpenRef.current) {
-            showToast('집중모드를 종료하려면 Esc 키를 누르세요', {
-                icon: true,
-                textButton: false,
-                durationMs: 5000,
+            showToast({
+                message: '집중모드를 종료하려면 Esc 키를 누르세요',
+                iconName: 'noti_focus',
+                duration: 5000,
             });
         }
 
