@@ -1,6 +1,6 @@
 'use client';
 
-import { useToastStore } from '@/store/toast';
+import { useToastStore } from '@/stores/toast';
 import { Toast } from './Toast';
 import ReactDom from 'react-dom';
 

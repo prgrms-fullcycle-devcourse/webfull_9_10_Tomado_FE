@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Icon } from './Icon';
-import { useToastStore } from '@/store/toast';
+import { useToastStore } from '@/stores/toast';
 
 export type ToastItemType = {
     id: string;
