@@ -5,3 +5,19 @@
 @import './utilities.css';
 @import './calendar.css';
 @import './heatmap.css';
+
+@keyframes landing-main-progress {
+    0% {
+        transform: scaleX(0);
+        transform-origin: left center;
+    }
+
+    100% {
+        transform: scaleX(1);
+        transform-origin: left center;
+    }
+}
+
+.landing-main-progress {
+    animation: landing-main-progress 4.5s linear infinite;
+}
