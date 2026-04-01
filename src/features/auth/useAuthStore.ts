@@ -4,7 +4,7 @@ import { persist } from 'zustand/middleware';
 import type { AuthUser } from './types';
 
 interface AuthStoreState {
-    isAuthenticated: boolean;
+    isAuth: boolean;
     user: AuthUser | null;
     login: (user: AuthUser) => void;
     logout: () => void;
@@ -13,17 +13,17 @@ interface AuthStoreState {
 export const useAuthStore = create<AuthStoreState>()(
     persist(
         (set) => ({
-            isAuthenticated: false,
+            isAuth: false,
             user: null,
             login: (user) => {
                 set({
-                    isAuthenticated: true,
+                    isAuth: true,
                     user,
                 });
             },
             logout: () => {
                 set({
-                    isAuthenticated: false,
+                    isAuth: false,
                     user: null,
                 });
             },
@@ -31,7 +31,7 @@ export const useAuthStore = create<AuthStoreState>()(
         {
             name: 'tomado-auth',
             partialize: (state) => ({
-                isAuthenticated: state.isAuthenticated,
+                isAuth: state.isAuth,
                 user: state.user,
             }),
         }
