@@ -38,11 +38,19 @@ export const useTimerNotifications = () => {
 
         if (lastCompletedSessionType === 'focus') {
             playEffect(focusEndAudio);
-            showToast('집중 시간이 종료되었어요', { durationMs: 2000 });
+            showToast({
+                message: '집중 시간이 종료되었어요',
+                iconName: 'noti_on',
+                duration: 1000,
+            });
             return;
         }
 
         playEffect(breakEndAudio);
-        showToast('휴식 시간이 종료되었어요', { durationMs: 2000 });
+        showToast({
+            message: '휴식 시간이 종료되었어요',
+            iconName: 'noti_on',
+            duration: 1000,
+        });
     }, [lastCompletedAt, lastCompletedSessionType, showToast]);
 };
