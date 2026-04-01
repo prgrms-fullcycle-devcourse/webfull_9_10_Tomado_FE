@@ -4,13 +4,13 @@ import {
     Button,
     ButtonGroup,
     Badge,
-    Modal,
+    // Modal,
     Shortcut,
-    Toast,
+    // Toast,
     Tag,
     StatsTooltip,
     Menu,
-    PlayerModal,
+    // PlayerModal,
     Tooltip,
 } from '@@/ui';
 import { CheckBox, Radio, SegmentedControl, Toggle } from '@@/form';
@@ -719,21 +719,19 @@ export default function BrandCenter() {
                         <article className={panelClassName}>
                             <h3 className='mb-4 text-lg font-semibold text-black'>Standard / Default</h3>
                             <div className={modalPreviewClassName}>
-                                <Modal
-                                    inline
+                                {/* <Modal
                                     description='다음 단계를 진행해주세요'
                                     cancelLabel='취소'
                                     confirmLabel='다음'
                                     title='다음 단계'
-                                />
+                                /> */}
                             </div>
                         </article>
 
                         <article className={panelClassName}>
                             <h3 className='mb-4 text-lg font-semibold text-black'>Standard / Danger</h3>
                             <div className={modalPreviewClassName}>
-                                <Modal
-                                    inline
+                                {/* <Modal
                                     description={
                                         <>
                                             지금 삭제하시면 복구할 수 없어요.
@@ -745,7 +743,7 @@ export default function BrandCenter() {
                                     confirmLabel='삭제'
                                     title='삭제하시겠어요?'
                                     tone='danger'
-                                />
+                                /> */}
                             </div>
                         </article>
 
@@ -764,12 +762,12 @@ export default function BrandCenter() {
                             </div>
                             <div className={playerModalFocusMode ? focusPreviewClassName : modalPreviewClassName}>
                                 {/* TODO: modal import 변경된 방식(Lazy Layer)으로 적용 */}
-                                <PlayerModal
+                                {/* <PlayerModal
                                     inline
                                     title='배경음악 플레이어'
                                     tone={playerModalFocusMode ? 'focusmode' : 'default'}
                                     className='!top-[-190px]'
-                                />
+                                /> */}
                             </div>
                         </article>
                     </div>
@@ -816,17 +814,17 @@ export default function BrandCenter() {
                     </div>
 
                     <div className='grid gap-5'>
-                        <article className={panelClassName}>
-                            <Toast label='토스트 메시지' />
+                        {/* <article className={panelClassName}>
+                            <Toast message='토스트 메시지' />
                         </article>
 
                         <article className={panelClassName}>
-                            <Toast icon label='토스트 메시지' />
+                            <Toast message='토스트 메시지' iconName='noti_focus'/>
                         </article>
 
                         <article className={panelClassName}>
-                            <Toast label='토스트 메시지' textButton textButtonLabel='취소' />
-                        </article>
+                            <Toast message='토스트 메시지' textButton textButtonLabel='취소' />
+                        </article> */}
                     </div>
                 </section>
             </div>
