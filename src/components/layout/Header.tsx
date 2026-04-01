@@ -77,7 +77,7 @@ export const Header = ({ leftSlot, centerSlot, rightSlot, className, ...props }:
     );
 };
 
-export const DefaultHeader = ({
+export const AuthHeader = ({
     navItems = defaultNavItems,
     utilitySlot,
     profileSlot,

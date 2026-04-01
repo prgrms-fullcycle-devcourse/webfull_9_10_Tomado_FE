@@ -1,14 +1,16 @@
-import AppProviders from '@/providers/AppProviders';
-import AppRouter from '@/router';
+import { RouterProvider } from 'react-router-dom';
+
+import { routes } from '@/routes/routes';
 import { TimerTicker } from '@@@/timer';
+import { ModalRenderer, ToastList } from '@@/ui';
 
 export default function App() {
     return (
         <>
-            <AppProviders>
-                <TimerTicker />
-                <AppRouter />
-            </AppProviders>
+            <RouterProvider router={routes} />
+            <TimerTicker />
+            <ToastList />
+            <ModalRenderer />
         </>
     );
 }
