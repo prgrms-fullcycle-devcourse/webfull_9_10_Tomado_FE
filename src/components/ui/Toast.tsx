@@ -1,14 +1,19 @@
-import { useEffect, useRef } from 'react';
-import type { HTMLAttributes, ReactNode } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Icon } from './Icon';
+import { useToastStore } from '@/store/toast';
 
-import { Icon } from '.';
-
-export interface ToastProps extends HTMLAttributes<HTMLDivElement> {
-    label: ReactNode;
-    icon?: boolean | ReactNode;
+export type ToastItemType = {
+    id: string;
+    message: string;
+    iconName?: string;
     textButton?: boolean;
-    textButtonLabel?: ReactNode;
+    textButtonLabel?: string;
     onTextButtonClick?: () => void;
+    duration: number;
+};
+
+interface ToastItemProps {
+    toast: ToastItemType;
 }
 
 const cx = (...classes: Array<string | false | null | undefined>) => {
@@ -18,20 +23,15 @@ const cx = (...classes: Array<string | false | null | undefined>) => {
 const rootClassName =
     'flex h-[48px] min-w-[300px] items-center gap-4 rounded-xl bg-gray-900/90 px-4 text-base text-white';
 
-const iconClassName = 'shrink-0 text-white';
-const labelClassName = 'truncate text-base text-white';
+const labelClassName = 'truncate text-base text-white w-full';
 const textButtonWrapperClassName = 'shrink-0 border-b border-white';
-const textButtonClassName = 'text-sm leading-none text-white hover:cursor-pointer';
+const textButtonClassName = 'pointer-events-auto shrink-0 text-sm leading-none text-white hover:cursor-pointer';
 
-export const Toast = ({
-    label,
-    icon = false,
-    textButton = false,
-    textButtonLabel = '취소',
-    onTextButtonClick,
-    className,
-    ...props
-}: ToastProps) => {
+export const Toast = ({ toast }: ToastItemProps) => {
+    const [visible, setVisible] = useState(true);
+    const { removeToastList } = useToastStore();
+    const { id, message, iconName, textButton, textButtonLabel, onTextButtonClick, duration = 2000 } = toast;
+
     const toastRef = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
@@ -53,25 +53,33 @@ export const Toast = ({
         );
     }, []);
 
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setVisible(false);
+        }, duration);
+
+        const removeTimer = setTimeout(() => {
+            removeToastList(id);
+        }, duration + 300);
+
+        return () => {
+            clearTimeout(timer);
+            clearTimeout(removeTimer);
+        };
+    }, [duration, id, removeToastList]);
+
     const renderIcon = () => {
-        if (!icon) {
+        if (!iconName) {
             return null;
         }
 
-        if (icon === true) {
-            return <Icon className={iconClassName} color='white' name='noti_on' size={20} />;
-        }
-
-        return <span className='shrink-0 flex items-center'>{icon}</span>;
+        return <Icon name={iconName} className='shrink-0 flex items-center' color='white' />;
     };
 
     return (
-        <div {...props} className={cx(rootClassName, className)} ref={toastRef}>
-            <div className='flex min-w-0 flex-1 items-center gap-2'>
-                {renderIcon()}
-                <p className={labelClassName}>{label}</p>
-            </div>
-
+        <div ref={toastRef} className={cx(rootClassName, visible ? 'opacity-100' : 'opacity-0')}>
+            {renderIcon()}
+            <span className={labelClassName}>{message}</span>
             {textButton ? (
                 <div className={textButtonWrapperClassName}>
                     <button className={textButtonClassName} onClick={onTextButtonClick} type='button'>
