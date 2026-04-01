@@ -4,10 +4,10 @@ import { closestCenter, DndContext, PointerSensor, useSensor, useSensors, type D
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-import { Modal, Calendar } from '@@/ui';
 import { useTodoList, TODO_MAX_CHARS, TodoInput, TodoItem, useTodoStore, type Todo } from '@@@/todo';
 import { useInputFocus, useSubmitOnEnter } from '@/hooks';
 import { getTodayDate, formatDate, parseDate } from '@/utils';
+import { TodoMoveModal } from './TodoMoveModal';
 
 type TodoPanelTone = 'default' | 'focus';
 
@@ -117,17 +117,13 @@ export const TodoPanel = memo(({ assignedDate = getTodayDate(), className, tone 
                     </SortableContext>
                 </DndContext>
             </div>
-            <Modal
-                cancelLabel='취소'
-                confirmLabel='이동하기'
-                onCancel={handleCloseMoveModal}
+            <TodoMoveModal
+                open={moveModalOpen}
+                selectedDate={selectedMoveDate}
                 onClose={handleCloseMoveModal}
                 onConfirm={handleConfirmMoveDate}
-                open={moveModalOpen}
-                title='날짜 이동하기'
-            >
-                <Calendar onSelectDate={setSelectedMoveDate} selectedDate={selectedMoveDate} />
-            </Modal>
+                onSelectDate={setSelectedMoveDate}
+            />
         </>
     );
 });
