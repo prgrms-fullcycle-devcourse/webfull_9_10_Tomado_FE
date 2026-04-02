@@ -31,98 +31,109 @@ import type {
 
 import type {
     Error,
-    PatchApiV1UsersMeBody,
-    PatchApiV1UsersMeSettingsBody,
     UnauthorizedResponse,
+    UpdateProfileRequest,
+    UpdateSettingsRequest,
     User,
     UserSettings,
 } from '../model';
 
 import { customInstance } from '../../mutator/custom-instance';
 
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
 /**
  * 현재 로그인한 사용자의 프로필 정보 조회.
  * @summary 내 프로필 조회
  */
-export const getGetApiV1UsersMeUrl = () => {
+export const getGetMyProfileUrl = () => {
     return `/api/v1/users/me`;
 };
 
-export const getApiV1UsersMe = async (options?: RequestInit): Promise<User> => {
-    return customInstance<User>(getGetApiV1UsersMeUrl(), {
+export const getMyProfile = async (options?: RequestInit): Promise<User> => {
+    return customInstance<User>(getGetMyProfileUrl(), {
         ...options,
         method: 'GET',
     });
 };
 
-export const getGetApiV1UsersMeQueryKey = () => {
+export const getGetMyProfileQueryKey = () => {
     return [`/api/v1/users/me`] as const;
 };
 
-export const getGetApiV1UsersMeQueryOptions = <
-    TData = Awaited<ReturnType<typeof getApiV1UsersMe>>,
+export const getGetMyProfileQueryOptions = <
+    TData = Awaited<ReturnType<typeof getMyProfile>>,
     TError = UnauthorizedResponse,
 >(options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1UsersMe>>, TError, TData>>;
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyProfile>>, TError, TData>>;
+    request?: SecondParameter<typeof customInstance>;
 }) => {
-    const { query: queryOptions } = options ?? {};
+    const { query: queryOptions, request: requestOptions } = options ?? {};
 
-    const queryKey = queryOptions?.queryKey ?? getGetApiV1UsersMeQueryKey();
+    const queryKey = queryOptions?.queryKey ?? getGetMyProfileQueryKey();
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1UsersMe>>> = ({ signal }) =>
-        getApiV1UsersMe({ signal });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMyProfile>>> = ({ signal }) =>
+        getMyProfile({ signal, ...requestOptions });
 
     return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-        Awaited<ReturnType<typeof getApiV1UsersMe>>,
+        Awaited<ReturnType<typeof getMyProfile>>,
         TError,
         TData
     > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type GetApiV1UsersMeQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1UsersMe>>>;
-export type GetApiV1UsersMeQueryError = UnauthorizedResponse;
+export type GetMyProfileQueryResult = NonNullable<Awaited<ReturnType<typeof getMyProfile>>>;
+export type GetMyProfileQueryError = UnauthorizedResponse;
 
-export function useGetApiV1UsersMe<TData = Awaited<ReturnType<typeof getApiV1UsersMe>>, TError = UnauthorizedResponse>(
+export function useGetMyProfile<TData = Awaited<ReturnType<typeof getMyProfile>>, TError = UnauthorizedResponse>(
     options: {
-        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1UsersMe>>, TError, TData>> &
+        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyProfile>>, TError, TData>> &
             Pick<
                 DefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getApiV1UsersMe>>,
+                    Awaited<ReturnType<typeof getMyProfile>>,
                     TError,
-                    Awaited<ReturnType<typeof getApiV1UsersMe>>
+                    Awaited<ReturnType<typeof getMyProfile>>
                 >,
                 'initialData'
             >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetApiV1UsersMe<TData = Awaited<ReturnType<typeof getApiV1UsersMe>>, TError = UnauthorizedResponse>(
+export function useGetMyProfile<TData = Awaited<ReturnType<typeof getMyProfile>>, TError = UnauthorizedResponse>(
     options?: {
-        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1UsersMe>>, TError, TData>> &
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyProfile>>, TError, TData>> &
             Pick<
                 UndefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getApiV1UsersMe>>,
+                    Awaited<ReturnType<typeof getMyProfile>>,
                     TError,
-                    Awaited<ReturnType<typeof getApiV1UsersMe>>
+                    Awaited<ReturnType<typeof getMyProfile>>
                 >,
                 'initialData'
             >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetApiV1UsersMe<TData = Awaited<ReturnType<typeof getApiV1UsersMe>>, TError = UnauthorizedResponse>(
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1UsersMe>>, TError, TData>> },
+export function useGetMyProfile<TData = Awaited<ReturnType<typeof getMyProfile>>, TError = UnauthorizedResponse>(
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyProfile>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
  * @summary 내 프로필 조회
  */
 
-export function useGetApiV1UsersMe<TData = Awaited<ReturnType<typeof getApiV1UsersMe>>, TError = UnauthorizedResponse>(
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1UsersMe>>, TError, TData>> },
+export function useGetMyProfile<TData = Awaited<ReturnType<typeof getMyProfile>>, TError = UnauthorizedResponse>(
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyProfile>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-    const queryOptions = getGetApiV1UsersMeQueryOptions(options);
+    const queryOptions = getGetMyProfileQueryOptions(options);
 
     const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
         queryKey: DataTag<QueryKey, TData, TError>;
@@ -134,14 +145,17 @@ export function useGetApiV1UsersMe<TData = Awaited<ReturnType<typeof getApiV1Use
 /**
  * @summary 내 프로필 조회
  */
-export const prefetchGetApiV1UsersMeQuery = async <
-    TData = Awaited<ReturnType<typeof getApiV1UsersMe>>,
+export const prefetchGetMyProfileQuery = async <
+    TData = Awaited<ReturnType<typeof getMyProfile>>,
     TError = UnauthorizedResponse,
 >(
     queryClient: QueryClient,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1UsersMe>>, TError, TData>> }
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMyProfile>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    }
 ): Promise<QueryClient> => {
-    const queryOptions = getGetApiV1UsersMeQueryOptions(options);
+    const queryOptions = getGetMyProfileQueryOptions(options);
 
     await queryClient.prefetchQuery(queryOptions);
 
@@ -152,177 +166,167 @@ export const prefetchGetApiV1UsersMeQuery = async <
  * 닉네임 또는 아바타 URL 수정. 변경할 필드만 전송 가능.
  * @summary 프로필 수정
  */
-export const getPatchApiV1UsersMeUrl = () => {
+export const getUpdateMyProfileUrl = () => {
     return `/api/v1/users/me`;
 };
 
-export const patchApiV1UsersMe = async (
-    patchApiV1UsersMeBody: PatchApiV1UsersMeBody,
+export const updateMyProfile = async (
+    updateProfileRequest: UpdateProfileRequest,
     options?: RequestInit
 ): Promise<User> => {
-    return customInstance<User>(getPatchApiV1UsersMeUrl(), {
+    return customInstance<User>(getUpdateMyProfileUrl(), {
         ...options,
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...options?.headers },
-        body: JSON.stringify(patchApiV1UsersMeBody),
+        body: JSON.stringify(updateProfileRequest),
     });
 };
 
-export const getPatchApiV1UsersMeMutationOptions = <
-    TError = Error | UnauthorizedResponse,
-    TContext = unknown,
->(options?: {
+export const getUpdateMyProfileMutationOptions = <TError = Error | UnauthorizedResponse, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<
-        Awaited<ReturnType<typeof patchApiV1UsersMe>>,
+        Awaited<ReturnType<typeof updateMyProfile>>,
         TError,
-        { data: PatchApiV1UsersMeBody },
+        { data: UpdateProfileRequest },
         TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
-    Awaited<ReturnType<typeof patchApiV1UsersMe>>,
+    Awaited<ReturnType<typeof updateMyProfile>>,
     TError,
-    { data: PatchApiV1UsersMeBody },
+    { data: UpdateProfileRequest },
     TContext
 > => {
-    const mutationKey = ['patchApiV1UsersMe'];
-    const { mutation: mutationOptions } = options
+    const mutationKey = ['updateMyProfile'];
+    const { mutation: mutationOptions, request: requestOptions } = options
         ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
             ? options
             : { ...options, mutation: { ...options.mutation, mutationKey } }
-        : { mutation: { mutationKey } };
+        : { mutation: { mutationKey }, request: undefined };
 
-    const mutationFn: MutationFunction<
-        Awaited<ReturnType<typeof patchApiV1UsersMe>>,
-        { data: PatchApiV1UsersMeBody }
-    > = (props) => {
+    const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateMyProfile>>, { data: UpdateProfileRequest }> = (
+        props
+    ) => {
         const { data } = props ?? {};
 
-        return patchApiV1UsersMe(data);
+        return updateMyProfile(data, requestOptions);
     };
 
     return { mutationFn, ...mutationOptions };
 };
 
-export type PatchApiV1UsersMeMutationResult = NonNullable<Awaited<ReturnType<typeof patchApiV1UsersMe>>>;
-export type PatchApiV1UsersMeMutationBody = PatchApiV1UsersMeBody;
-export type PatchApiV1UsersMeMutationError = Error | UnauthorizedResponse;
+export type UpdateMyProfileMutationResult = NonNullable<Awaited<ReturnType<typeof updateMyProfile>>>;
+export type UpdateMyProfileMutationBody = UpdateProfileRequest;
+export type UpdateMyProfileMutationError = Error | UnauthorizedResponse;
 
 /**
  * @summary 프로필 수정
  */
-export const usePatchApiV1UsersMe = <TError = Error | UnauthorizedResponse, TContext = unknown>(
+export const useUpdateMyProfile = <TError = Error | UnauthorizedResponse, TContext = unknown>(
     options?: {
         mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof patchApiV1UsersMe>>,
+            Awaited<ReturnType<typeof updateMyProfile>>,
             TError,
-            { data: PatchApiV1UsersMeBody },
+            { data: UpdateProfileRequest },
             TContext
         >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
-): UseMutationResult<
-    Awaited<ReturnType<typeof patchApiV1UsersMe>>,
-    TError,
-    { data: PatchApiV1UsersMeBody },
-    TContext
-> => {
-    return useMutation(getPatchApiV1UsersMeMutationOptions(options), queryClient);
+): UseMutationResult<Awaited<ReturnType<typeof updateMyProfile>>, TError, { data: UpdateProfileRequest }, TContext> => {
+    return useMutation(getUpdateMyProfileMutationOptions(options), queryClient);
 };
 /**
  * 사용자 앱 설정 (포모도로 시간, 자동이월 등) 조회.
  * @summary 앱 설정 조회
  */
-export const getGetApiV1UsersMeSettingsUrl = () => {
+export const getGetMySettingsUrl = () => {
     return `/api/v1/users/me/settings`;
 };
 
-export const getApiV1UsersMeSettings = async (options?: RequestInit): Promise<UserSettings> => {
-    return customInstance<UserSettings>(getGetApiV1UsersMeSettingsUrl(), {
+export const getMySettings = async (options?: RequestInit): Promise<UserSettings> => {
+    return customInstance<UserSettings>(getGetMySettingsUrl(), {
         ...options,
         method: 'GET',
     });
 };
 
-export const getGetApiV1UsersMeSettingsQueryKey = () => {
+export const getGetMySettingsQueryKey = () => {
     return [`/api/v1/users/me/settings`] as const;
 };
 
-export const getGetApiV1UsersMeSettingsQueryOptions = <
-    TData = Awaited<ReturnType<typeof getApiV1UsersMeSettings>>,
+export const getGetMySettingsQueryOptions = <
+    TData = Awaited<ReturnType<typeof getMySettings>>,
     TError = UnauthorizedResponse,
 >(options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1UsersMeSettings>>, TError, TData>>;
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMySettings>>, TError, TData>>;
+    request?: SecondParameter<typeof customInstance>;
 }) => {
-    const { query: queryOptions } = options ?? {};
+    const { query: queryOptions, request: requestOptions } = options ?? {};
 
-    const queryKey = queryOptions?.queryKey ?? getGetApiV1UsersMeSettingsQueryKey();
+    const queryKey = queryOptions?.queryKey ?? getGetMySettingsQueryKey();
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1UsersMeSettings>>> = ({ signal }) =>
-        getApiV1UsersMeSettings({ signal });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMySettings>>> = ({ signal }) =>
+        getMySettings({ signal, ...requestOptions });
 
     return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-        Awaited<ReturnType<typeof getApiV1UsersMeSettings>>,
+        Awaited<ReturnType<typeof getMySettings>>,
         TError,
         TData
     > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type GetApiV1UsersMeSettingsQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1UsersMeSettings>>>;
-export type GetApiV1UsersMeSettingsQueryError = UnauthorizedResponse;
+export type GetMySettingsQueryResult = NonNullable<Awaited<ReturnType<typeof getMySettings>>>;
+export type GetMySettingsQueryError = UnauthorizedResponse;
 
-export function useGetApiV1UsersMeSettings<
-    TData = Awaited<ReturnType<typeof getApiV1UsersMeSettings>>,
-    TError = UnauthorizedResponse,
->(
+export function useGetMySettings<TData = Awaited<ReturnType<typeof getMySettings>>, TError = UnauthorizedResponse>(
     options: {
-        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1UsersMeSettings>>, TError, TData>> &
+        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMySettings>>, TError, TData>> &
             Pick<
                 DefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getApiV1UsersMeSettings>>,
+                    Awaited<ReturnType<typeof getMySettings>>,
                     TError,
-                    Awaited<ReturnType<typeof getApiV1UsersMeSettings>>
+                    Awaited<ReturnType<typeof getMySettings>>
                 >,
                 'initialData'
             >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetApiV1UsersMeSettings<
-    TData = Awaited<ReturnType<typeof getApiV1UsersMeSettings>>,
-    TError = UnauthorizedResponse,
->(
+export function useGetMySettings<TData = Awaited<ReturnType<typeof getMySettings>>, TError = UnauthorizedResponse>(
     options?: {
-        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1UsersMeSettings>>, TError, TData>> &
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMySettings>>, TError, TData>> &
             Pick<
                 UndefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getApiV1UsersMeSettings>>,
+                    Awaited<ReturnType<typeof getMySettings>>,
                     TError,
-                    Awaited<ReturnType<typeof getApiV1UsersMeSettings>>
+                    Awaited<ReturnType<typeof getMySettings>>
                 >,
                 'initialData'
             >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetApiV1UsersMeSettings<
-    TData = Awaited<ReturnType<typeof getApiV1UsersMeSettings>>,
-    TError = UnauthorizedResponse,
->(
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1UsersMeSettings>>, TError, TData>> },
+export function useGetMySettings<TData = Awaited<ReturnType<typeof getMySettings>>, TError = UnauthorizedResponse>(
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMySettings>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
  * @summary 앱 설정 조회
  */
 
-export function useGetApiV1UsersMeSettings<
-    TData = Awaited<ReturnType<typeof getApiV1UsersMeSettings>>,
-    TError = UnauthorizedResponse,
->(
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1UsersMeSettings>>, TError, TData>> },
+export function useGetMySettings<TData = Awaited<ReturnType<typeof getMySettings>>, TError = UnauthorizedResponse>(
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMySettings>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-    const queryOptions = getGetApiV1UsersMeSettingsQueryOptions(options);
+    const queryOptions = getGetMySettingsQueryOptions(options);
 
     const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
         queryKey: DataTag<QueryKey, TData, TError>;
@@ -334,14 +338,17 @@ export function useGetApiV1UsersMeSettings<
 /**
  * @summary 앱 설정 조회
  */
-export const prefetchGetApiV1UsersMeSettingsQuery = async <
-    TData = Awaited<ReturnType<typeof getApiV1UsersMeSettings>>,
+export const prefetchGetMySettingsQuery = async <
+    TData = Awaited<ReturnType<typeof getMySettings>>,
     TError = UnauthorizedResponse,
 >(
     queryClient: QueryClient,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1UsersMeSettings>>, TError, TData>> }
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getMySettings>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    }
 ): Promise<QueryClient> => {
-    const queryOptions = getGetApiV1UsersMeSettingsQueryOptions(options);
+    const queryOptions = getGetMySettingsQueryOptions(options);
 
     await queryClient.prefetchQuery(queryOptions);
 
@@ -352,81 +359,81 @@ export const prefetchGetApiV1UsersMeSettingsQuery = async <
  * 앱 설정 변경. 변경할 필드만 전송 가능.
  * @summary 앱 설정 수정
  */
-export const getPatchApiV1UsersMeSettingsUrl = () => {
+export const getUpdateMySettingsUrl = () => {
     return `/api/v1/users/me/settings`;
 };
 
-export const patchApiV1UsersMeSettings = async (
-    patchApiV1UsersMeSettingsBody: PatchApiV1UsersMeSettingsBody,
+export const updateMySettings = async (
+    updateSettingsRequest: UpdateSettingsRequest,
     options?: RequestInit
 ): Promise<UserSettings> => {
-    return customInstance<UserSettings>(getPatchApiV1UsersMeSettingsUrl(), {
+    return customInstance<UserSettings>(getUpdateMySettingsUrl(), {
         ...options,
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...options?.headers },
-        body: JSON.stringify(patchApiV1UsersMeSettingsBody),
+        body: JSON.stringify(updateSettingsRequest),
     });
 };
 
-export const getPatchApiV1UsersMeSettingsMutationOptions = <
+export const getUpdateMySettingsMutationOptions = <
     TError = Error | UnauthorizedResponse,
     TContext = unknown,
 >(options?: {
     mutation?: UseMutationOptions<
-        Awaited<ReturnType<typeof patchApiV1UsersMeSettings>>,
+        Awaited<ReturnType<typeof updateMySettings>>,
         TError,
-        { data: PatchApiV1UsersMeSettingsBody },
+        { data: UpdateSettingsRequest },
         TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
-    Awaited<ReturnType<typeof patchApiV1UsersMeSettings>>,
+    Awaited<ReturnType<typeof updateMySettings>>,
     TError,
-    { data: PatchApiV1UsersMeSettingsBody },
+    { data: UpdateSettingsRequest },
     TContext
 > => {
-    const mutationKey = ['patchApiV1UsersMeSettings'];
-    const { mutation: mutationOptions } = options
+    const mutationKey = ['updateMySettings'];
+    const { mutation: mutationOptions, request: requestOptions } = options
         ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
             ? options
             : { ...options, mutation: { ...options.mutation, mutationKey } }
-        : { mutation: { mutationKey } };
+        : { mutation: { mutationKey }, request: undefined };
 
     const mutationFn: MutationFunction<
-        Awaited<ReturnType<typeof patchApiV1UsersMeSettings>>,
-        { data: PatchApiV1UsersMeSettingsBody }
+        Awaited<ReturnType<typeof updateMySettings>>,
+        { data: UpdateSettingsRequest }
     > = (props) => {
         const { data } = props ?? {};
 
-        return patchApiV1UsersMeSettings(data);
+        return updateMySettings(data, requestOptions);
     };
 
     return { mutationFn, ...mutationOptions };
 };
 
-export type PatchApiV1UsersMeSettingsMutationResult = NonNullable<
-    Awaited<ReturnType<typeof patchApiV1UsersMeSettings>>
->;
-export type PatchApiV1UsersMeSettingsMutationBody = PatchApiV1UsersMeSettingsBody;
-export type PatchApiV1UsersMeSettingsMutationError = Error | UnauthorizedResponse;
+export type UpdateMySettingsMutationResult = NonNullable<Awaited<ReturnType<typeof updateMySettings>>>;
+export type UpdateMySettingsMutationBody = UpdateSettingsRequest;
+export type UpdateMySettingsMutationError = Error | UnauthorizedResponse;
 
 /**
  * @summary 앱 설정 수정
  */
-export const usePatchApiV1UsersMeSettings = <TError = Error | UnauthorizedResponse, TContext = unknown>(
+export const useUpdateMySettings = <TError = Error | UnauthorizedResponse, TContext = unknown>(
     options?: {
         mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof patchApiV1UsersMeSettings>>,
+            Awaited<ReturnType<typeof updateMySettings>>,
             TError,
-            { data: PatchApiV1UsersMeSettingsBody },
+            { data: UpdateSettingsRequest },
             TContext
         >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): UseMutationResult<
-    Awaited<ReturnType<typeof patchApiV1UsersMeSettings>>,
+    Awaited<ReturnType<typeof updateMySettings>>,
     TError,
-    { data: PatchApiV1UsersMeSettingsBody },
+    { data: UpdateSettingsRequest },
     TContext
 > => {
-    return useMutation(getPatchApiV1UsersMeSettingsMutationOptions(options), queryClient);
+    return useMutation(getUpdateMySettingsMutationOptions(options), queryClient);
 };

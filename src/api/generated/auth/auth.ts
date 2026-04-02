@@ -19,291 +19,243 @@ import type { MutationFunction, QueryClient, UseMutationOptions, UseMutationResu
 import type {
     AuthTokens,
     Error,
-    PostApiV1AuthLogin200,
-    PostApiV1AuthLoginBody,
-    PostApiV1AuthRefreshBody,
-    PostApiV1AuthRegister201,
-    PostApiV1AuthRegisterBody,
+    Login200,
+    LoginRequest,
+    RefreshTokenRequest,
+    Register201,
+    RegisterRequest,
     UnauthorizedResponse,
 } from '../model';
 
 import { customInstance } from '../../mutator/custom-instance';
 
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
 /**
  * 신규 회원 가입. 성공 시 `users` + `user_settings` 레코드 자동 생성.
  * @summary 회원가입
  */
-export const getPostApiV1AuthRegisterUrl = () => {
+export const getRegisterUrl = () => {
     return `/api/v1/auth/register`;
 };
 
-export const postApiV1AuthRegister = async (
-    postApiV1AuthRegisterBody: PostApiV1AuthRegisterBody,
-    options?: RequestInit
-): Promise<PostApiV1AuthRegister201> => {
-    return customInstance<PostApiV1AuthRegister201>(getPostApiV1AuthRegisterUrl(), {
+export const register = async (registerRequest: RegisterRequest, options?: RequestInit): Promise<Register201> => {
+    return customInstance<Register201>(getRegisterUrl(), {
         ...options,
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...options?.headers },
-        body: JSON.stringify(postApiV1AuthRegisterBody),
+        body: JSON.stringify(registerRequest),
     });
 };
 
-export const getPostApiV1AuthRegisterMutationOptions = <TError = Error, TContext = unknown>(options?: {
-    mutation?: UseMutationOptions<
-        Awaited<ReturnType<typeof postApiV1AuthRegister>>,
-        TError,
-        { data: PostApiV1AuthRegisterBody },
-        TContext
-    >;
-}): UseMutationOptions<
-    Awaited<ReturnType<typeof postApiV1AuthRegister>>,
-    TError,
-    { data: PostApiV1AuthRegisterBody },
-    TContext
-> => {
-    const mutationKey = ['postApiV1AuthRegister'];
-    const { mutation: mutationOptions } = options
+export const getRegisterMutationOptions = <TError = Error, TContext = unknown>(options?: {
+    mutation?: UseMutationOptions<Awaited<ReturnType<typeof register>>, TError, { data: RegisterRequest }, TContext>;
+    request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<Awaited<ReturnType<typeof register>>, TError, { data: RegisterRequest }, TContext> => {
+    const mutationKey = ['register'];
+    const { mutation: mutationOptions, request: requestOptions } = options
         ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
             ? options
             : { ...options, mutation: { ...options.mutation, mutationKey } }
-        : { mutation: { mutationKey } };
+        : { mutation: { mutationKey }, request: undefined };
 
-    const mutationFn: MutationFunction<
-        Awaited<ReturnType<typeof postApiV1AuthRegister>>,
-        { data: PostApiV1AuthRegisterBody }
-    > = (props) => {
+    const mutationFn: MutationFunction<Awaited<ReturnType<typeof register>>, { data: RegisterRequest }> = (props) => {
         const { data } = props ?? {};
 
-        return postApiV1AuthRegister(data);
+        return register(data, requestOptions);
     };
 
     return { mutationFn, ...mutationOptions };
 };
 
-export type PostApiV1AuthRegisterMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1AuthRegister>>>;
-export type PostApiV1AuthRegisterMutationBody = PostApiV1AuthRegisterBody;
-export type PostApiV1AuthRegisterMutationError = Error;
+export type RegisterMutationResult = NonNullable<Awaited<ReturnType<typeof register>>>;
+export type RegisterMutationBody = RegisterRequest;
+export type RegisterMutationError = Error;
 
 /**
  * @summary 회원가입
  */
-export const usePostApiV1AuthRegister = <TError = Error, TContext = unknown>(
+export const useRegister = <TError = Error, TContext = unknown>(
     options?: {
         mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof postApiV1AuthRegister>>,
+            Awaited<ReturnType<typeof register>>,
             TError,
-            { data: PostApiV1AuthRegisterBody },
+            { data: RegisterRequest },
             TContext
         >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
-): UseMutationResult<
-    Awaited<ReturnType<typeof postApiV1AuthRegister>>,
-    TError,
-    { data: PostApiV1AuthRegisterBody },
-    TContext
-> => {
-    return useMutation(getPostApiV1AuthRegisterMutationOptions(options), queryClient);
+): UseMutationResult<Awaited<ReturnType<typeof register>>, TError, { data: RegisterRequest }, TContext> => {
+    return useMutation(getRegisterMutationOptions(options), queryClient);
 };
 /**
  * Supabase Auth 검증 후 Access / Refresh Token 발급.
  * @summary 로그인
  */
-export const getPostApiV1AuthLoginUrl = () => {
+export const getLoginUrl = () => {
     return `/api/v1/auth/login`;
 };
 
-export const postApiV1AuthLogin = async (
-    postApiV1AuthLoginBody: PostApiV1AuthLoginBody,
-    options?: RequestInit
-): Promise<PostApiV1AuthLogin200> => {
-    return customInstance<PostApiV1AuthLogin200>(getPostApiV1AuthLoginUrl(), {
+export const login = async (loginRequest: LoginRequest, options?: RequestInit): Promise<Login200> => {
+    return customInstance<Login200>(getLoginUrl(), {
         ...options,
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...options?.headers },
-        body: JSON.stringify(postApiV1AuthLoginBody),
+        body: JSON.stringify(loginRequest),
     });
 };
 
-export const getPostApiV1AuthLoginMutationOptions = <TError = Error, TContext = unknown>(options?: {
-    mutation?: UseMutationOptions<
-        Awaited<ReturnType<typeof postApiV1AuthLogin>>,
-        TError,
-        { data: PostApiV1AuthLoginBody },
-        TContext
-    >;
-}): UseMutationOptions<
-    Awaited<ReturnType<typeof postApiV1AuthLogin>>,
-    TError,
-    { data: PostApiV1AuthLoginBody },
-    TContext
-> => {
-    const mutationKey = ['postApiV1AuthLogin'];
-    const { mutation: mutationOptions } = options
+export const getLoginMutationOptions = <TError = Error, TContext = unknown>(options?: {
+    mutation?: UseMutationOptions<Awaited<ReturnType<typeof login>>, TError, { data: LoginRequest }, TContext>;
+    request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<Awaited<ReturnType<typeof login>>, TError, { data: LoginRequest }, TContext> => {
+    const mutationKey = ['login'];
+    const { mutation: mutationOptions, request: requestOptions } = options
         ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
             ? options
             : { ...options, mutation: { ...options.mutation, mutationKey } }
-        : { mutation: { mutationKey } };
+        : { mutation: { mutationKey }, request: undefined };
 
-    const mutationFn: MutationFunction<
-        Awaited<ReturnType<typeof postApiV1AuthLogin>>,
-        { data: PostApiV1AuthLoginBody }
-    > = (props) => {
+    const mutationFn: MutationFunction<Awaited<ReturnType<typeof login>>, { data: LoginRequest }> = (props) => {
         const { data } = props ?? {};
 
-        return postApiV1AuthLogin(data);
+        return login(data, requestOptions);
     };
 
     return { mutationFn, ...mutationOptions };
 };
 
-export type PostApiV1AuthLoginMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1AuthLogin>>>;
-export type PostApiV1AuthLoginMutationBody = PostApiV1AuthLoginBody;
-export type PostApiV1AuthLoginMutationError = Error;
+export type LoginMutationResult = NonNullable<Awaited<ReturnType<typeof login>>>;
+export type LoginMutationBody = LoginRequest;
+export type LoginMutationError = Error;
 
 /**
  * @summary 로그인
  */
-export const usePostApiV1AuthLogin = <TError = Error, TContext = unknown>(
+export const useLogin = <TError = Error, TContext = unknown>(
     options?: {
-        mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof postApiV1AuthLogin>>,
-            TError,
-            { data: PostApiV1AuthLoginBody },
-            TContext
-        >;
+        mutation?: UseMutationOptions<Awaited<ReturnType<typeof login>>, TError, { data: LoginRequest }, TContext>;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
-): UseMutationResult<
-    Awaited<ReturnType<typeof postApiV1AuthLogin>>,
-    TError,
-    { data: PostApiV1AuthLoginBody },
-    TContext
-> => {
-    return useMutation(getPostApiV1AuthLoginMutationOptions(options), queryClient);
+): UseMutationResult<Awaited<ReturnType<typeof login>>, TError, { data: LoginRequest }, TContext> => {
+    return useMutation(getLoginMutationOptions(options), queryClient);
 };
 /**
  * Refresh Token으로 Access Token 재발급 (Rotation). 기존 Refresh Token은 즉시 폐기됨.
  * @summary 토큰 재발급
  */
-export const getPostApiV1AuthRefreshUrl = () => {
+export const getRefreshTokenUrl = () => {
     return `/api/v1/auth/refresh`;
 };
 
-export const postApiV1AuthRefresh = async (
-    postApiV1AuthRefreshBody: PostApiV1AuthRefreshBody,
+export const refreshToken = async (
+    refreshTokenRequest: RefreshTokenRequest,
     options?: RequestInit
 ): Promise<AuthTokens> => {
-    return customInstance<AuthTokens>(getPostApiV1AuthRefreshUrl(), {
+    return customInstance<AuthTokens>(getRefreshTokenUrl(), {
         ...options,
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...options?.headers },
-        body: JSON.stringify(postApiV1AuthRefreshBody),
+        body: JSON.stringify(refreshTokenRequest),
     });
 };
 
-export const getPostApiV1AuthRefreshMutationOptions = <TError = Error, TContext = unknown>(options?: {
+export const getRefreshTokenMutationOptions = <TError = Error, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<
-        Awaited<ReturnType<typeof postApiV1AuthRefresh>>,
+        Awaited<ReturnType<typeof refreshToken>>,
         TError,
-        { data: PostApiV1AuthRefreshBody },
+        { data: RefreshTokenRequest },
         TContext
     >;
-}): UseMutationOptions<
-    Awaited<ReturnType<typeof postApiV1AuthRefresh>>,
-    TError,
-    { data: PostApiV1AuthRefreshBody },
-    TContext
-> => {
-    const mutationKey = ['postApiV1AuthRefresh'];
-    const { mutation: mutationOptions } = options
+    request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<Awaited<ReturnType<typeof refreshToken>>, TError, { data: RefreshTokenRequest }, TContext> => {
+    const mutationKey = ['refreshToken'];
+    const { mutation: mutationOptions, request: requestOptions } = options
         ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
             ? options
             : { ...options, mutation: { ...options.mutation, mutationKey } }
-        : { mutation: { mutationKey } };
+        : { mutation: { mutationKey }, request: undefined };
 
-    const mutationFn: MutationFunction<
-        Awaited<ReturnType<typeof postApiV1AuthRefresh>>,
-        { data: PostApiV1AuthRefreshBody }
-    > = (props) => {
+    const mutationFn: MutationFunction<Awaited<ReturnType<typeof refreshToken>>, { data: RefreshTokenRequest }> = (
+        props
+    ) => {
         const { data } = props ?? {};
 
-        return postApiV1AuthRefresh(data);
+        return refreshToken(data, requestOptions);
     };
 
     return { mutationFn, ...mutationOptions };
 };
 
-export type PostApiV1AuthRefreshMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1AuthRefresh>>>;
-export type PostApiV1AuthRefreshMutationBody = PostApiV1AuthRefreshBody;
-export type PostApiV1AuthRefreshMutationError = Error;
+export type RefreshTokenMutationResult = NonNullable<Awaited<ReturnType<typeof refreshToken>>>;
+export type RefreshTokenMutationBody = RefreshTokenRequest;
+export type RefreshTokenMutationError = Error;
 
 /**
  * @summary 토큰 재발급
  */
-export const usePostApiV1AuthRefresh = <TError = Error, TContext = unknown>(
+export const useRefreshToken = <TError = Error, TContext = unknown>(
     options?: {
         mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof postApiV1AuthRefresh>>,
+            Awaited<ReturnType<typeof refreshToken>>,
             TError,
-            { data: PostApiV1AuthRefreshBody },
+            { data: RefreshTokenRequest },
             TContext
         >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
-): UseMutationResult<
-    Awaited<ReturnType<typeof postApiV1AuthRefresh>>,
-    TError,
-    { data: PostApiV1AuthRefreshBody },
-    TContext
-> => {
-    return useMutation(getPostApiV1AuthRefreshMutationOptions(options), queryClient);
+): UseMutationResult<Awaited<ReturnType<typeof refreshToken>>, TError, { data: RefreshTokenRequest }, TContext> => {
+    return useMutation(getRefreshTokenMutationOptions(options), queryClient);
 };
 /**
  * Supabase에서 현재 세션의 Refresh Token을 폐기.
  * @summary 로그아웃
  */
-export const getPostApiV1AuthLogoutUrl = () => {
+export const getLogoutUrl = () => {
     return `/api/v1/auth/logout`;
 };
 
-export const postApiV1AuthLogout = async (options?: RequestInit): Promise<void> => {
-    return customInstance<void>(getPostApiV1AuthLogoutUrl(), {
+export const logout = async (options?: RequestInit): Promise<void> => {
+    return customInstance<void>(getLogoutUrl(), {
         ...options,
         method: 'POST',
     });
 };
 
-export const getPostApiV1AuthLogoutMutationOptions = <TError = UnauthorizedResponse, TContext = unknown>(options?: {
-    mutation?: UseMutationOptions<Awaited<ReturnType<typeof postApiV1AuthLogout>>, TError, void, TContext>;
-}): UseMutationOptions<Awaited<ReturnType<typeof postApiV1AuthLogout>>, TError, void, TContext> => {
-    const mutationKey = ['postApiV1AuthLogout'];
-    const { mutation: mutationOptions } = options
+export const getLogoutMutationOptions = <TError = UnauthorizedResponse, TContext = unknown>(options?: {
+    mutation?: UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError, void, TContext>;
+    request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError, void, TContext> => {
+    const mutationKey = ['logout'];
+    const { mutation: mutationOptions, request: requestOptions } = options
         ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
             ? options
             : { ...options, mutation: { ...options.mutation, mutationKey } }
-        : { mutation: { mutationKey } };
+        : { mutation: { mutationKey }, request: undefined };
 
-    const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiV1AuthLogout>>, void> = () => {
-        return postApiV1AuthLogout();
+    const mutationFn: MutationFunction<Awaited<ReturnType<typeof logout>>, void> = () => {
+        return logout(requestOptions);
     };
 
     return { mutationFn, ...mutationOptions };
 };
 
-export type PostApiV1AuthLogoutMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1AuthLogout>>>;
+export type LogoutMutationResult = NonNullable<Awaited<ReturnType<typeof logout>>>;
 
-export type PostApiV1AuthLogoutMutationError = UnauthorizedResponse;
+export type LogoutMutationError = UnauthorizedResponse;
 
 /**
  * @summary 로그아웃
  */
-export const usePostApiV1AuthLogout = <TError = UnauthorizedResponse, TContext = unknown>(
+export const useLogout = <TError = UnauthorizedResponse, TContext = unknown>(
     options?: {
-        mutation?: UseMutationOptions<Awaited<ReturnType<typeof postApiV1AuthLogout>>, TError, void, TContext>;
+        mutation?: UseMutationOptions<Awaited<ReturnType<typeof logout>>, TError, void, TContext>;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
-): UseMutationResult<Awaited<ReturnType<typeof postApiV1AuthLogout>>, TError, void, TContext> => {
-    return useMutation(getPostApiV1AuthLogoutMutationOptions(options), queryClient);
+): UseMutationResult<Awaited<ReturnType<typeof logout>>, TError, void, TContext> => {
+    return useMutation(getLogoutMutationOptions(options), queryClient);
 };

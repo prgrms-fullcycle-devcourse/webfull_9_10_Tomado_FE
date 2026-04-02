@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 
-import { usePostApiV1AuthLogin } from '@/api/generated/auth/auth';
+import { useLogin } from '@/api/generated/auth/auth';
 import { useAuthStore } from './useAuthStore';
 import { mapLoginResponseToAuthTokens, mapLoginResponseToAuthUser } from './api';
 import { DEMO_AUTH_USER, DEMO_LOGIN_CREDENTIALS } from './types';
@@ -19,7 +19,7 @@ export const useLoginForm = () => {
     const isUserIdFilled = useMemo(() => validateLoginField(values.userId), [values.userId]);
     const isPasswordFilled = useMemo(() => validateLoginField(values.password), [values.password]);
     const isFormValid = isUserIdFilled && isPasswordFilled;
-    const loginMutation = usePostApiV1AuthLogin();
+    const loginMutation = useLogin();
 
     const setFieldValue = (field: keyof LoginFormValues, value: string) => {
         setValues((prev) => ({ ...prev, [field]: value }));

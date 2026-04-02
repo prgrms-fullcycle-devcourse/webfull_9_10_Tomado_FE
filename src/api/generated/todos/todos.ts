@@ -30,19 +30,21 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+    CreateTodoRequest,
     Error,
     ForbiddenResponse,
-    GetApiV1TodosParams,
+    GetTodosParams,
     NotFoundResponse,
-    PatchApiV1TodosIdBody,
-    PatchApiV1TodosIdCompleteBody,
-    PatchApiV1TodosIdReorderBody,
-    PostApiV1TodosBody,
+    ReorderTodoRequest,
     Todo,
+    ToggleTodoRequest,
     UnauthorizedResponse,
+    UpdateTodoRequest,
 } from '../model';
 
 import { customInstance } from '../../mutator/custom-instance';
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 /**
  * 특정 날짜의 투두 목록 조회. `sort_order` 기준 오름차순 정렬.
@@ -50,7 +52,7 @@ import { customInstance } from '../../mutator/custom-instance';
 
  * @summary 날짜별 투두 목록 조회
  */
-export const getGetApiV1TodosUrl = (params: GetApiV1TodosParams) => {
+export const getGetTodosUrl = (params: GetTodosParams) => {
     const normalizedParams = new URLSearchParams();
 
     Object.entries(params || {}).forEach(([key, value]) => {
@@ -64,86 +66,94 @@ export const getGetApiV1TodosUrl = (params: GetApiV1TodosParams) => {
     return stringifiedParams.length > 0 ? `/api/v1/todos?${stringifiedParams}` : `/api/v1/todos`;
 };
 
-export const getApiV1Todos = async (params: GetApiV1TodosParams, options?: RequestInit): Promise<Todo[]> => {
-    return customInstance<Todo[]>(getGetApiV1TodosUrl(params), {
+export const getTodos = async (params: GetTodosParams, options?: RequestInit): Promise<Todo[]> => {
+    return customInstance<Todo[]>(getGetTodosUrl(params), {
         ...options,
         method: 'GET',
     });
 };
 
-export const getGetApiV1TodosQueryKey = (params?: GetApiV1TodosParams) => {
+export const getGetTodosQueryKey = (params?: GetTodosParams) => {
     return [`/api/v1/todos`, ...(params ? [params] : [])] as const;
 };
 
-export const getGetApiV1TodosQueryOptions = <
-    TData = Awaited<ReturnType<typeof getApiV1Todos>>,
-    TError = UnauthorizedResponse,
->(
-    params: GetApiV1TodosParams,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1Todos>>, TError, TData>> }
+export const getGetTodosQueryOptions = <TData = Awaited<ReturnType<typeof getTodos>>, TError = UnauthorizedResponse>(
+    params: GetTodosParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTodos>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    }
 ) => {
-    const { query: queryOptions } = options ?? {};
+    const { query: queryOptions, request: requestOptions } = options ?? {};
 
-    const queryKey = queryOptions?.queryKey ?? getGetApiV1TodosQueryKey(params);
+    const queryKey = queryOptions?.queryKey ?? getGetTodosQueryKey(params);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1Todos>>> = ({ signal }) =>
-        getApiV1Todos(params, { signal });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTodos>>> = ({ signal }) =>
+        getTodos(params, { signal, ...requestOptions });
 
     return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-        Awaited<ReturnType<typeof getApiV1Todos>>,
+        Awaited<ReturnType<typeof getTodos>>,
         TError,
         TData
     > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type GetApiV1TodosQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1Todos>>>;
-export type GetApiV1TodosQueryError = UnauthorizedResponse;
+export type GetTodosQueryResult = NonNullable<Awaited<ReturnType<typeof getTodos>>>;
+export type GetTodosQueryError = UnauthorizedResponse;
 
-export function useGetApiV1Todos<TData = Awaited<ReturnType<typeof getApiV1Todos>>, TError = UnauthorizedResponse>(
-    params: GetApiV1TodosParams,
+export function useGetTodos<TData = Awaited<ReturnType<typeof getTodos>>, TError = UnauthorizedResponse>(
+    params: GetTodosParams,
     options: {
-        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1Todos>>, TError, TData>> &
+        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTodos>>, TError, TData>> &
             Pick<
                 DefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getApiV1Todos>>,
+                    Awaited<ReturnType<typeof getTodos>>,
                     TError,
-                    Awaited<ReturnType<typeof getApiV1Todos>>
+                    Awaited<ReturnType<typeof getTodos>>
                 >,
                 'initialData'
             >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetApiV1Todos<TData = Awaited<ReturnType<typeof getApiV1Todos>>, TError = UnauthorizedResponse>(
-    params: GetApiV1TodosParams,
+export function useGetTodos<TData = Awaited<ReturnType<typeof getTodos>>, TError = UnauthorizedResponse>(
+    params: GetTodosParams,
     options?: {
-        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1Todos>>, TError, TData>> &
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTodos>>, TError, TData>> &
             Pick<
                 UndefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getApiV1Todos>>,
+                    Awaited<ReturnType<typeof getTodos>>,
                     TError,
-                    Awaited<ReturnType<typeof getApiV1Todos>>
+                    Awaited<ReturnType<typeof getTodos>>
                 >,
                 'initialData'
             >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetApiV1Todos<TData = Awaited<ReturnType<typeof getApiV1Todos>>, TError = UnauthorizedResponse>(
-    params: GetApiV1TodosParams,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1Todos>>, TError, TData>> },
+export function useGetTodos<TData = Awaited<ReturnType<typeof getTodos>>, TError = UnauthorizedResponse>(
+    params: GetTodosParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTodos>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
  * @summary 날짜별 투두 목록 조회
  */
 
-export function useGetApiV1Todos<TData = Awaited<ReturnType<typeof getApiV1Todos>>, TError = UnauthorizedResponse>(
-    params: GetApiV1TodosParams,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1Todos>>, TError, TData>> },
+export function useGetTodos<TData = Awaited<ReturnType<typeof getTodos>>, TError = UnauthorizedResponse>(
+    params: GetTodosParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTodos>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-    const queryOptions = getGetApiV1TodosQueryOptions(params, options);
+    const queryOptions = getGetTodosQueryOptions(params, options);
 
     const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
         queryKey: DataTag<QueryKey, TData, TError>;
@@ -155,15 +165,18 @@ export function useGetApiV1Todos<TData = Awaited<ReturnType<typeof getApiV1Todos
 /**
  * @summary 날짜별 투두 목록 조회
  */
-export const prefetchGetApiV1TodosQuery = async <
-    TData = Awaited<ReturnType<typeof getApiV1Todos>>,
+export const prefetchGetTodosQuery = async <
+    TData = Awaited<ReturnType<typeof getTodos>>,
     TError = UnauthorizedResponse,
 >(
     queryClient: QueryClient,
-    params: GetApiV1TodosParams,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1Todos>>, TError, TData>> }
+    params: GetTodosParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getTodos>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    }
 ): Promise<QueryClient> => {
-    const queryOptions = getGetApiV1TodosQueryOptions(params, options);
+    const queryOptions = getGetTodosQueryOptions(params, options);
 
     await queryClient.prefetchQuery(queryOptions);
 
@@ -174,145 +187,149 @@ export const prefetchGetApiV1TodosQuery = async <
  * 새 투두 생성. `sort_order`는 기존 마지막 값 + 1.0으로 자동 계산.
  * @summary 투두 생성
  */
-export const getPostApiV1TodosUrl = () => {
+export const getCreateTodoUrl = () => {
     return `/api/v1/todos`;
 };
 
-export const postApiV1Todos = async (postApiV1TodosBody: PostApiV1TodosBody, options?: RequestInit): Promise<Todo> => {
-    return customInstance<Todo>(getPostApiV1TodosUrl(), {
+export const createTodo = async (createTodoRequest: CreateTodoRequest, options?: RequestInit): Promise<Todo> => {
+    return customInstance<Todo>(getCreateTodoUrl(), {
         ...options,
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...options?.headers },
-        body: JSON.stringify(postApiV1TodosBody),
+        body: JSON.stringify(createTodoRequest),
     });
 };
 
-export const getPostApiV1TodosMutationOptions = <TError = Error | UnauthorizedResponse, TContext = unknown>(options?: {
+export const getCreateTodoMutationOptions = <TError = Error | UnauthorizedResponse, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<
-        Awaited<ReturnType<typeof postApiV1Todos>>,
+        Awaited<ReturnType<typeof createTodo>>,
         TError,
-        { data: PostApiV1TodosBody },
+        { data: CreateTodoRequest },
         TContext
     >;
-}): UseMutationOptions<Awaited<ReturnType<typeof postApiV1Todos>>, TError, { data: PostApiV1TodosBody }, TContext> => {
-    const mutationKey = ['postApiV1Todos'];
-    const { mutation: mutationOptions } = options
+    request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<Awaited<ReturnType<typeof createTodo>>, TError, { data: CreateTodoRequest }, TContext> => {
+    const mutationKey = ['createTodo'];
+    const { mutation: mutationOptions, request: requestOptions } = options
         ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
             ? options
             : { ...options, mutation: { ...options.mutation, mutationKey } }
-        : { mutation: { mutationKey } };
+        : { mutation: { mutationKey }, request: undefined };
 
-    const mutationFn: MutationFunction<Awaited<ReturnType<typeof postApiV1Todos>>, { data: PostApiV1TodosBody }> = (
+    const mutationFn: MutationFunction<Awaited<ReturnType<typeof createTodo>>, { data: CreateTodoRequest }> = (
         props
     ) => {
         const { data } = props ?? {};
 
-        return postApiV1Todos(data);
+        return createTodo(data, requestOptions);
     };
 
     return { mutationFn, ...mutationOptions };
 };
 
-export type PostApiV1TodosMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1Todos>>>;
-export type PostApiV1TodosMutationBody = PostApiV1TodosBody;
-export type PostApiV1TodosMutationError = Error | UnauthorizedResponse;
+export type CreateTodoMutationResult = NonNullable<Awaited<ReturnType<typeof createTodo>>>;
+export type CreateTodoMutationBody = CreateTodoRequest;
+export type CreateTodoMutationError = Error | UnauthorizedResponse;
 
 /**
  * @summary 투두 생성
  */
-export const usePostApiV1Todos = <TError = Error | UnauthorizedResponse, TContext = unknown>(
+export const useCreateTodo = <TError = Error | UnauthorizedResponse, TContext = unknown>(
     options?: {
         mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof postApiV1Todos>>,
+            Awaited<ReturnType<typeof createTodo>>,
             TError,
-            { data: PostApiV1TodosBody },
+            { data: CreateTodoRequest },
             TContext
         >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
-): UseMutationResult<Awaited<ReturnType<typeof postApiV1Todos>>, TError, { data: PostApiV1TodosBody }, TContext> => {
-    return useMutation(getPostApiV1TodosMutationOptions(options), queryClient);
+): UseMutationResult<Awaited<ReturnType<typeof createTodo>>, TError, { data: CreateTodoRequest }, TContext> => {
+    return useMutation(getCreateTodoMutationOptions(options), queryClient);
 };
 /**
  * 투두 내용 수정. 변경할 필드만 전송.
  * @summary 투두 수정
  */
-export const getPatchApiV1TodosIdUrl = (id: string) => {
+export const getUpdateTodoUrl = (id: string) => {
     return `/api/v1/todos/${id}`;
 };
 
-export const patchApiV1TodosId = async (
+export const updateTodo = async (
     id: string,
-    patchApiV1TodosIdBody: PatchApiV1TodosIdBody,
+    updateTodoRequest: UpdateTodoRequest,
     options?: RequestInit
 ): Promise<Todo> => {
-    return customInstance<Todo>(getPatchApiV1TodosIdUrl(id), {
+    return customInstance<Todo>(getUpdateTodoUrl(id), {
         ...options,
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...options?.headers },
-        body: JSON.stringify(patchApiV1TodosIdBody),
+        body: JSON.stringify(updateTodoRequest),
     });
 };
 
-export const getPatchApiV1TodosIdMutationOptions = <
+export const getUpdateTodoMutationOptions = <
     TError = ForbiddenResponse | NotFoundResponse,
     TContext = unknown,
 >(options?: {
     mutation?: UseMutationOptions<
-        Awaited<ReturnType<typeof patchApiV1TodosId>>,
+        Awaited<ReturnType<typeof updateTodo>>,
         TError,
-        { id: string; data: PatchApiV1TodosIdBody },
+        { id: string; data: UpdateTodoRequest },
         TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
-    Awaited<ReturnType<typeof patchApiV1TodosId>>,
+    Awaited<ReturnType<typeof updateTodo>>,
     TError,
-    { id: string; data: PatchApiV1TodosIdBody },
+    { id: string; data: UpdateTodoRequest },
     TContext
 > => {
-    const mutationKey = ['patchApiV1TodosId'];
-    const { mutation: mutationOptions } = options
+    const mutationKey = ['updateTodo'];
+    const { mutation: mutationOptions, request: requestOptions } = options
         ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
             ? options
             : { ...options, mutation: { ...options.mutation, mutationKey } }
-        : { mutation: { mutationKey } };
+        : { mutation: { mutationKey }, request: undefined };
 
     const mutationFn: MutationFunction<
-        Awaited<ReturnType<typeof patchApiV1TodosId>>,
-        { id: string; data: PatchApiV1TodosIdBody }
+        Awaited<ReturnType<typeof updateTodo>>,
+        { id: string; data: UpdateTodoRequest }
     > = (props) => {
         const { id, data } = props ?? {};
 
-        return patchApiV1TodosId(id, data);
+        return updateTodo(id, data, requestOptions);
     };
 
     return { mutationFn, ...mutationOptions };
 };
 
-export type PatchApiV1TodosIdMutationResult = NonNullable<Awaited<ReturnType<typeof patchApiV1TodosId>>>;
-export type PatchApiV1TodosIdMutationBody = PatchApiV1TodosIdBody;
-export type PatchApiV1TodosIdMutationError = ForbiddenResponse | NotFoundResponse;
+export type UpdateTodoMutationResult = NonNullable<Awaited<ReturnType<typeof updateTodo>>>;
+export type UpdateTodoMutationBody = UpdateTodoRequest;
+export type UpdateTodoMutationError = ForbiddenResponse | NotFoundResponse;
 
 /**
  * @summary 투두 수정
  */
-export const usePatchApiV1TodosId = <TError = ForbiddenResponse | NotFoundResponse, TContext = unknown>(
+export const useUpdateTodo = <TError = ForbiddenResponse | NotFoundResponse, TContext = unknown>(
     options?: {
         mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof patchApiV1TodosId>>,
+            Awaited<ReturnType<typeof updateTodo>>,
             TError,
-            { id: string; data: PatchApiV1TodosIdBody },
+            { id: string; data: UpdateTodoRequest },
             TContext
         >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): UseMutationResult<
-    Awaited<ReturnType<typeof patchApiV1TodosId>>,
+    Awaited<ReturnType<typeof updateTodo>>,
     TError,
-    { id: string; data: PatchApiV1TodosIdBody },
+    { id: string; data: UpdateTodoRequest },
     TContext
 > => {
-    return useMutation(getPatchApiV1TodosIdMutationOptions(options), queryClient);
+    return useMutation(getUpdateTodoMutationOptions(options), queryClient);
 };
 /**
  * **미완료 투두(`completed_at IS NULL`)만 삭제 가능.**
@@ -320,53 +337,55 @@ export const usePatchApiV1TodosId = <TError = ForbiddenResponse | NotFoundRespon
 
  * @summary 투두 삭제
  */
-export const getDeleteApiV1TodosIdUrl = (id: string) => {
+export const getDeleteTodoUrl = (id: string) => {
     return `/api/v1/todos/${id}`;
 };
 
-export const deleteApiV1TodosId = async (id: string, options?: RequestInit): Promise<void> => {
-    return customInstance<void>(getDeleteApiV1TodosIdUrl(id), {
+export const deleteTodo = async (id: string, options?: RequestInit): Promise<void> => {
+    return customInstance<void>(getDeleteTodoUrl(id), {
         ...options,
         method: 'DELETE',
     });
 };
 
-export const getDeleteApiV1TodosIdMutationOptions = <
+export const getDeleteTodoMutationOptions = <
     TError = Error | ForbiddenResponse | NotFoundResponse,
     TContext = unknown,
 >(options?: {
-    mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteApiV1TodosId>>, TError, { id: string }, TContext>;
-}): UseMutationOptions<Awaited<ReturnType<typeof deleteApiV1TodosId>>, TError, { id: string }, TContext> => {
-    const mutationKey = ['deleteApiV1TodosId'];
-    const { mutation: mutationOptions } = options
+    mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteTodo>>, TError, { id: string }, TContext>;
+    request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<Awaited<ReturnType<typeof deleteTodo>>, TError, { id: string }, TContext> => {
+    const mutationKey = ['deleteTodo'];
+    const { mutation: mutationOptions, request: requestOptions } = options
         ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
             ? options
             : { ...options, mutation: { ...options.mutation, mutationKey } }
-        : { mutation: { mutationKey } };
+        : { mutation: { mutationKey }, request: undefined };
 
-    const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteApiV1TodosId>>, { id: string }> = (props) => {
+    const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteTodo>>, { id: string }> = (props) => {
         const { id } = props ?? {};
 
-        return deleteApiV1TodosId(id);
+        return deleteTodo(id, requestOptions);
     };
 
     return { mutationFn, ...mutationOptions };
 };
 
-export type DeleteApiV1TodosIdMutationResult = NonNullable<Awaited<ReturnType<typeof deleteApiV1TodosId>>>;
+export type DeleteTodoMutationResult = NonNullable<Awaited<ReturnType<typeof deleteTodo>>>;
 
-export type DeleteApiV1TodosIdMutationError = Error | ForbiddenResponse | NotFoundResponse;
+export type DeleteTodoMutationError = Error | ForbiddenResponse | NotFoundResponse;
 
 /**
  * @summary 투두 삭제
  */
-export const useDeleteApiV1TodosId = <TError = Error | ForbiddenResponse | NotFoundResponse, TContext = unknown>(
+export const useDeleteTodo = <TError = Error | ForbiddenResponse | NotFoundResponse, TContext = unknown>(
     options?: {
-        mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteApiV1TodosId>>, TError, { id: string }, TContext>;
+        mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteTodo>>, TError, { id: string }, TContext>;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
-): UseMutationResult<Awaited<ReturnType<typeof deleteApiV1TodosId>>, TError, { id: string }, TContext> => {
-    return useMutation(getDeleteApiV1TodosIdMutationOptions(options), queryClient);
+): UseMutationResult<Awaited<ReturnType<typeof deleteTodo>>, TError, { id: string }, TContext> => {
+    return useMutation(getDeleteTodoMutationOptions(options), queryClient);
 };
 /**
  * 완료/미완료 토글.
@@ -375,81 +394,81 @@ export const useDeleteApiV1TodosId = <TError = Error | ForbiddenResponse | NotFo
 
  * @summary 투두 완료 토글
  */
-export const getPatchApiV1TodosIdCompleteUrl = (id: string) => {
+export const getToggleTodoCompleteUrl = (id: string) => {
     return `/api/v1/todos/${id}/complete`;
 };
 
-export const patchApiV1TodosIdComplete = async (
+export const toggleTodoComplete = async (
     id: string,
-    patchApiV1TodosIdCompleteBody: PatchApiV1TodosIdCompleteBody,
+    toggleTodoRequest: ToggleTodoRequest,
     options?: RequestInit
 ): Promise<Todo> => {
-    return customInstance<Todo>(getPatchApiV1TodosIdCompleteUrl(id), {
+    return customInstance<Todo>(getToggleTodoCompleteUrl(id), {
         ...options,
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...options?.headers },
-        body: JSON.stringify(patchApiV1TodosIdCompleteBody),
+        body: JSON.stringify(toggleTodoRequest),
     });
 };
 
-export const getPatchApiV1TodosIdCompleteMutationOptions = <TError = NotFoundResponse, TContext = unknown>(options?: {
+export const getToggleTodoCompleteMutationOptions = <TError = NotFoundResponse, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<
-        Awaited<ReturnType<typeof patchApiV1TodosIdComplete>>,
+        Awaited<ReturnType<typeof toggleTodoComplete>>,
         TError,
-        { id: string; data: PatchApiV1TodosIdCompleteBody },
+        { id: string; data: ToggleTodoRequest },
         TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
-    Awaited<ReturnType<typeof patchApiV1TodosIdComplete>>,
+    Awaited<ReturnType<typeof toggleTodoComplete>>,
     TError,
-    { id: string; data: PatchApiV1TodosIdCompleteBody },
+    { id: string; data: ToggleTodoRequest },
     TContext
 > => {
-    const mutationKey = ['patchApiV1TodosIdComplete'];
-    const { mutation: mutationOptions } = options
+    const mutationKey = ['toggleTodoComplete'];
+    const { mutation: mutationOptions, request: requestOptions } = options
         ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
             ? options
             : { ...options, mutation: { ...options.mutation, mutationKey } }
-        : { mutation: { mutationKey } };
+        : { mutation: { mutationKey }, request: undefined };
 
     const mutationFn: MutationFunction<
-        Awaited<ReturnType<typeof patchApiV1TodosIdComplete>>,
-        { id: string; data: PatchApiV1TodosIdCompleteBody }
+        Awaited<ReturnType<typeof toggleTodoComplete>>,
+        { id: string; data: ToggleTodoRequest }
     > = (props) => {
         const { id, data } = props ?? {};
 
-        return patchApiV1TodosIdComplete(id, data);
+        return toggleTodoComplete(id, data, requestOptions);
     };
 
     return { mutationFn, ...mutationOptions };
 };
 
-export type PatchApiV1TodosIdCompleteMutationResult = NonNullable<
-    Awaited<ReturnType<typeof patchApiV1TodosIdComplete>>
->;
-export type PatchApiV1TodosIdCompleteMutationBody = PatchApiV1TodosIdCompleteBody;
-export type PatchApiV1TodosIdCompleteMutationError = NotFoundResponse;
+export type ToggleTodoCompleteMutationResult = NonNullable<Awaited<ReturnType<typeof toggleTodoComplete>>>;
+export type ToggleTodoCompleteMutationBody = ToggleTodoRequest;
+export type ToggleTodoCompleteMutationError = NotFoundResponse;
 
 /**
  * @summary 투두 완료 토글
  */
-export const usePatchApiV1TodosIdComplete = <TError = NotFoundResponse, TContext = unknown>(
+export const useToggleTodoComplete = <TError = NotFoundResponse, TContext = unknown>(
     options?: {
         mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof patchApiV1TodosIdComplete>>,
+            Awaited<ReturnType<typeof toggleTodoComplete>>,
             TError,
-            { id: string; data: PatchApiV1TodosIdCompleteBody },
+            { id: string; data: ToggleTodoRequest },
             TContext
         >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): UseMutationResult<
-    Awaited<ReturnType<typeof patchApiV1TodosIdComplete>>,
+    Awaited<ReturnType<typeof toggleTodoComplete>>,
     TError,
-    { id: string; data: PatchApiV1TodosIdCompleteBody },
+    { id: string; data: ToggleTodoRequest },
     TContext
 > => {
-    return useMutation(getPatchApiV1TodosIdCompleteMutationOptions(options), queryClient);
+    return useMutation(getToggleTodoCompleteMutationOptions(options), queryClient);
 };
 /**
  * 드래그앤드롭 후 `sort_order` 업데이트.
@@ -457,77 +476,79 @@ A(1.0)~B(2.0) 사이 삽입 시 midpoint(1.5) 사용. 범위 부족 시 전체 �
 
  * @summary 투두 순서 변경
  */
-export const getPatchApiV1TodosIdReorderUrl = (id: string) => {
+export const getReorderTodoUrl = (id: string) => {
     return `/api/v1/todos/${id}/reorder`;
 };
 
-export const patchApiV1TodosIdReorder = async (
+export const reorderTodo = async (
     id: string,
-    patchApiV1TodosIdReorderBody: PatchApiV1TodosIdReorderBody,
+    reorderTodoRequest: ReorderTodoRequest,
     options?: RequestInit
 ): Promise<Todo> => {
-    return customInstance<Todo>(getPatchApiV1TodosIdReorderUrl(id), {
+    return customInstance<Todo>(getReorderTodoUrl(id), {
         ...options,
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...options?.headers },
-        body: JSON.stringify(patchApiV1TodosIdReorderBody),
+        body: JSON.stringify(reorderTodoRequest),
     });
 };
 
-export const getPatchApiV1TodosIdReorderMutationOptions = <TError = Error, TContext = unknown>(options?: {
+export const getReorderTodoMutationOptions = <TError = Error, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<
-        Awaited<ReturnType<typeof patchApiV1TodosIdReorder>>,
+        Awaited<ReturnType<typeof reorderTodo>>,
         TError,
-        { id: string; data: PatchApiV1TodosIdReorderBody },
+        { id: string; data: ReorderTodoRequest },
         TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
-    Awaited<ReturnType<typeof patchApiV1TodosIdReorder>>,
+    Awaited<ReturnType<typeof reorderTodo>>,
     TError,
-    { id: string; data: PatchApiV1TodosIdReorderBody },
+    { id: string; data: ReorderTodoRequest },
     TContext
 > => {
-    const mutationKey = ['patchApiV1TodosIdReorder'];
-    const { mutation: mutationOptions } = options
+    const mutationKey = ['reorderTodo'];
+    const { mutation: mutationOptions, request: requestOptions } = options
         ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
             ? options
             : { ...options, mutation: { ...options.mutation, mutationKey } }
-        : { mutation: { mutationKey } };
+        : { mutation: { mutationKey }, request: undefined };
 
     const mutationFn: MutationFunction<
-        Awaited<ReturnType<typeof patchApiV1TodosIdReorder>>,
-        { id: string; data: PatchApiV1TodosIdReorderBody }
+        Awaited<ReturnType<typeof reorderTodo>>,
+        { id: string; data: ReorderTodoRequest }
     > = (props) => {
         const { id, data } = props ?? {};
 
-        return patchApiV1TodosIdReorder(id, data);
+        return reorderTodo(id, data, requestOptions);
     };
 
     return { mutationFn, ...mutationOptions };
 };
 
-export type PatchApiV1TodosIdReorderMutationResult = NonNullable<Awaited<ReturnType<typeof patchApiV1TodosIdReorder>>>;
-export type PatchApiV1TodosIdReorderMutationBody = PatchApiV1TodosIdReorderBody;
-export type PatchApiV1TodosIdReorderMutationError = Error;
+export type ReorderTodoMutationResult = NonNullable<Awaited<ReturnType<typeof reorderTodo>>>;
+export type ReorderTodoMutationBody = ReorderTodoRequest;
+export type ReorderTodoMutationError = Error;
 
 /**
  * @summary 투두 순서 변경
  */
-export const usePatchApiV1TodosIdReorder = <TError = Error, TContext = unknown>(
+export const useReorderTodo = <TError = Error, TContext = unknown>(
     options?: {
         mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof patchApiV1TodosIdReorder>>,
+            Awaited<ReturnType<typeof reorderTodo>>,
             TError,
-            { id: string; data: PatchApiV1TodosIdReorderBody },
+            { id: string; data: ReorderTodoRequest },
             TContext
         >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): UseMutationResult<
-    Awaited<ReturnType<typeof patchApiV1TodosIdReorder>>,
+    Awaited<ReturnType<typeof reorderTodo>>,
     TError,
-    { id: string; data: PatchApiV1TodosIdReorderBody },
+    { id: string; data: ReorderTodoRequest },
     TContext
 > => {
-    return useMutation(getPatchApiV1TodosIdReorderMutationOptions(options), queryClient);
+    return useMutation(getReorderTodoMutationOptions(options), queryClient);
 };
