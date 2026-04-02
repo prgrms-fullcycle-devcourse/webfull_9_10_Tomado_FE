@@ -28,6 +28,11 @@ export interface AuthUser {
     avatarSrc?: string | null;
 }
 
+export interface AuthTokens {
+    accessToken: string;
+    refreshToken: string;
+}
+
 export interface SignupFieldValidation {
     isValid: boolean;
     helperText: string;

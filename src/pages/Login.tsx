@@ -14,10 +14,10 @@ const errorMessageClassName = 'text-center text-sm text-danger';
 
 export default function Login() {
     const navigate = useNavigate();
-    const { values, isFormValid, showAuthError, setFieldValue, submit, loginAsDemo } = useLoginForm();
+    const { values, isFormValid, isPending, showAuthError, setFieldValue, submit, loginAsDemo } = useLoginForm();
 
-    const handleSubmit = () => {
-        if (submit()) {
+    const handleSubmit = async () => {
+        if (await submit()) {
             navigate('/main', { replace: true });
         }
     };
@@ -63,11 +63,17 @@ export default function Login() {
                                     <p className={errorMessageClassName}>아이디 또는 비밀번호를 확인해 주세요</p>
                                 ) : null}
 
-                                <Button disabled={!isFormValid} fullWidth onClick={handleSubmit} size='lg'>
-                                    로그인
+                                <Button disabled={!isFormValid || isPending} fullWidth onClick={handleSubmit} size='lg'>
+                                    {isPending ? '로그인 중...' : '로그인'}
                                 </Button>
 
-                                <Button fullWidth onClick={handleDemoLogin} size='lg' variant='outline'>
+                                <Button
+                                    disabled={isPending}
+                                    fullWidth
+                                    onClick={handleDemoLogin}
+                                    size='lg'
+                                    variant='outline'
+                                >
                                     데모 계정으로 시작
                                 </Button>
                             </div>
