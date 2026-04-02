@@ -29,109 +29,120 @@ import type {
 import type {
     DailyFocusStat,
     Error,
-    GetApiV1StatsCalendarParams,
-    GetApiV1StatsHeatmapSummary200,
-    GetApiV1StatsOverview200,
+    GetStatsCalendarParams,
+    StatsHeatmapSummaryResponse,
+    StatsOverviewResponse,
     UnauthorizedResponse,
 } from '../model';
 
 import { customInstance } from '../../mutator/custom-instance';
 
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
 /**
  * 회원가입부터 현재까지의 누적 통계 및 연속 스트릭 조회.
  * @summary 누적 기록 조회
  */
-export const getGetApiV1StatsOverviewUrl = () => {
+export const getGetStatsOverviewUrl = () => {
     return `/api/v1/stats/overview`;
 };
 
-export const getApiV1StatsOverview = async (options?: RequestInit): Promise<GetApiV1StatsOverview200> => {
-    return customInstance<GetApiV1StatsOverview200>(getGetApiV1StatsOverviewUrl(), {
+export const getStatsOverview = async (options?: RequestInit): Promise<StatsOverviewResponse> => {
+    return customInstance<StatsOverviewResponse>(getGetStatsOverviewUrl(), {
         ...options,
         method: 'GET',
     });
 };
 
-export const getGetApiV1StatsOverviewQueryKey = () => {
+export const getGetStatsOverviewQueryKey = () => {
     return [`/api/v1/stats/overview`] as const;
 };
 
-export const getGetApiV1StatsOverviewQueryOptions = <
-    TData = Awaited<ReturnType<typeof getApiV1StatsOverview>>,
+export const getGetStatsOverviewQueryOptions = <
+    TData = Awaited<ReturnType<typeof getStatsOverview>>,
     TError = UnauthorizedResponse,
 >(options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1StatsOverview>>, TError, TData>>;
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStatsOverview>>, TError, TData>>;
+    request?: SecondParameter<typeof customInstance>;
 }) => {
-    const { query: queryOptions } = options ?? {};
+    const { query: queryOptions, request: requestOptions } = options ?? {};
 
-    const queryKey = queryOptions?.queryKey ?? getGetApiV1StatsOverviewQueryKey();
+    const queryKey = queryOptions?.queryKey ?? getGetStatsOverviewQueryKey();
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1StatsOverview>>> = ({ signal }) =>
-        getApiV1StatsOverview({ signal });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStatsOverview>>> = ({ signal }) =>
+        getStatsOverview({ signal, ...requestOptions });
 
     return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-        Awaited<ReturnType<typeof getApiV1StatsOverview>>,
+        Awaited<ReturnType<typeof getStatsOverview>>,
         TError,
         TData
     > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type GetApiV1StatsOverviewQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1StatsOverview>>>;
-export type GetApiV1StatsOverviewQueryError = UnauthorizedResponse;
+export type GetStatsOverviewQueryResult = NonNullable<Awaited<ReturnType<typeof getStatsOverview>>>;
+export type GetStatsOverviewQueryError = UnauthorizedResponse;
 
-export function useGetApiV1StatsOverview<
-    TData = Awaited<ReturnType<typeof getApiV1StatsOverview>>,
+export function useGetStatsOverview<
+    TData = Awaited<ReturnType<typeof getStatsOverview>>,
     TError = UnauthorizedResponse,
 >(
     options: {
-        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1StatsOverview>>, TError, TData>> &
+        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStatsOverview>>, TError, TData>> &
             Pick<
                 DefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getApiV1StatsOverview>>,
+                    Awaited<ReturnType<typeof getStatsOverview>>,
                     TError,
-                    Awaited<ReturnType<typeof getApiV1StatsOverview>>
+                    Awaited<ReturnType<typeof getStatsOverview>>
                 >,
                 'initialData'
             >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetApiV1StatsOverview<
-    TData = Awaited<ReturnType<typeof getApiV1StatsOverview>>,
+export function useGetStatsOverview<
+    TData = Awaited<ReturnType<typeof getStatsOverview>>,
     TError = UnauthorizedResponse,
 >(
     options?: {
-        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1StatsOverview>>, TError, TData>> &
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStatsOverview>>, TError, TData>> &
             Pick<
                 UndefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getApiV1StatsOverview>>,
+                    Awaited<ReturnType<typeof getStatsOverview>>,
                     TError,
-                    Awaited<ReturnType<typeof getApiV1StatsOverview>>
+                    Awaited<ReturnType<typeof getStatsOverview>>
                 >,
                 'initialData'
             >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetApiV1StatsOverview<
-    TData = Awaited<ReturnType<typeof getApiV1StatsOverview>>,
+export function useGetStatsOverview<
+    TData = Awaited<ReturnType<typeof getStatsOverview>>,
     TError = UnauthorizedResponse,
 >(
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1StatsOverview>>, TError, TData>> },
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStatsOverview>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
  * @summary 누적 기록 조회
  */
 
-export function useGetApiV1StatsOverview<
-    TData = Awaited<ReturnType<typeof getApiV1StatsOverview>>,
+export function useGetStatsOverview<
+    TData = Awaited<ReturnType<typeof getStatsOverview>>,
     TError = UnauthorizedResponse,
 >(
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1StatsOverview>>, TError, TData>> },
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStatsOverview>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-    const queryOptions = getGetApiV1StatsOverviewQueryOptions(options);
+    const queryOptions = getGetStatsOverviewQueryOptions(options);
 
     const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
         queryKey: DataTag<QueryKey, TData, TError>;
@@ -143,14 +154,17 @@ export function useGetApiV1StatsOverview<
 /**
  * @summary 누적 기록 조회
  */
-export const prefetchGetApiV1StatsOverviewQuery = async <
-    TData = Awaited<ReturnType<typeof getApiV1StatsOverview>>,
+export const prefetchGetStatsOverviewQuery = async <
+    TData = Awaited<ReturnType<typeof getStatsOverview>>,
     TError = UnauthorizedResponse,
 >(
     queryClient: QueryClient,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1StatsOverview>>, TError, TData>> }
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStatsOverview>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    }
 ): Promise<QueryClient> => {
-    const queryOptions = getGetApiV1StatsOverviewQueryOptions(options);
+    const queryOptions = getGetStatsOverviewQueryOptions(options);
 
     await queryClient.prefetchQuery(queryOptions);
 
@@ -161,97 +175,94 @@ export const prefetchGetApiV1StatsOverviewQuery = async <
  * 최근 1년간의 잔디 데이터 조회. 날짜 파라미터 불필요.
  * @summary 히트맵 데이터 조회
  */
-export const getGetApiV1StatsHeatmapUrl = () => {
+export const getGetStatsHeatmapUrl = () => {
     return `/api/v1/stats/heatmap`;
 };
 
-export const getApiV1StatsHeatmap = async (options?: RequestInit): Promise<DailyFocusStat[]> => {
-    return customInstance<DailyFocusStat[]>(getGetApiV1StatsHeatmapUrl(), {
+export const getStatsHeatmap = async (options?: RequestInit): Promise<DailyFocusStat[]> => {
+    return customInstance<DailyFocusStat[]>(getGetStatsHeatmapUrl(), {
         ...options,
         method: 'GET',
     });
 };
 
-export const getGetApiV1StatsHeatmapQueryKey = () => {
+export const getGetStatsHeatmapQueryKey = () => {
     return [`/api/v1/stats/heatmap`] as const;
 };
 
-export const getGetApiV1StatsHeatmapQueryOptions = <
-    TData = Awaited<ReturnType<typeof getApiV1StatsHeatmap>>,
+export const getGetStatsHeatmapQueryOptions = <
+    TData = Awaited<ReturnType<typeof getStatsHeatmap>>,
     TError = UnauthorizedResponse,
 >(options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1StatsHeatmap>>, TError, TData>>;
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStatsHeatmap>>, TError, TData>>;
+    request?: SecondParameter<typeof customInstance>;
 }) => {
-    const { query: queryOptions } = options ?? {};
+    const { query: queryOptions, request: requestOptions } = options ?? {};
 
-    const queryKey = queryOptions?.queryKey ?? getGetApiV1StatsHeatmapQueryKey();
+    const queryKey = queryOptions?.queryKey ?? getGetStatsHeatmapQueryKey();
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1StatsHeatmap>>> = ({ signal }) =>
-        getApiV1StatsHeatmap({ signal });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStatsHeatmap>>> = ({ signal }) =>
+        getStatsHeatmap({ signal, ...requestOptions });
 
     return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-        Awaited<ReturnType<typeof getApiV1StatsHeatmap>>,
+        Awaited<ReturnType<typeof getStatsHeatmap>>,
         TError,
         TData
     > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type GetApiV1StatsHeatmapQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1StatsHeatmap>>>;
-export type GetApiV1StatsHeatmapQueryError = UnauthorizedResponse;
+export type GetStatsHeatmapQueryResult = NonNullable<Awaited<ReturnType<typeof getStatsHeatmap>>>;
+export type GetStatsHeatmapQueryError = UnauthorizedResponse;
 
-export function useGetApiV1StatsHeatmap<
-    TData = Awaited<ReturnType<typeof getApiV1StatsHeatmap>>,
-    TError = UnauthorizedResponse,
->(
+export function useGetStatsHeatmap<TData = Awaited<ReturnType<typeof getStatsHeatmap>>, TError = UnauthorizedResponse>(
     options: {
-        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1StatsHeatmap>>, TError, TData>> &
+        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStatsHeatmap>>, TError, TData>> &
             Pick<
                 DefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getApiV1StatsHeatmap>>,
+                    Awaited<ReturnType<typeof getStatsHeatmap>>,
                     TError,
-                    Awaited<ReturnType<typeof getApiV1StatsHeatmap>>
+                    Awaited<ReturnType<typeof getStatsHeatmap>>
                 >,
                 'initialData'
             >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetApiV1StatsHeatmap<
-    TData = Awaited<ReturnType<typeof getApiV1StatsHeatmap>>,
-    TError = UnauthorizedResponse,
->(
+export function useGetStatsHeatmap<TData = Awaited<ReturnType<typeof getStatsHeatmap>>, TError = UnauthorizedResponse>(
     options?: {
-        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1StatsHeatmap>>, TError, TData>> &
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStatsHeatmap>>, TError, TData>> &
             Pick<
                 UndefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getApiV1StatsHeatmap>>,
+                    Awaited<ReturnType<typeof getStatsHeatmap>>,
                     TError,
-                    Awaited<ReturnType<typeof getApiV1StatsHeatmap>>
+                    Awaited<ReturnType<typeof getStatsHeatmap>>
                 >,
                 'initialData'
             >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetApiV1StatsHeatmap<
-    TData = Awaited<ReturnType<typeof getApiV1StatsHeatmap>>,
-    TError = UnauthorizedResponse,
->(
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1StatsHeatmap>>, TError, TData>> },
+export function useGetStatsHeatmap<TData = Awaited<ReturnType<typeof getStatsHeatmap>>, TError = UnauthorizedResponse>(
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStatsHeatmap>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
  * @summary 히트맵 데이터 조회
  */
 
-export function useGetApiV1StatsHeatmap<
-    TData = Awaited<ReturnType<typeof getApiV1StatsHeatmap>>,
-    TError = UnauthorizedResponse,
->(
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1StatsHeatmap>>, TError, TData>> },
+export function useGetStatsHeatmap<TData = Awaited<ReturnType<typeof getStatsHeatmap>>, TError = UnauthorizedResponse>(
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStatsHeatmap>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-    const queryOptions = getGetApiV1StatsHeatmapQueryOptions(options);
+    const queryOptions = getGetStatsHeatmapQueryOptions(options);
 
     const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
         queryKey: DataTag<QueryKey, TData, TError>;
@@ -263,14 +274,17 @@ export function useGetApiV1StatsHeatmap<
 /**
  * @summary 히트맵 데이터 조회
  */
-export const prefetchGetApiV1StatsHeatmapQuery = async <
-    TData = Awaited<ReturnType<typeof getApiV1StatsHeatmap>>,
+export const prefetchGetStatsHeatmapQuery = async <
+    TData = Awaited<ReturnType<typeof getStatsHeatmap>>,
     TError = UnauthorizedResponse,
 >(
     queryClient: QueryClient,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1StatsHeatmap>>, TError, TData>> }
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStatsHeatmap>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    }
 ): Promise<QueryClient> => {
-    const queryOptions = getGetApiV1StatsHeatmapQueryOptions(options);
+    const queryOptions = getGetStatsHeatmapQueryOptions(options);
 
     await queryClient.prefetchQuery(queryOptions);
 
@@ -281,86 +295,88 @@ export const prefetchGetApiV1StatsHeatmapQuery = async <
  * 최근 1년간의 포모도로, 집중시간, 일평균 포모도로 조회.
  * @summary 히트맵 상단 통계 조회
  */
-export const getGetApiV1StatsHeatmapSummaryUrl = () => {
+export const getGetStatsHeatmapSummaryUrl = () => {
     return `/api/v1/stats/heatmap-summary`;
 };
 
-export const getApiV1StatsHeatmapSummary = async (options?: RequestInit): Promise<GetApiV1StatsHeatmapSummary200> => {
-    return customInstance<GetApiV1StatsHeatmapSummary200>(getGetApiV1StatsHeatmapSummaryUrl(), {
+export const getStatsHeatmapSummary = async (options?: RequestInit): Promise<StatsHeatmapSummaryResponse> => {
+    return customInstance<StatsHeatmapSummaryResponse>(getGetStatsHeatmapSummaryUrl(), {
         ...options,
         method: 'GET',
     });
 };
 
-export const getGetApiV1StatsHeatmapSummaryQueryKey = () => {
+export const getGetStatsHeatmapSummaryQueryKey = () => {
     return [`/api/v1/stats/heatmap-summary`] as const;
 };
 
-export const getGetApiV1StatsHeatmapSummaryQueryOptions = <
-    TData = Awaited<ReturnType<typeof getApiV1StatsHeatmapSummary>>,
+export const getGetStatsHeatmapSummaryQueryOptions = <
+    TData = Awaited<ReturnType<typeof getStatsHeatmapSummary>>,
     TError = UnauthorizedResponse,
 >(options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1StatsHeatmapSummary>>, TError, TData>>;
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStatsHeatmapSummary>>, TError, TData>>;
+    request?: SecondParameter<typeof customInstance>;
 }) => {
-    const { query: queryOptions } = options ?? {};
+    const { query: queryOptions, request: requestOptions } = options ?? {};
 
-    const queryKey = queryOptions?.queryKey ?? getGetApiV1StatsHeatmapSummaryQueryKey();
+    const queryKey = queryOptions?.queryKey ?? getGetStatsHeatmapSummaryQueryKey();
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1StatsHeatmapSummary>>> = ({ signal }) =>
-        getApiV1StatsHeatmapSummary({ signal });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStatsHeatmapSummary>>> = ({ signal }) =>
+        getStatsHeatmapSummary({ signal, ...requestOptions });
 
     return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-        Awaited<ReturnType<typeof getApiV1StatsHeatmapSummary>>,
+        Awaited<ReturnType<typeof getStatsHeatmapSummary>>,
         TError,
         TData
     > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type GetApiV1StatsHeatmapSummaryQueryResult = NonNullable<
-    Awaited<ReturnType<typeof getApiV1StatsHeatmapSummary>>
->;
-export type GetApiV1StatsHeatmapSummaryQueryError = UnauthorizedResponse;
+export type GetStatsHeatmapSummaryQueryResult = NonNullable<Awaited<ReturnType<typeof getStatsHeatmapSummary>>>;
+export type GetStatsHeatmapSummaryQueryError = UnauthorizedResponse;
 
-export function useGetApiV1StatsHeatmapSummary<
-    TData = Awaited<ReturnType<typeof getApiV1StatsHeatmapSummary>>,
+export function useGetStatsHeatmapSummary<
+    TData = Awaited<ReturnType<typeof getStatsHeatmapSummary>>,
     TError = UnauthorizedResponse,
 >(
     options: {
-        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1StatsHeatmapSummary>>, TError, TData>> &
+        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStatsHeatmapSummary>>, TError, TData>> &
             Pick<
                 DefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getApiV1StatsHeatmapSummary>>,
+                    Awaited<ReturnType<typeof getStatsHeatmapSummary>>,
                     TError,
-                    Awaited<ReturnType<typeof getApiV1StatsHeatmapSummary>>
+                    Awaited<ReturnType<typeof getStatsHeatmapSummary>>
                 >,
                 'initialData'
             >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetApiV1StatsHeatmapSummary<
-    TData = Awaited<ReturnType<typeof getApiV1StatsHeatmapSummary>>,
+export function useGetStatsHeatmapSummary<
+    TData = Awaited<ReturnType<typeof getStatsHeatmapSummary>>,
     TError = UnauthorizedResponse,
 >(
     options?: {
-        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1StatsHeatmapSummary>>, TError, TData>> &
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStatsHeatmapSummary>>, TError, TData>> &
             Pick<
                 UndefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getApiV1StatsHeatmapSummary>>,
+                    Awaited<ReturnType<typeof getStatsHeatmapSummary>>,
                     TError,
-                    Awaited<ReturnType<typeof getApiV1StatsHeatmapSummary>>
+                    Awaited<ReturnType<typeof getStatsHeatmapSummary>>
                 >,
                 'initialData'
             >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetApiV1StatsHeatmapSummary<
-    TData = Awaited<ReturnType<typeof getApiV1StatsHeatmapSummary>>,
+export function useGetStatsHeatmapSummary<
+    TData = Awaited<ReturnType<typeof getStatsHeatmapSummary>>,
     TError = UnauthorizedResponse,
 >(
     options?: {
-        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1StatsHeatmapSummary>>, TError, TData>>;
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStatsHeatmapSummary>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
@@ -368,16 +384,17 @@ export function useGetApiV1StatsHeatmapSummary<
  * @summary 히트맵 상단 통계 조회
  */
 
-export function useGetApiV1StatsHeatmapSummary<
-    TData = Awaited<ReturnType<typeof getApiV1StatsHeatmapSummary>>,
+export function useGetStatsHeatmapSummary<
+    TData = Awaited<ReturnType<typeof getStatsHeatmapSummary>>,
     TError = UnauthorizedResponse,
 >(
     options?: {
-        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1StatsHeatmapSummary>>, TError, TData>>;
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStatsHeatmapSummary>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-    const queryOptions = getGetApiV1StatsHeatmapSummaryQueryOptions(options);
+    const queryOptions = getGetStatsHeatmapSummaryQueryOptions(options);
 
     const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
         queryKey: DataTag<QueryKey, TData, TError>;
@@ -389,16 +406,17 @@ export function useGetApiV1StatsHeatmapSummary<
 /**
  * @summary 히트맵 상단 통계 조회
  */
-export const prefetchGetApiV1StatsHeatmapSummaryQuery = async <
-    TData = Awaited<ReturnType<typeof getApiV1StatsHeatmapSummary>>,
+export const prefetchGetStatsHeatmapSummaryQuery = async <
+    TData = Awaited<ReturnType<typeof getStatsHeatmapSummary>>,
     TError = UnauthorizedResponse,
 >(
     queryClient: QueryClient,
     options?: {
-        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1StatsHeatmapSummary>>, TError, TData>>;
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStatsHeatmapSummary>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
     }
 ): Promise<QueryClient> => {
-    const queryOptions = getGetApiV1StatsHeatmapSummaryQueryOptions(options);
+    const queryOptions = getGetStatsHeatmapSummaryQueryOptions(options);
 
     await queryClient.prefetchQuery(queryOptions);
 
@@ -409,7 +427,7 @@ export const prefetchGetApiV1StatsHeatmapSummaryQuery = async <
  * 월간 달력 배지 (데일리로그/회고 작성 여부, 포모도로 수) 조회.
  * @summary 달력 배지 데이터 조회
  */
-export const getGetApiV1StatsCalendarUrl = (params: GetApiV1StatsCalendarParams) => {
+export const getGetStatsCalendarUrl = (params: GetStatsCalendarParams) => {
     const normalizedParams = new URLSearchParams();
 
     Object.entries(params || {}).forEach(([key, value]) => {
@@ -423,101 +441,112 @@ export const getGetApiV1StatsCalendarUrl = (params: GetApiV1StatsCalendarParams)
     return stringifiedParams.length > 0 ? `/api/v1/stats/calendar?${stringifiedParams}` : `/api/v1/stats/calendar`;
 };
 
-export const getApiV1StatsCalendar = async (
-    params: GetApiV1StatsCalendarParams,
+export const getStatsCalendar = async (
+    params: GetStatsCalendarParams,
     options?: RequestInit
 ): Promise<DailyFocusStat[]> => {
-    return customInstance<DailyFocusStat[]>(getGetApiV1StatsCalendarUrl(params), {
+    return customInstance<DailyFocusStat[]>(getGetStatsCalendarUrl(params), {
         ...options,
         method: 'GET',
     });
 };
 
-export const getGetApiV1StatsCalendarQueryKey = (params?: GetApiV1StatsCalendarParams) => {
+export const getGetStatsCalendarQueryKey = (params?: GetStatsCalendarParams) => {
     return [`/api/v1/stats/calendar`, ...(params ? [params] : [])] as const;
 };
 
-export const getGetApiV1StatsCalendarQueryOptions = <
-    TData = Awaited<ReturnType<typeof getApiV1StatsCalendar>>,
+export const getGetStatsCalendarQueryOptions = <
+    TData = Awaited<ReturnType<typeof getStatsCalendar>>,
     TError = Error | UnauthorizedResponse,
 >(
-    params: GetApiV1StatsCalendarParams,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1StatsCalendar>>, TError, TData>> }
+    params: GetStatsCalendarParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStatsCalendar>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    }
 ) => {
-    const { query: queryOptions } = options ?? {};
+    const { query: queryOptions, request: requestOptions } = options ?? {};
 
-    const queryKey = queryOptions?.queryKey ?? getGetApiV1StatsCalendarQueryKey(params);
+    const queryKey = queryOptions?.queryKey ?? getGetStatsCalendarQueryKey(params);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1StatsCalendar>>> = ({ signal }) =>
-        getApiV1StatsCalendar(params, { signal });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStatsCalendar>>> = ({ signal }) =>
+        getStatsCalendar(params, { signal, ...requestOptions });
 
     return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-        Awaited<ReturnType<typeof getApiV1StatsCalendar>>,
+        Awaited<ReturnType<typeof getStatsCalendar>>,
         TError,
         TData
     > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type GetApiV1StatsCalendarQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1StatsCalendar>>>;
-export type GetApiV1StatsCalendarQueryError = Error | UnauthorizedResponse;
+export type GetStatsCalendarQueryResult = NonNullable<Awaited<ReturnType<typeof getStatsCalendar>>>;
+export type GetStatsCalendarQueryError = Error | UnauthorizedResponse;
 
-export function useGetApiV1StatsCalendar<
-    TData = Awaited<ReturnType<typeof getApiV1StatsCalendar>>,
+export function useGetStatsCalendar<
+    TData = Awaited<ReturnType<typeof getStatsCalendar>>,
     TError = Error | UnauthorizedResponse,
 >(
-    params: GetApiV1StatsCalendarParams,
+    params: GetStatsCalendarParams,
     options: {
-        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1StatsCalendar>>, TError, TData>> &
+        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStatsCalendar>>, TError, TData>> &
             Pick<
                 DefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getApiV1StatsCalendar>>,
+                    Awaited<ReturnType<typeof getStatsCalendar>>,
                     TError,
-                    Awaited<ReturnType<typeof getApiV1StatsCalendar>>
+                    Awaited<ReturnType<typeof getStatsCalendar>>
                 >,
                 'initialData'
             >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetApiV1StatsCalendar<
-    TData = Awaited<ReturnType<typeof getApiV1StatsCalendar>>,
+export function useGetStatsCalendar<
+    TData = Awaited<ReturnType<typeof getStatsCalendar>>,
     TError = Error | UnauthorizedResponse,
 >(
-    params: GetApiV1StatsCalendarParams,
+    params: GetStatsCalendarParams,
     options?: {
-        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1StatsCalendar>>, TError, TData>> &
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStatsCalendar>>, TError, TData>> &
             Pick<
                 UndefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getApiV1StatsCalendar>>,
+                    Awaited<ReturnType<typeof getStatsCalendar>>,
                     TError,
-                    Awaited<ReturnType<typeof getApiV1StatsCalendar>>
+                    Awaited<ReturnType<typeof getStatsCalendar>>
                 >,
                 'initialData'
             >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetApiV1StatsCalendar<
-    TData = Awaited<ReturnType<typeof getApiV1StatsCalendar>>,
+export function useGetStatsCalendar<
+    TData = Awaited<ReturnType<typeof getStatsCalendar>>,
     TError = Error | UnauthorizedResponse,
 >(
-    params: GetApiV1StatsCalendarParams,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1StatsCalendar>>, TError, TData>> },
+    params: GetStatsCalendarParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStatsCalendar>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
  * @summary 달력 배지 데이터 조회
  */
 
-export function useGetApiV1StatsCalendar<
-    TData = Awaited<ReturnType<typeof getApiV1StatsCalendar>>,
+export function useGetStatsCalendar<
+    TData = Awaited<ReturnType<typeof getStatsCalendar>>,
     TError = Error | UnauthorizedResponse,
 >(
-    params: GetApiV1StatsCalendarParams,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1StatsCalendar>>, TError, TData>> },
+    params: GetStatsCalendarParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStatsCalendar>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-    const queryOptions = getGetApiV1StatsCalendarQueryOptions(params, options);
+    const queryOptions = getGetStatsCalendarQueryOptions(params, options);
 
     const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
         queryKey: DataTag<QueryKey, TData, TError>;
@@ -529,15 +558,18 @@ export function useGetApiV1StatsCalendar<
 /**
  * @summary 달력 배지 데이터 조회
  */
-export const prefetchGetApiV1StatsCalendarQuery = async <
-    TData = Awaited<ReturnType<typeof getApiV1StatsCalendar>>,
+export const prefetchGetStatsCalendarQuery = async <
+    TData = Awaited<ReturnType<typeof getStatsCalendar>>,
     TError = Error | UnauthorizedResponse,
 >(
     queryClient: QueryClient,
-    params: GetApiV1StatsCalendarParams,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1StatsCalendar>>, TError, TData>> }
+    params: GetStatsCalendarParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getStatsCalendar>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    }
 ): Promise<QueryClient> => {
-    const queryOptions = getGetApiV1StatsCalendarQueryOptions(params, options);
+    const queryOptions = getGetStatsCalendarQueryOptions(params, options);
 
     await queryClient.prefetchQuery(queryOptions);
 

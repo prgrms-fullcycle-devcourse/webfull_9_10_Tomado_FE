@@ -30,104 +30,106 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+    CreatePomodoroSessionRequest,
+    EndPomodoroSessionRequest,
     Error,
-    GetApiV1PomodoroSessionsParams,
+    GetPomodoroSessionsParams,
     NotFoundResponse,
-    PatchApiV1PomodoroSessionsIdEndBody,
     PomodoroSession,
-    PostApiV1PomodoroSessionsBody,
     UnauthorizedResponse,
 } from '../model';
 
 import { customInstance } from '../../mutator/custom-instance';
 
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
 /**
  * 포모도로 세션 시작 기록 생성.
  * @summary 세션 시작
  */
-export const getPostApiV1PomodoroSessionsUrl = () => {
+export const getStartPomodoroSessionUrl = () => {
     return `/api/v1/pomodoro/sessions`;
 };
 
-export const postApiV1PomodoroSessions = async (
-    postApiV1PomodoroSessionsBody: PostApiV1PomodoroSessionsBody,
+export const startPomodoroSession = async (
+    createPomodoroSessionRequest: CreatePomodoroSessionRequest,
     options?: RequestInit
 ): Promise<PomodoroSession> => {
-    return customInstance<PomodoroSession>(getPostApiV1PomodoroSessionsUrl(), {
+    return customInstance<PomodoroSession>(getStartPomodoroSessionUrl(), {
         ...options,
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...options?.headers },
-        body: JSON.stringify(postApiV1PomodoroSessionsBody),
+        body: JSON.stringify(createPomodoroSessionRequest),
     });
 };
 
-export const getPostApiV1PomodoroSessionsMutationOptions = <
+export const getStartPomodoroSessionMutationOptions = <
     TError = Error | UnauthorizedResponse,
     TContext = unknown,
 >(options?: {
     mutation?: UseMutationOptions<
-        Awaited<ReturnType<typeof postApiV1PomodoroSessions>>,
+        Awaited<ReturnType<typeof startPomodoroSession>>,
         TError,
-        { data: PostApiV1PomodoroSessionsBody },
+        { data: CreatePomodoroSessionRequest },
         TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
-    Awaited<ReturnType<typeof postApiV1PomodoroSessions>>,
+    Awaited<ReturnType<typeof startPomodoroSession>>,
     TError,
-    { data: PostApiV1PomodoroSessionsBody },
+    { data: CreatePomodoroSessionRequest },
     TContext
 > => {
-    const mutationKey = ['postApiV1PomodoroSessions'];
-    const { mutation: mutationOptions } = options
+    const mutationKey = ['startPomodoroSession'];
+    const { mutation: mutationOptions, request: requestOptions } = options
         ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
             ? options
             : { ...options, mutation: { ...options.mutation, mutationKey } }
-        : { mutation: { mutationKey } };
+        : { mutation: { mutationKey }, request: undefined };
 
     const mutationFn: MutationFunction<
-        Awaited<ReturnType<typeof postApiV1PomodoroSessions>>,
-        { data: PostApiV1PomodoroSessionsBody }
+        Awaited<ReturnType<typeof startPomodoroSession>>,
+        { data: CreatePomodoroSessionRequest }
     > = (props) => {
         const { data } = props ?? {};
 
-        return postApiV1PomodoroSessions(data);
+        return startPomodoroSession(data, requestOptions);
     };
 
     return { mutationFn, ...mutationOptions };
 };
 
-export type PostApiV1PomodoroSessionsMutationResult = NonNullable<
-    Awaited<ReturnType<typeof postApiV1PomodoroSessions>>
->;
-export type PostApiV1PomodoroSessionsMutationBody = PostApiV1PomodoroSessionsBody;
-export type PostApiV1PomodoroSessionsMutationError = Error | UnauthorizedResponse;
+export type StartPomodoroSessionMutationResult = NonNullable<Awaited<ReturnType<typeof startPomodoroSession>>>;
+export type StartPomodoroSessionMutationBody = CreatePomodoroSessionRequest;
+export type StartPomodoroSessionMutationError = Error | UnauthorizedResponse;
 
 /**
  * @summary 세션 시작
  */
-export const usePostApiV1PomodoroSessions = <TError = Error | UnauthorizedResponse, TContext = unknown>(
+export const useStartPomodoroSession = <TError = Error | UnauthorizedResponse, TContext = unknown>(
     options?: {
         mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof postApiV1PomodoroSessions>>,
+            Awaited<ReturnType<typeof startPomodoroSession>>,
             TError,
-            { data: PostApiV1PomodoroSessionsBody },
+            { data: CreatePomodoroSessionRequest },
             TContext
         >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): UseMutationResult<
-    Awaited<ReturnType<typeof postApiV1PomodoroSessions>>,
+    Awaited<ReturnType<typeof startPomodoroSession>>,
     TError,
-    { data: PostApiV1PomodoroSessionsBody },
+    { data: CreatePomodoroSessionRequest },
     TContext
 > => {
-    return useMutation(getPostApiV1PomodoroSessionsMutationOptions(options), queryClient);
+    return useMutation(getStartPomodoroSessionMutationOptions(options), queryClient);
 };
 /**
  * 기간별 포모도로 세션 이력 조회.
  * @summary 세션 이력 조회
  */
-export const getGetApiV1PomodoroSessionsUrl = (params: GetApiV1PomodoroSessionsParams) => {
+export const getGetPomodoroSessionsUrl = (params: GetPomodoroSessionsParams) => {
     const normalizedParams = new URLSearchParams();
 
     Object.entries(params || {}).forEach(([key, value]) => {
@@ -143,101 +145,112 @@ export const getGetApiV1PomodoroSessionsUrl = (params: GetApiV1PomodoroSessionsP
         : `/api/v1/pomodoro/sessions`;
 };
 
-export const getApiV1PomodoroSessions = async (
-    params: GetApiV1PomodoroSessionsParams,
+export const getPomodoroSessions = async (
+    params: GetPomodoroSessionsParams,
     options?: RequestInit
 ): Promise<PomodoroSession[]> => {
-    return customInstance<PomodoroSession[]>(getGetApiV1PomodoroSessionsUrl(params), {
+    return customInstance<PomodoroSession[]>(getGetPomodoroSessionsUrl(params), {
         ...options,
         method: 'GET',
     });
 };
 
-export const getGetApiV1PomodoroSessionsQueryKey = (params?: GetApiV1PomodoroSessionsParams) => {
+export const getGetPomodoroSessionsQueryKey = (params?: GetPomodoroSessionsParams) => {
     return [`/api/v1/pomodoro/sessions`, ...(params ? [params] : [])] as const;
 };
 
-export const getGetApiV1PomodoroSessionsQueryOptions = <
-    TData = Awaited<ReturnType<typeof getApiV1PomodoroSessions>>,
+export const getGetPomodoroSessionsQueryOptions = <
+    TData = Awaited<ReturnType<typeof getPomodoroSessions>>,
     TError = Error | UnauthorizedResponse,
 >(
-    params: GetApiV1PomodoroSessionsParams,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1PomodoroSessions>>, TError, TData>> }
+    params: GetPomodoroSessionsParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPomodoroSessions>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    }
 ) => {
-    const { query: queryOptions } = options ?? {};
+    const { query: queryOptions, request: requestOptions } = options ?? {};
 
-    const queryKey = queryOptions?.queryKey ?? getGetApiV1PomodoroSessionsQueryKey(params);
+    const queryKey = queryOptions?.queryKey ?? getGetPomodoroSessionsQueryKey(params);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1PomodoroSessions>>> = ({ signal }) =>
-        getApiV1PomodoroSessions(params, { signal });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPomodoroSessions>>> = ({ signal }) =>
+        getPomodoroSessions(params, { signal, ...requestOptions });
 
     return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-        Awaited<ReturnType<typeof getApiV1PomodoroSessions>>,
+        Awaited<ReturnType<typeof getPomodoroSessions>>,
         TError,
         TData
     > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type GetApiV1PomodoroSessionsQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1PomodoroSessions>>>;
-export type GetApiV1PomodoroSessionsQueryError = Error | UnauthorizedResponse;
+export type GetPomodoroSessionsQueryResult = NonNullable<Awaited<ReturnType<typeof getPomodoroSessions>>>;
+export type GetPomodoroSessionsQueryError = Error | UnauthorizedResponse;
 
-export function useGetApiV1PomodoroSessions<
-    TData = Awaited<ReturnType<typeof getApiV1PomodoroSessions>>,
+export function useGetPomodoroSessions<
+    TData = Awaited<ReturnType<typeof getPomodoroSessions>>,
     TError = Error | UnauthorizedResponse,
 >(
-    params: GetApiV1PomodoroSessionsParams,
+    params: GetPomodoroSessionsParams,
     options: {
-        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1PomodoroSessions>>, TError, TData>> &
+        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPomodoroSessions>>, TError, TData>> &
             Pick<
                 DefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getApiV1PomodoroSessions>>,
+                    Awaited<ReturnType<typeof getPomodoroSessions>>,
                     TError,
-                    Awaited<ReturnType<typeof getApiV1PomodoroSessions>>
+                    Awaited<ReturnType<typeof getPomodoroSessions>>
                 >,
                 'initialData'
             >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetApiV1PomodoroSessions<
-    TData = Awaited<ReturnType<typeof getApiV1PomodoroSessions>>,
+export function useGetPomodoroSessions<
+    TData = Awaited<ReturnType<typeof getPomodoroSessions>>,
     TError = Error | UnauthorizedResponse,
 >(
-    params: GetApiV1PomodoroSessionsParams,
+    params: GetPomodoroSessionsParams,
     options?: {
-        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1PomodoroSessions>>, TError, TData>> &
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPomodoroSessions>>, TError, TData>> &
             Pick<
                 UndefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getApiV1PomodoroSessions>>,
+                    Awaited<ReturnType<typeof getPomodoroSessions>>,
                     TError,
-                    Awaited<ReturnType<typeof getApiV1PomodoroSessions>>
+                    Awaited<ReturnType<typeof getPomodoroSessions>>
                 >,
                 'initialData'
             >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetApiV1PomodoroSessions<
-    TData = Awaited<ReturnType<typeof getApiV1PomodoroSessions>>,
+export function useGetPomodoroSessions<
+    TData = Awaited<ReturnType<typeof getPomodoroSessions>>,
     TError = Error | UnauthorizedResponse,
 >(
-    params: GetApiV1PomodoroSessionsParams,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1PomodoroSessions>>, TError, TData>> },
+    params: GetPomodoroSessionsParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPomodoroSessions>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
  * @summary 세션 이력 조회
  */
 
-export function useGetApiV1PomodoroSessions<
-    TData = Awaited<ReturnType<typeof getApiV1PomodoroSessions>>,
+export function useGetPomodoroSessions<
+    TData = Awaited<ReturnType<typeof getPomodoroSessions>>,
     TError = Error | UnauthorizedResponse,
 >(
-    params: GetApiV1PomodoroSessionsParams,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1PomodoroSessions>>, TError, TData>> },
+    params: GetPomodoroSessionsParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPomodoroSessions>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-    const queryOptions = getGetApiV1PomodoroSessionsQueryOptions(params, options);
+    const queryOptions = getGetPomodoroSessionsQueryOptions(params, options);
 
     const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
         queryKey: DataTag<QueryKey, TData, TError>;
@@ -249,15 +262,18 @@ export function useGetApiV1PomodoroSessions<
 /**
  * @summary 세션 이력 조회
  */
-export const prefetchGetApiV1PomodoroSessionsQuery = async <
-    TData = Awaited<ReturnType<typeof getApiV1PomodoroSessions>>,
+export const prefetchGetPomodoroSessionsQuery = async <
+    TData = Awaited<ReturnType<typeof getPomodoroSessions>>,
     TError = Error | UnauthorizedResponse,
 >(
     queryClient: QueryClient,
-    params: GetApiV1PomodoroSessionsParams,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1PomodoroSessions>>, TError, TData>> }
+    params: GetPomodoroSessionsParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getPomodoroSessions>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    }
 ): Promise<QueryClient> => {
-    const queryOptions = getGetApiV1PomodoroSessionsQueryOptions(params, options);
+    const queryOptions = getGetPomodoroSessionsQueryOptions(params, options);
 
     await queryClient.prefetchQuery(queryOptions);
 
@@ -270,82 +286,79 @@ export const prefetchGetApiV1PomodoroSessionsQuery = async <
 
  * @summary 세션 종료
  */
-export const getPatchApiV1PomodoroSessionsIdEndUrl = (id: string) => {
+export const getEndPomodoroSessionUrl = (id: string) => {
     return `/api/v1/pomodoro/sessions/${id}/end`;
 };
 
-export const patchApiV1PomodoroSessionsIdEnd = async (
+export const endPomodoroSession = async (
     id: string,
-    patchApiV1PomodoroSessionsIdEndBody: PatchApiV1PomodoroSessionsIdEndBody,
+    endPomodoroSessionRequest: EndPomodoroSessionRequest,
     options?: RequestInit
 ): Promise<PomodoroSession> => {
-    return customInstance<PomodoroSession>(getPatchApiV1PomodoroSessionsIdEndUrl(id), {
+    return customInstance<PomodoroSession>(getEndPomodoroSessionUrl(id), {
         ...options,
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...options?.headers },
-        body: JSON.stringify(patchApiV1PomodoroSessionsIdEndBody),
+        body: JSON.stringify(endPomodoroSessionRequest),
     });
 };
 
-export const getPatchApiV1PomodoroSessionsIdEndMutationOptions = <
-    TError = Error | NotFoundResponse,
-    TContext = unknown,
->(options?: {
+export const getEndPomodoroSessionMutationOptions = <TError = Error | NotFoundResponse, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<
-        Awaited<ReturnType<typeof patchApiV1PomodoroSessionsIdEnd>>,
+        Awaited<ReturnType<typeof endPomodoroSession>>,
         TError,
-        { id: string; data: PatchApiV1PomodoroSessionsIdEndBody },
+        { id: string; data: EndPomodoroSessionRequest },
         TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
-    Awaited<ReturnType<typeof patchApiV1PomodoroSessionsIdEnd>>,
+    Awaited<ReturnType<typeof endPomodoroSession>>,
     TError,
-    { id: string; data: PatchApiV1PomodoroSessionsIdEndBody },
+    { id: string; data: EndPomodoroSessionRequest },
     TContext
 > => {
-    const mutationKey = ['patchApiV1PomodoroSessionsIdEnd'];
-    const { mutation: mutationOptions } = options
+    const mutationKey = ['endPomodoroSession'];
+    const { mutation: mutationOptions, request: requestOptions } = options
         ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
             ? options
             : { ...options, mutation: { ...options.mutation, mutationKey } }
-        : { mutation: { mutationKey } };
+        : { mutation: { mutationKey }, request: undefined };
 
     const mutationFn: MutationFunction<
-        Awaited<ReturnType<typeof patchApiV1PomodoroSessionsIdEnd>>,
-        { id: string; data: PatchApiV1PomodoroSessionsIdEndBody }
+        Awaited<ReturnType<typeof endPomodoroSession>>,
+        { id: string; data: EndPomodoroSessionRequest }
     > = (props) => {
         const { id, data } = props ?? {};
 
-        return patchApiV1PomodoroSessionsIdEnd(id, data);
+        return endPomodoroSession(id, data, requestOptions);
     };
 
     return { mutationFn, ...mutationOptions };
 };
 
-export type PatchApiV1PomodoroSessionsIdEndMutationResult = NonNullable<
-    Awaited<ReturnType<typeof patchApiV1PomodoroSessionsIdEnd>>
->;
-export type PatchApiV1PomodoroSessionsIdEndMutationBody = PatchApiV1PomodoroSessionsIdEndBody;
-export type PatchApiV1PomodoroSessionsIdEndMutationError = Error | NotFoundResponse;
+export type EndPomodoroSessionMutationResult = NonNullable<Awaited<ReturnType<typeof endPomodoroSession>>>;
+export type EndPomodoroSessionMutationBody = EndPomodoroSessionRequest;
+export type EndPomodoroSessionMutationError = Error | NotFoundResponse;
 
 /**
  * @summary 세션 종료
  */
-export const usePatchApiV1PomodoroSessionsIdEnd = <TError = Error | NotFoundResponse, TContext = unknown>(
+export const useEndPomodoroSession = <TError = Error | NotFoundResponse, TContext = unknown>(
     options?: {
         mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof patchApiV1PomodoroSessionsIdEnd>>,
+            Awaited<ReturnType<typeof endPomodoroSession>>,
             TError,
-            { id: string; data: PatchApiV1PomodoroSessionsIdEndBody },
+            { id: string; data: EndPomodoroSessionRequest },
             TContext
         >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): UseMutationResult<
-    Awaited<ReturnType<typeof patchApiV1PomodoroSessionsIdEnd>>,
+    Awaited<ReturnType<typeof endPomodoroSession>>,
     TError,
-    { id: string; data: PatchApiV1PomodoroSessionsIdEndBody },
+    { id: string; data: EndPomodoroSessionRequest },
     TContext
 > => {
-    return useMutation(getPatchApiV1PomodoroSessionsIdEndMutationOptions(options), queryClient);
+    return useMutation(getEndPomodoroSessionMutationOptions(options), queryClient);
 };
