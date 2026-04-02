@@ -30,25 +30,27 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+    CreateRetroLogRequest,
     Error,
     ForbiddenResponse,
-    GetApiV1RetroLogsParams,
-    GetApiV1RetroLogsSearch200Item,
-    GetApiV1RetroLogsSearchParams,
+    GetRetroLogParams,
     NotFoundResponse,
-    PatchApiV1RetroLogsIdBody,
-    PostApiV1RetroLogsBody,
     RetroLog,
+    RetroLogSearchItem,
+    SearchRetroLogsParams,
     UnauthorizedResponse,
+    UpdateRetroLogRequest,
 } from '../model';
 
 import { customInstance } from '../../mutator/custom-instance';
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 /**
  * `daily_log_id`와 `date`(YYYY-MM-DD)로 회고 조회. 두 쿼리 파라미터 모두 필수.
  * @summary 회고 조회
  */
-export const getGetApiV1RetroLogsUrl = (params: GetApiV1RetroLogsParams) => {
+export const getGetRetroLogUrl = (params: GetRetroLogParams) => {
     const normalizedParams = new URLSearchParams();
 
     Object.entries(params || {}).forEach(([key, value]) => {
@@ -62,98 +64,97 @@ export const getGetApiV1RetroLogsUrl = (params: GetApiV1RetroLogsParams) => {
     return stringifiedParams.length > 0 ? `/api/v1/retro-logs?${stringifiedParams}` : `/api/v1/retro-logs`;
 };
 
-export const getApiV1RetroLogs = async (params: GetApiV1RetroLogsParams, options?: RequestInit): Promise<RetroLog> => {
-    return customInstance<RetroLog>(getGetApiV1RetroLogsUrl(params), {
+export const getRetroLog = async (params: GetRetroLogParams, options?: RequestInit): Promise<RetroLog> => {
+    return customInstance<RetroLog>(getGetRetroLogUrl(params), {
         ...options,
         method: 'GET',
     });
 };
 
-export const getGetApiV1RetroLogsQueryKey = (params?: GetApiV1RetroLogsParams) => {
+export const getGetRetroLogQueryKey = (params?: GetRetroLogParams) => {
     return [`/api/v1/retro-logs`, ...(params ? [params] : [])] as const;
 };
 
-export const getGetApiV1RetroLogsQueryOptions = <
-    TData = Awaited<ReturnType<typeof getApiV1RetroLogs>>,
+export const getGetRetroLogQueryOptions = <
+    TData = Awaited<ReturnType<typeof getRetroLog>>,
     TError = UnauthorizedResponse | Error,
 >(
-    params: GetApiV1RetroLogsParams,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RetroLogs>>, TError, TData>> }
+    params: GetRetroLogParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRetroLog>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    }
 ) => {
-    const { query: queryOptions } = options ?? {};
+    const { query: queryOptions, request: requestOptions } = options ?? {};
 
-    const queryKey = queryOptions?.queryKey ?? getGetApiV1RetroLogsQueryKey(params);
+    const queryKey = queryOptions?.queryKey ?? getGetRetroLogQueryKey(params);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1RetroLogs>>> = ({ signal }) =>
-        getApiV1RetroLogs(params, { signal });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRetroLog>>> = ({ signal }) =>
+        getRetroLog(params, { signal, ...requestOptions });
 
     return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-        Awaited<ReturnType<typeof getApiV1RetroLogs>>,
+        Awaited<ReturnType<typeof getRetroLog>>,
         TError,
         TData
     > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type GetApiV1RetroLogsQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1RetroLogs>>>;
-export type GetApiV1RetroLogsQueryError = UnauthorizedResponse | Error;
+export type GetRetroLogQueryResult = NonNullable<Awaited<ReturnType<typeof getRetroLog>>>;
+export type GetRetroLogQueryError = UnauthorizedResponse | Error;
 
-export function useGetApiV1RetroLogs<
-    TData = Awaited<ReturnType<typeof getApiV1RetroLogs>>,
-    TError = UnauthorizedResponse | Error,
->(
-    params: GetApiV1RetroLogsParams,
+export function useGetRetroLog<TData = Awaited<ReturnType<typeof getRetroLog>>, TError = UnauthorizedResponse | Error>(
+    params: GetRetroLogParams,
     options: {
-        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RetroLogs>>, TError, TData>> &
+        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRetroLog>>, TError, TData>> &
             Pick<
                 DefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getApiV1RetroLogs>>,
+                    Awaited<ReturnType<typeof getRetroLog>>,
                     TError,
-                    Awaited<ReturnType<typeof getApiV1RetroLogs>>
+                    Awaited<ReturnType<typeof getRetroLog>>
                 >,
                 'initialData'
             >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetApiV1RetroLogs<
-    TData = Awaited<ReturnType<typeof getApiV1RetroLogs>>,
-    TError = UnauthorizedResponse | Error,
->(
-    params: GetApiV1RetroLogsParams,
+export function useGetRetroLog<TData = Awaited<ReturnType<typeof getRetroLog>>, TError = UnauthorizedResponse | Error>(
+    params: GetRetroLogParams,
     options?: {
-        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RetroLogs>>, TError, TData>> &
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRetroLog>>, TError, TData>> &
             Pick<
                 UndefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getApiV1RetroLogs>>,
+                    Awaited<ReturnType<typeof getRetroLog>>,
                     TError,
-                    Awaited<ReturnType<typeof getApiV1RetroLogs>>
+                    Awaited<ReturnType<typeof getRetroLog>>
                 >,
                 'initialData'
             >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetApiV1RetroLogs<
-    TData = Awaited<ReturnType<typeof getApiV1RetroLogs>>,
-    TError = UnauthorizedResponse | Error,
->(
-    params: GetApiV1RetroLogsParams,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RetroLogs>>, TError, TData>> },
+export function useGetRetroLog<TData = Awaited<ReturnType<typeof getRetroLog>>, TError = UnauthorizedResponse | Error>(
+    params: GetRetroLogParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRetroLog>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
  * @summary 회고 조회
  */
 
-export function useGetApiV1RetroLogs<
-    TData = Awaited<ReturnType<typeof getApiV1RetroLogs>>,
-    TError = UnauthorizedResponse | Error,
->(
-    params: GetApiV1RetroLogsParams,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RetroLogs>>, TError, TData>> },
+export function useGetRetroLog<TData = Awaited<ReturnType<typeof getRetroLog>>, TError = UnauthorizedResponse | Error>(
+    params: GetRetroLogParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRetroLog>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-    const queryOptions = getGetApiV1RetroLogsQueryOptions(params, options);
+    const queryOptions = getGetRetroLogQueryOptions(params, options);
 
     const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
         queryKey: DataTag<QueryKey, TData, TError>;
@@ -165,15 +166,18 @@ export function useGetApiV1RetroLogs<
 /**
  * @summary 회고 조회
  */
-export const prefetchGetApiV1RetroLogsQuery = async <
-    TData = Awaited<ReturnType<typeof getApiV1RetroLogs>>,
+export const prefetchGetRetroLogQuery = async <
+    TData = Awaited<ReturnType<typeof getRetroLog>>,
     TError = UnauthorizedResponse | Error,
 >(
     queryClient: QueryClient,
-    params: GetApiV1RetroLogsParams,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RetroLogs>>, TError, TData>> }
+    params: GetRetroLogParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRetroLog>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    }
 ): Promise<QueryClient> => {
-    const queryOptions = getGetApiV1RetroLogsQueryOptions(params, options);
+    const queryOptions = getGetRetroLogQueryOptions(params, options);
 
     await queryClient.prefetchQuery(queryOptions);
 
@@ -184,87 +188,80 @@ export const prefetchGetApiV1RetroLogsQuery = async <
  * 회고 생성. `daily_log_id` 없이도 생성 가능. 성공 시 `daily_focus_stats.has_retro_log = true` UPSERT.
  * @summary 회고 생성
  */
-export const getPostApiV1RetroLogsUrl = () => {
+export const getCreateRetroLogUrl = () => {
     return `/api/v1/retro-logs`;
 };
 
-export const postApiV1RetroLogs = async (
-    postApiV1RetroLogsBody: PostApiV1RetroLogsBody,
+export const createRetroLog = async (
+    createRetroLogRequest: CreateRetroLogRequest,
     options?: RequestInit
 ): Promise<RetroLog> => {
-    return customInstance<RetroLog>(getPostApiV1RetroLogsUrl(), {
+    return customInstance<RetroLog>(getCreateRetroLogUrl(), {
         ...options,
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...options?.headers },
-        body: JSON.stringify(postApiV1RetroLogsBody),
+        body: JSON.stringify(createRetroLogRequest),
     });
 };
 
-export const getPostApiV1RetroLogsMutationOptions = <
-    TError = Error | UnauthorizedResponse,
-    TContext = unknown,
->(options?: {
+export const getCreateRetroLogMutationOptions = <TError = Error | UnauthorizedResponse, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<
-        Awaited<ReturnType<typeof postApiV1RetroLogs>>,
+        Awaited<ReturnType<typeof createRetroLog>>,
         TError,
-        { data: PostApiV1RetroLogsBody },
+        { data: CreateRetroLogRequest },
         TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
-    Awaited<ReturnType<typeof postApiV1RetroLogs>>,
+    Awaited<ReturnType<typeof createRetroLog>>,
     TError,
-    { data: PostApiV1RetroLogsBody },
+    { data: CreateRetroLogRequest },
     TContext
 > => {
-    const mutationKey = ['postApiV1RetroLogs'];
-    const { mutation: mutationOptions } = options
+    const mutationKey = ['createRetroLog'];
+    const { mutation: mutationOptions, request: requestOptions } = options
         ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
             ? options
             : { ...options, mutation: { ...options.mutation, mutationKey } }
-        : { mutation: { mutationKey } };
+        : { mutation: { mutationKey }, request: undefined };
 
-    const mutationFn: MutationFunction<
-        Awaited<ReturnType<typeof postApiV1RetroLogs>>,
-        { data: PostApiV1RetroLogsBody }
-    > = (props) => {
+    const mutationFn: MutationFunction<Awaited<ReturnType<typeof createRetroLog>>, { data: CreateRetroLogRequest }> = (
+        props
+    ) => {
         const { data } = props ?? {};
 
-        return postApiV1RetroLogs(data);
+        return createRetroLog(data, requestOptions);
     };
 
     return { mutationFn, ...mutationOptions };
 };
 
-export type PostApiV1RetroLogsMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1RetroLogs>>>;
-export type PostApiV1RetroLogsMutationBody = PostApiV1RetroLogsBody;
-export type PostApiV1RetroLogsMutationError = Error | UnauthorizedResponse;
+export type CreateRetroLogMutationResult = NonNullable<Awaited<ReturnType<typeof createRetroLog>>>;
+export type CreateRetroLogMutationBody = CreateRetroLogRequest;
+export type CreateRetroLogMutationError = Error | UnauthorizedResponse;
 
 /**
  * @summary 회고 생성
  */
-export const usePostApiV1RetroLogs = <TError = Error | UnauthorizedResponse, TContext = unknown>(
+export const useCreateRetroLog = <TError = Error | UnauthorizedResponse, TContext = unknown>(
     options?: {
         mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof postApiV1RetroLogs>>,
+            Awaited<ReturnType<typeof createRetroLog>>,
             TError,
-            { data: PostApiV1RetroLogsBody },
+            { data: CreateRetroLogRequest },
             TContext
         >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
-): UseMutationResult<
-    Awaited<ReturnType<typeof postApiV1RetroLogs>>,
-    TError,
-    { data: PostApiV1RetroLogsBody },
-    TContext
-> => {
-    return useMutation(getPostApiV1RetroLogsMutationOptions(options), queryClient);
+): UseMutationResult<Awaited<ReturnType<typeof createRetroLog>>, TError, { data: CreateRetroLogRequest }, TContext> => {
+    return useMutation(getCreateRetroLogMutationOptions(options), queryClient);
 };
 /**
  * content 기반 검색
  * @summary 회고 로그 검색
  */
-export const getGetApiV1RetroLogsSearchUrl = (params: GetApiV1RetroLogsSearchParams) => {
+export const getSearchRetroLogsUrl = (params: SearchRetroLogsParams) => {
     const normalizedParams = new URLSearchParams();
 
     Object.entries(params || {}).forEach(([key, value]) => {
@@ -280,101 +277,112 @@ export const getGetApiV1RetroLogsSearchUrl = (params: GetApiV1RetroLogsSearchPar
         : `/api/v1/retro-logs/search`;
 };
 
-export const getApiV1RetroLogsSearch = async (
-    params: GetApiV1RetroLogsSearchParams,
+export const searchRetroLogs = async (
+    params: SearchRetroLogsParams,
     options?: RequestInit
-): Promise<GetApiV1RetroLogsSearch200Item[]> => {
-    return customInstance<GetApiV1RetroLogsSearch200Item[]>(getGetApiV1RetroLogsSearchUrl(params), {
+): Promise<RetroLogSearchItem[]> => {
+    return customInstance<RetroLogSearchItem[]>(getSearchRetroLogsUrl(params), {
         ...options,
         method: 'GET',
     });
 };
 
-export const getGetApiV1RetroLogsSearchQueryKey = (params?: GetApiV1RetroLogsSearchParams) => {
+export const getSearchRetroLogsQueryKey = (params?: SearchRetroLogsParams) => {
     return [`/api/v1/retro-logs/search`, ...(params ? [params] : [])] as const;
 };
 
-export const getGetApiV1RetroLogsSearchQueryOptions = <
-    TData = Awaited<ReturnType<typeof getApiV1RetroLogsSearch>>,
+export const getSearchRetroLogsQueryOptions = <
+    TData = Awaited<ReturnType<typeof searchRetroLogs>>,
     TError = Error | UnauthorizedResponse,
 >(
-    params: GetApiV1RetroLogsSearchParams,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RetroLogsSearch>>, TError, TData>> }
+    params: SearchRetroLogsParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchRetroLogs>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    }
 ) => {
-    const { query: queryOptions } = options ?? {};
+    const { query: queryOptions, request: requestOptions } = options ?? {};
 
-    const queryKey = queryOptions?.queryKey ?? getGetApiV1RetroLogsSearchQueryKey(params);
+    const queryKey = queryOptions?.queryKey ?? getSearchRetroLogsQueryKey(params);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1RetroLogsSearch>>> = ({ signal }) =>
-        getApiV1RetroLogsSearch(params, { signal });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchRetroLogs>>> = ({ signal }) =>
+        searchRetroLogs(params, { signal, ...requestOptions });
 
     return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-        Awaited<ReturnType<typeof getApiV1RetroLogsSearch>>,
+        Awaited<ReturnType<typeof searchRetroLogs>>,
         TError,
         TData
     > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type GetApiV1RetroLogsSearchQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1RetroLogsSearch>>>;
-export type GetApiV1RetroLogsSearchQueryError = Error | UnauthorizedResponse;
+export type SearchRetroLogsQueryResult = NonNullable<Awaited<ReturnType<typeof searchRetroLogs>>>;
+export type SearchRetroLogsQueryError = Error | UnauthorizedResponse;
 
-export function useGetApiV1RetroLogsSearch<
-    TData = Awaited<ReturnType<typeof getApiV1RetroLogsSearch>>,
+export function useSearchRetroLogs<
+    TData = Awaited<ReturnType<typeof searchRetroLogs>>,
     TError = Error | UnauthorizedResponse,
 >(
-    params: GetApiV1RetroLogsSearchParams,
+    params: SearchRetroLogsParams,
     options: {
-        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RetroLogsSearch>>, TError, TData>> &
+        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchRetroLogs>>, TError, TData>> &
             Pick<
                 DefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getApiV1RetroLogsSearch>>,
+                    Awaited<ReturnType<typeof searchRetroLogs>>,
                     TError,
-                    Awaited<ReturnType<typeof getApiV1RetroLogsSearch>>
+                    Awaited<ReturnType<typeof searchRetroLogs>>
                 >,
                 'initialData'
             >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetApiV1RetroLogsSearch<
-    TData = Awaited<ReturnType<typeof getApiV1RetroLogsSearch>>,
+export function useSearchRetroLogs<
+    TData = Awaited<ReturnType<typeof searchRetroLogs>>,
     TError = Error | UnauthorizedResponse,
 >(
-    params: GetApiV1RetroLogsSearchParams,
+    params: SearchRetroLogsParams,
     options?: {
-        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RetroLogsSearch>>, TError, TData>> &
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchRetroLogs>>, TError, TData>> &
             Pick<
                 UndefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getApiV1RetroLogsSearch>>,
+                    Awaited<ReturnType<typeof searchRetroLogs>>,
                     TError,
-                    Awaited<ReturnType<typeof getApiV1RetroLogsSearch>>
+                    Awaited<ReturnType<typeof searchRetroLogs>>
                 >,
                 'initialData'
             >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetApiV1RetroLogsSearch<
-    TData = Awaited<ReturnType<typeof getApiV1RetroLogsSearch>>,
+export function useSearchRetroLogs<
+    TData = Awaited<ReturnType<typeof searchRetroLogs>>,
     TError = Error | UnauthorizedResponse,
 >(
-    params: GetApiV1RetroLogsSearchParams,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RetroLogsSearch>>, TError, TData>> },
+    params: SearchRetroLogsParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchRetroLogs>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
  * @summary 회고 로그 검색
  */
 
-export function useGetApiV1RetroLogsSearch<
-    TData = Awaited<ReturnType<typeof getApiV1RetroLogsSearch>>,
+export function useSearchRetroLogs<
+    TData = Awaited<ReturnType<typeof searchRetroLogs>>,
     TError = Error | UnauthorizedResponse,
 >(
-    params: GetApiV1RetroLogsSearchParams,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RetroLogsSearch>>, TError, TData>> },
+    params: SearchRetroLogsParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchRetroLogs>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-    const queryOptions = getGetApiV1RetroLogsSearchQueryOptions(params, options);
+    const queryOptions = getSearchRetroLogsQueryOptions(params, options);
 
     const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
         queryKey: DataTag<QueryKey, TData, TError>;
@@ -386,15 +394,18 @@ export function useGetApiV1RetroLogsSearch<
 /**
  * @summary 회고 로그 검색
  */
-export const prefetchGetApiV1RetroLogsSearchQuery = async <
-    TData = Awaited<ReturnType<typeof getApiV1RetroLogsSearch>>,
+export const prefetchSearchRetroLogsQuery = async <
+    TData = Awaited<ReturnType<typeof searchRetroLogs>>,
     TError = Error | UnauthorizedResponse,
 >(
     queryClient: QueryClient,
-    params: GetApiV1RetroLogsSearchParams,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1RetroLogsSearch>>, TError, TData>> }
+    params: SearchRetroLogsParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchRetroLogs>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    }
 ): Promise<QueryClient> => {
-    const queryOptions = getGetApiV1RetroLogsSearchQueryOptions(params, options);
+    const queryOptions = getSearchRetroLogsQueryOptions(params, options);
 
     await queryClient.prefetchQuery(queryOptions);
 
@@ -405,139 +416,136 @@ export const prefetchGetApiV1RetroLogsSearchQuery = async <
  * 회고 내용 수정. `is_dirty` / `draft_content` 자동저장 패턴은 데일리로그와 동일.
  * @summary 회고 수정
  */
-export const getPatchApiV1RetroLogsIdUrl = (id: string) => {
+export const getUpdateRetroLogUrl = (id: string) => {
     return `/api/v1/retro-logs/${id}`;
 };
 
-export const patchApiV1RetroLogsId = async (
+export const updateRetroLog = async (
     id: string,
-    patchApiV1RetroLogsIdBody: PatchApiV1RetroLogsIdBody,
+    updateRetroLogRequest: UpdateRetroLogRequest,
     options?: RequestInit
 ): Promise<RetroLog> => {
-    return customInstance<RetroLog>(getPatchApiV1RetroLogsIdUrl(id), {
+    return customInstance<RetroLog>(getUpdateRetroLogUrl(id), {
         ...options,
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...options?.headers },
-        body: JSON.stringify(patchApiV1RetroLogsIdBody),
+        body: JSON.stringify(updateRetroLogRequest),
     });
 };
 
-export const getPatchApiV1RetroLogsIdMutationOptions = <
+export const getUpdateRetroLogMutationOptions = <
     TError = ForbiddenResponse | NotFoundResponse,
     TContext = unknown,
 >(options?: {
     mutation?: UseMutationOptions<
-        Awaited<ReturnType<typeof patchApiV1RetroLogsId>>,
+        Awaited<ReturnType<typeof updateRetroLog>>,
         TError,
-        { id: string; data: PatchApiV1RetroLogsIdBody },
+        { id: string; data: UpdateRetroLogRequest },
         TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
-    Awaited<ReturnType<typeof patchApiV1RetroLogsId>>,
+    Awaited<ReturnType<typeof updateRetroLog>>,
     TError,
-    { id: string; data: PatchApiV1RetroLogsIdBody },
+    { id: string; data: UpdateRetroLogRequest },
     TContext
 > => {
-    const mutationKey = ['patchApiV1RetroLogsId'];
-    const { mutation: mutationOptions } = options
+    const mutationKey = ['updateRetroLog'];
+    const { mutation: mutationOptions, request: requestOptions } = options
         ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
             ? options
             : { ...options, mutation: { ...options.mutation, mutationKey } }
-        : { mutation: { mutationKey } };
+        : { mutation: { mutationKey }, request: undefined };
 
     const mutationFn: MutationFunction<
-        Awaited<ReturnType<typeof patchApiV1RetroLogsId>>,
-        { id: string; data: PatchApiV1RetroLogsIdBody }
+        Awaited<ReturnType<typeof updateRetroLog>>,
+        { id: string; data: UpdateRetroLogRequest }
     > = (props) => {
         const { id, data } = props ?? {};
 
-        return patchApiV1RetroLogsId(id, data);
+        return updateRetroLog(id, data, requestOptions);
     };
 
     return { mutationFn, ...mutationOptions };
 };
 
-export type PatchApiV1RetroLogsIdMutationResult = NonNullable<Awaited<ReturnType<typeof patchApiV1RetroLogsId>>>;
-export type PatchApiV1RetroLogsIdMutationBody = PatchApiV1RetroLogsIdBody;
-export type PatchApiV1RetroLogsIdMutationError = ForbiddenResponse | NotFoundResponse;
+export type UpdateRetroLogMutationResult = NonNullable<Awaited<ReturnType<typeof updateRetroLog>>>;
+export type UpdateRetroLogMutationBody = UpdateRetroLogRequest;
+export type UpdateRetroLogMutationError = ForbiddenResponse | NotFoundResponse;
 
 /**
  * @summary 회고 수정
  */
-export const usePatchApiV1RetroLogsId = <TError = ForbiddenResponse | NotFoundResponse, TContext = unknown>(
+export const useUpdateRetroLog = <TError = ForbiddenResponse | NotFoundResponse, TContext = unknown>(
     options?: {
         mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof patchApiV1RetroLogsId>>,
+            Awaited<ReturnType<typeof updateRetroLog>>,
             TError,
-            { id: string; data: PatchApiV1RetroLogsIdBody },
+            { id: string; data: UpdateRetroLogRequest },
             TContext
         >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): UseMutationResult<
-    Awaited<ReturnType<typeof patchApiV1RetroLogsId>>,
+    Awaited<ReturnType<typeof updateRetroLog>>,
     TError,
-    { id: string; data: PatchApiV1RetroLogsIdBody },
+    { id: string; data: UpdateRetroLogRequest },
     TContext
 > => {
-    return useMutation(getPatchApiV1RetroLogsIdMutationOptions(options), queryClient);
+    return useMutation(getUpdateRetroLogMutationOptions(options), queryClient);
 };
 /**
  * 회고 삭제. `daily_focus_stats.has_retro_log = false` UPSERT.
  * @summary 회고 삭제
  */
-export const getDeleteApiV1RetroLogsIdUrl = (id: string) => {
+export const getDeleteRetroLogUrl = (id: string) => {
     return `/api/v1/retro-logs/${id}`;
 };
 
-export const deleteApiV1RetroLogsId = async (id: string, options?: RequestInit): Promise<void> => {
-    return customInstance<void>(getDeleteApiV1RetroLogsIdUrl(id), {
+export const deleteRetroLog = async (id: string, options?: RequestInit): Promise<void> => {
+    return customInstance<void>(getDeleteRetroLogUrl(id), {
         ...options,
         method: 'DELETE',
     });
 };
 
-export const getDeleteApiV1RetroLogsIdMutationOptions = <
+export const getDeleteRetroLogMutationOptions = <
     TError = ForbiddenResponse | NotFoundResponse,
     TContext = unknown,
 >(options?: {
-    mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteApiV1RetroLogsId>>, TError, { id: string }, TContext>;
-}): UseMutationOptions<Awaited<ReturnType<typeof deleteApiV1RetroLogsId>>, TError, { id: string }, TContext> => {
-    const mutationKey = ['deleteApiV1RetroLogsId'];
-    const { mutation: mutationOptions } = options
+    mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteRetroLog>>, TError, { id: string }, TContext>;
+    request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<Awaited<ReturnType<typeof deleteRetroLog>>, TError, { id: string }, TContext> => {
+    const mutationKey = ['deleteRetroLog'];
+    const { mutation: mutationOptions, request: requestOptions } = options
         ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
             ? options
             : { ...options, mutation: { ...options.mutation, mutationKey } }
-        : { mutation: { mutationKey } };
+        : { mutation: { mutationKey }, request: undefined };
 
-    const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteApiV1RetroLogsId>>, { id: string }> = (
-        props
-    ) => {
+    const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteRetroLog>>, { id: string }> = (props) => {
         const { id } = props ?? {};
 
-        return deleteApiV1RetroLogsId(id);
+        return deleteRetroLog(id, requestOptions);
     };
 
     return { mutationFn, ...mutationOptions };
 };
 
-export type DeleteApiV1RetroLogsIdMutationResult = NonNullable<Awaited<ReturnType<typeof deleteApiV1RetroLogsId>>>;
+export type DeleteRetroLogMutationResult = NonNullable<Awaited<ReturnType<typeof deleteRetroLog>>>;
 
-export type DeleteApiV1RetroLogsIdMutationError = ForbiddenResponse | NotFoundResponse;
+export type DeleteRetroLogMutationError = ForbiddenResponse | NotFoundResponse;
 
 /**
  * @summary 회고 삭제
  */
-export const useDeleteApiV1RetroLogsId = <TError = ForbiddenResponse | NotFoundResponse, TContext = unknown>(
+export const useDeleteRetroLog = <TError = ForbiddenResponse | NotFoundResponse, TContext = unknown>(
     options?: {
-        mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof deleteApiV1RetroLogsId>>,
-            TError,
-            { id: string },
-            TContext
-        >;
+        mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteRetroLog>>, TError, { id: string }, TContext>;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
-): UseMutationResult<Awaited<ReturnType<typeof deleteApiV1RetroLogsId>>, TError, { id: string }, TContext> => {
-    return useMutation(getDeleteApiV1RetroLogsIdMutationOptions(options), queryClient);
+): UseMutationResult<Awaited<ReturnType<typeof deleteRetroLog>>, TError, { id: string }, TContext> => {
+    return useMutation(getDeleteRetroLogMutationOptions(options), queryClient);
 };

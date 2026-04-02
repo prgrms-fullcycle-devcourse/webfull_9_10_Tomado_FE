@@ -30,27 +30,29 @@ import type {
 } from '@tanstack/react-query';
 
 import type {
+    CreateDailyLogRequest,
     DailyLog,
+    DailyLogSearchItem,
     DailyLogSummary,
     Error,
     ForbiddenResponse,
-    GetApiV1DailyLogsListParams,
-    GetApiV1DailyLogsParams,
-    GetApiV1DailyLogsSearch200Item,
-    GetApiV1DailyLogsSearchParams,
+    GetDailyLogParams,
+    GetDailyLogsListParams,
     NotFoundResponse,
-    PatchApiV1DailyLogsIdBody,
-    PostApiV1DailyLogsBody,
+    SearchDailyLogsParams,
     UnauthorizedResponse,
+    UpdateDailyLogRequest,
 } from '../model';
 
 import { customInstance } from '../../mutator/custom-instance';
+
+type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 /**
  * 특정 날짜의 데일리 로그 조회. 해당 날짜 로그가 없으면 404 반환.
  * @summary 날짜별 데일리 로그 조회
  */
-export const getGetApiV1DailyLogsUrl = (params: GetApiV1DailyLogsParams) => {
+export const getGetDailyLogUrl = (params: GetDailyLogParams) => {
     const normalizedParams = new URLSearchParams();
 
     Object.entries(params || {}).forEach(([key, value]) => {
@@ -64,98 +66,97 @@ export const getGetApiV1DailyLogsUrl = (params: GetApiV1DailyLogsParams) => {
     return stringifiedParams.length > 0 ? `/api/v1/daily-logs?${stringifiedParams}` : `/api/v1/daily-logs`;
 };
 
-export const getApiV1DailyLogs = async (params: GetApiV1DailyLogsParams, options?: RequestInit): Promise<DailyLog> => {
-    return customInstance<DailyLog>(getGetApiV1DailyLogsUrl(params), {
+export const getDailyLog = async (params: GetDailyLogParams, options?: RequestInit): Promise<DailyLog> => {
+    return customInstance<DailyLog>(getGetDailyLogUrl(params), {
         ...options,
         method: 'GET',
     });
 };
 
-export const getGetApiV1DailyLogsQueryKey = (params?: GetApiV1DailyLogsParams) => {
+export const getGetDailyLogQueryKey = (params?: GetDailyLogParams) => {
     return [`/api/v1/daily-logs`, ...(params ? [params] : [])] as const;
 };
 
-export const getGetApiV1DailyLogsQueryOptions = <
-    TData = Awaited<ReturnType<typeof getApiV1DailyLogs>>,
+export const getGetDailyLogQueryOptions = <
+    TData = Awaited<ReturnType<typeof getDailyLog>>,
     TError = UnauthorizedResponse | Error,
 >(
-    params: GetApiV1DailyLogsParams,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DailyLogs>>, TError, TData>> }
+    params: GetDailyLogParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getDailyLog>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    }
 ) => {
-    const { query: queryOptions } = options ?? {};
+    const { query: queryOptions, request: requestOptions } = options ?? {};
 
-    const queryKey = queryOptions?.queryKey ?? getGetApiV1DailyLogsQueryKey(params);
+    const queryKey = queryOptions?.queryKey ?? getGetDailyLogQueryKey(params);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1DailyLogs>>> = ({ signal }) =>
-        getApiV1DailyLogs(params, { signal });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDailyLog>>> = ({ signal }) =>
+        getDailyLog(params, { signal, ...requestOptions });
 
     return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-        Awaited<ReturnType<typeof getApiV1DailyLogs>>,
+        Awaited<ReturnType<typeof getDailyLog>>,
         TError,
         TData
     > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type GetApiV1DailyLogsQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1DailyLogs>>>;
-export type GetApiV1DailyLogsQueryError = UnauthorizedResponse | Error;
+export type GetDailyLogQueryResult = NonNullable<Awaited<ReturnType<typeof getDailyLog>>>;
+export type GetDailyLogQueryError = UnauthorizedResponse | Error;
 
-export function useGetApiV1DailyLogs<
-    TData = Awaited<ReturnType<typeof getApiV1DailyLogs>>,
-    TError = UnauthorizedResponse | Error,
->(
-    params: GetApiV1DailyLogsParams,
+export function useGetDailyLog<TData = Awaited<ReturnType<typeof getDailyLog>>, TError = UnauthorizedResponse | Error>(
+    params: GetDailyLogParams,
     options: {
-        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DailyLogs>>, TError, TData>> &
+        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getDailyLog>>, TError, TData>> &
             Pick<
                 DefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getApiV1DailyLogs>>,
+                    Awaited<ReturnType<typeof getDailyLog>>,
                     TError,
-                    Awaited<ReturnType<typeof getApiV1DailyLogs>>
+                    Awaited<ReturnType<typeof getDailyLog>>
                 >,
                 'initialData'
             >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetApiV1DailyLogs<
-    TData = Awaited<ReturnType<typeof getApiV1DailyLogs>>,
-    TError = UnauthorizedResponse | Error,
->(
-    params: GetApiV1DailyLogsParams,
+export function useGetDailyLog<TData = Awaited<ReturnType<typeof getDailyLog>>, TError = UnauthorizedResponse | Error>(
+    params: GetDailyLogParams,
     options?: {
-        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DailyLogs>>, TError, TData>> &
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getDailyLog>>, TError, TData>> &
             Pick<
                 UndefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getApiV1DailyLogs>>,
+                    Awaited<ReturnType<typeof getDailyLog>>,
                     TError,
-                    Awaited<ReturnType<typeof getApiV1DailyLogs>>
+                    Awaited<ReturnType<typeof getDailyLog>>
                 >,
                 'initialData'
             >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetApiV1DailyLogs<
-    TData = Awaited<ReturnType<typeof getApiV1DailyLogs>>,
-    TError = UnauthorizedResponse | Error,
->(
-    params: GetApiV1DailyLogsParams,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DailyLogs>>, TError, TData>> },
+export function useGetDailyLog<TData = Awaited<ReturnType<typeof getDailyLog>>, TError = UnauthorizedResponse | Error>(
+    params: GetDailyLogParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getDailyLog>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
  * @summary 날짜별 데일리 로그 조회
  */
 
-export function useGetApiV1DailyLogs<
-    TData = Awaited<ReturnType<typeof getApiV1DailyLogs>>,
-    TError = UnauthorizedResponse | Error,
->(
-    params: GetApiV1DailyLogsParams,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DailyLogs>>, TError, TData>> },
+export function useGetDailyLog<TData = Awaited<ReturnType<typeof getDailyLog>>, TError = UnauthorizedResponse | Error>(
+    params: GetDailyLogParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getDailyLog>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-    const queryOptions = getGetApiV1DailyLogsQueryOptions(params, options);
+    const queryOptions = getGetDailyLogQueryOptions(params, options);
 
     const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
         queryKey: DataTag<QueryKey, TData, TError>;
@@ -167,15 +168,18 @@ export function useGetApiV1DailyLogs<
 /**
  * @summary 날짜별 데일리 로그 조회
  */
-export const prefetchGetApiV1DailyLogsQuery = async <
-    TData = Awaited<ReturnType<typeof getApiV1DailyLogs>>,
+export const prefetchGetDailyLogQuery = async <
+    TData = Awaited<ReturnType<typeof getDailyLog>>,
     TError = UnauthorizedResponse | Error,
 >(
     queryClient: QueryClient,
-    params: GetApiV1DailyLogsParams,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DailyLogs>>, TError, TData>> }
+    params: GetDailyLogParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getDailyLog>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    }
 ): Promise<QueryClient> => {
-    const queryOptions = getGetApiV1DailyLogsQueryOptions(params, options);
+    const queryOptions = getGetDailyLogQueryOptions(params, options);
 
     await queryClient.prefetchQuery(queryOptions);
 
@@ -186,87 +190,80 @@ export const prefetchGetApiV1DailyLogsQuery = async <
  * 데일리 로그 생성. 성공 시 `daily_focus_stats.has_daily_log = true` UPSERT.
  * @summary 데일리 로그 생성
  */
-export const getPostApiV1DailyLogsUrl = () => {
+export const getCreateDailyLogUrl = () => {
     return `/api/v1/daily-logs`;
 };
 
-export const postApiV1DailyLogs = async (
-    postApiV1DailyLogsBody: PostApiV1DailyLogsBody,
+export const createDailyLog = async (
+    createDailyLogRequest: CreateDailyLogRequest,
     options?: RequestInit
 ): Promise<DailyLog> => {
-    return customInstance<DailyLog>(getPostApiV1DailyLogsUrl(), {
+    return customInstance<DailyLog>(getCreateDailyLogUrl(), {
         ...options,
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...options?.headers },
-        body: JSON.stringify(postApiV1DailyLogsBody),
+        body: JSON.stringify(createDailyLogRequest),
     });
 };
 
-export const getPostApiV1DailyLogsMutationOptions = <
-    TError = UnauthorizedResponse | Error,
-    TContext = unknown,
->(options?: {
+export const getCreateDailyLogMutationOptions = <TError = UnauthorizedResponse | Error, TContext = unknown>(options?: {
     mutation?: UseMutationOptions<
-        Awaited<ReturnType<typeof postApiV1DailyLogs>>,
+        Awaited<ReturnType<typeof createDailyLog>>,
         TError,
-        { data: PostApiV1DailyLogsBody },
+        { data: CreateDailyLogRequest },
         TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
-    Awaited<ReturnType<typeof postApiV1DailyLogs>>,
+    Awaited<ReturnType<typeof createDailyLog>>,
     TError,
-    { data: PostApiV1DailyLogsBody },
+    { data: CreateDailyLogRequest },
     TContext
 > => {
-    const mutationKey = ['postApiV1DailyLogs'];
-    const { mutation: mutationOptions } = options
+    const mutationKey = ['createDailyLog'];
+    const { mutation: mutationOptions, request: requestOptions } = options
         ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
             ? options
             : { ...options, mutation: { ...options.mutation, mutationKey } }
-        : { mutation: { mutationKey } };
+        : { mutation: { mutationKey }, request: undefined };
 
-    const mutationFn: MutationFunction<
-        Awaited<ReturnType<typeof postApiV1DailyLogs>>,
-        { data: PostApiV1DailyLogsBody }
-    > = (props) => {
+    const mutationFn: MutationFunction<Awaited<ReturnType<typeof createDailyLog>>, { data: CreateDailyLogRequest }> = (
+        props
+    ) => {
         const { data } = props ?? {};
 
-        return postApiV1DailyLogs(data);
+        return createDailyLog(data, requestOptions);
     };
 
     return { mutationFn, ...mutationOptions };
 };
 
-export type PostApiV1DailyLogsMutationResult = NonNullable<Awaited<ReturnType<typeof postApiV1DailyLogs>>>;
-export type PostApiV1DailyLogsMutationBody = PostApiV1DailyLogsBody;
-export type PostApiV1DailyLogsMutationError = UnauthorizedResponse | Error;
+export type CreateDailyLogMutationResult = NonNullable<Awaited<ReturnType<typeof createDailyLog>>>;
+export type CreateDailyLogMutationBody = CreateDailyLogRequest;
+export type CreateDailyLogMutationError = UnauthorizedResponse | Error;
 
 /**
  * @summary 데일리 로그 생성
  */
-export const usePostApiV1DailyLogs = <TError = UnauthorizedResponse | Error, TContext = unknown>(
+export const useCreateDailyLog = <TError = UnauthorizedResponse | Error, TContext = unknown>(
     options?: {
         mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof postApiV1DailyLogs>>,
+            Awaited<ReturnType<typeof createDailyLog>>,
             TError,
-            { data: PostApiV1DailyLogsBody },
+            { data: CreateDailyLogRequest },
             TContext
         >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
-): UseMutationResult<
-    Awaited<ReturnType<typeof postApiV1DailyLogs>>,
-    TError,
-    { data: PostApiV1DailyLogsBody },
-    TContext
-> => {
-    return useMutation(getPostApiV1DailyLogsMutationOptions(options), queryClient);
+): UseMutationResult<Awaited<ReturnType<typeof createDailyLog>>, TError, { data: CreateDailyLogRequest }, TContext> => {
+    return useMutation(getCreateDailyLogMutationOptions(options), queryClient);
 };
 /**
  * 기간 내 데일리 로그 목록 조회 (달력 배지, 이력 페이지용). `content` 필드 제외하여 경량화.
  * @summary 기간별 로그 목록 조회
  */
-export const getGetApiV1DailyLogsListUrl = (params: GetApiV1DailyLogsListParams) => {
+export const getGetDailyLogsListUrl = (params: GetDailyLogsListParams) => {
     const normalizedParams = new URLSearchParams();
 
     Object.entries(params || {}).forEach(([key, value]) => {
@@ -280,101 +277,112 @@ export const getGetApiV1DailyLogsListUrl = (params: GetApiV1DailyLogsListParams)
     return stringifiedParams.length > 0 ? `/api/v1/daily-logs/list?${stringifiedParams}` : `/api/v1/daily-logs/list`;
 };
 
-export const getApiV1DailyLogsList = async (
-    params: GetApiV1DailyLogsListParams,
+export const getDailyLogsList = async (
+    params: GetDailyLogsListParams,
     options?: RequestInit
 ): Promise<DailyLogSummary[]> => {
-    return customInstance<DailyLogSummary[]>(getGetApiV1DailyLogsListUrl(params), {
+    return customInstance<DailyLogSummary[]>(getGetDailyLogsListUrl(params), {
         ...options,
         method: 'GET',
     });
 };
 
-export const getGetApiV1DailyLogsListQueryKey = (params?: GetApiV1DailyLogsListParams) => {
+export const getGetDailyLogsListQueryKey = (params?: GetDailyLogsListParams) => {
     return [`/api/v1/daily-logs/list`, ...(params ? [params] : [])] as const;
 };
 
-export const getGetApiV1DailyLogsListQueryOptions = <
-    TData = Awaited<ReturnType<typeof getApiV1DailyLogsList>>,
+export const getGetDailyLogsListQueryOptions = <
+    TData = Awaited<ReturnType<typeof getDailyLogsList>>,
     TError = UnauthorizedResponse,
 >(
-    params: GetApiV1DailyLogsListParams,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DailyLogsList>>, TError, TData>> }
+    params: GetDailyLogsListParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getDailyLogsList>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    }
 ) => {
-    const { query: queryOptions } = options ?? {};
+    const { query: queryOptions, request: requestOptions } = options ?? {};
 
-    const queryKey = queryOptions?.queryKey ?? getGetApiV1DailyLogsListQueryKey(params);
+    const queryKey = queryOptions?.queryKey ?? getGetDailyLogsListQueryKey(params);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1DailyLogsList>>> = ({ signal }) =>
-        getApiV1DailyLogsList(params, { signal });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDailyLogsList>>> = ({ signal }) =>
+        getDailyLogsList(params, { signal, ...requestOptions });
 
     return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-        Awaited<ReturnType<typeof getApiV1DailyLogsList>>,
+        Awaited<ReturnType<typeof getDailyLogsList>>,
         TError,
         TData
     > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type GetApiV1DailyLogsListQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1DailyLogsList>>>;
-export type GetApiV1DailyLogsListQueryError = UnauthorizedResponse;
+export type GetDailyLogsListQueryResult = NonNullable<Awaited<ReturnType<typeof getDailyLogsList>>>;
+export type GetDailyLogsListQueryError = UnauthorizedResponse;
 
-export function useGetApiV1DailyLogsList<
-    TData = Awaited<ReturnType<typeof getApiV1DailyLogsList>>,
+export function useGetDailyLogsList<
+    TData = Awaited<ReturnType<typeof getDailyLogsList>>,
     TError = UnauthorizedResponse,
 >(
-    params: GetApiV1DailyLogsListParams,
+    params: GetDailyLogsListParams,
     options: {
-        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DailyLogsList>>, TError, TData>> &
+        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getDailyLogsList>>, TError, TData>> &
             Pick<
                 DefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getApiV1DailyLogsList>>,
+                    Awaited<ReturnType<typeof getDailyLogsList>>,
                     TError,
-                    Awaited<ReturnType<typeof getApiV1DailyLogsList>>
+                    Awaited<ReturnType<typeof getDailyLogsList>>
                 >,
                 'initialData'
             >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetApiV1DailyLogsList<
-    TData = Awaited<ReturnType<typeof getApiV1DailyLogsList>>,
+export function useGetDailyLogsList<
+    TData = Awaited<ReturnType<typeof getDailyLogsList>>,
     TError = UnauthorizedResponse,
 >(
-    params: GetApiV1DailyLogsListParams,
+    params: GetDailyLogsListParams,
     options?: {
-        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DailyLogsList>>, TError, TData>> &
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getDailyLogsList>>, TError, TData>> &
             Pick<
                 UndefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getApiV1DailyLogsList>>,
+                    Awaited<ReturnType<typeof getDailyLogsList>>,
                     TError,
-                    Awaited<ReturnType<typeof getApiV1DailyLogsList>>
+                    Awaited<ReturnType<typeof getDailyLogsList>>
                 >,
                 'initialData'
             >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetApiV1DailyLogsList<
-    TData = Awaited<ReturnType<typeof getApiV1DailyLogsList>>,
+export function useGetDailyLogsList<
+    TData = Awaited<ReturnType<typeof getDailyLogsList>>,
     TError = UnauthorizedResponse,
 >(
-    params: GetApiV1DailyLogsListParams,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DailyLogsList>>, TError, TData>> },
+    params: GetDailyLogsListParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getDailyLogsList>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
  * @summary 기간별 로그 목록 조회
  */
 
-export function useGetApiV1DailyLogsList<
-    TData = Awaited<ReturnType<typeof getApiV1DailyLogsList>>,
+export function useGetDailyLogsList<
+    TData = Awaited<ReturnType<typeof getDailyLogsList>>,
     TError = UnauthorizedResponse,
 >(
-    params: GetApiV1DailyLogsListParams,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DailyLogsList>>, TError, TData>> },
+    params: GetDailyLogsListParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getDailyLogsList>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-    const queryOptions = getGetApiV1DailyLogsListQueryOptions(params, options);
+    const queryOptions = getGetDailyLogsListQueryOptions(params, options);
 
     const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
         queryKey: DataTag<QueryKey, TData, TError>;
@@ -386,15 +394,18 @@ export function useGetApiV1DailyLogsList<
 /**
  * @summary 기간별 로그 목록 조회
  */
-export const prefetchGetApiV1DailyLogsListQuery = async <
-    TData = Awaited<ReturnType<typeof getApiV1DailyLogsList>>,
+export const prefetchGetDailyLogsListQuery = async <
+    TData = Awaited<ReturnType<typeof getDailyLogsList>>,
     TError = UnauthorizedResponse,
 >(
     queryClient: QueryClient,
-    params: GetApiV1DailyLogsListParams,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DailyLogsList>>, TError, TData>> }
+    params: GetDailyLogsListParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getDailyLogsList>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    }
 ): Promise<QueryClient> => {
-    const queryOptions = getGetApiV1DailyLogsListQueryOptions(params, options);
+    const queryOptions = getGetDailyLogsListQueryOptions(params, options);
 
     await queryClient.prefetchQuery(queryOptions);
 
@@ -405,7 +416,7 @@ export const prefetchGetApiV1DailyLogsListQuery = async <
  * title + content 기반 검색
  * @summary 데일리 로그 검색
  */
-export const getGetApiV1DailyLogsSearchUrl = (params: GetApiV1DailyLogsSearchParams) => {
+export const getSearchDailyLogsUrl = (params: SearchDailyLogsParams) => {
     const normalizedParams = new URLSearchParams();
 
     Object.entries(params || {}).forEach(([key, value]) => {
@@ -421,101 +432,112 @@ export const getGetApiV1DailyLogsSearchUrl = (params: GetApiV1DailyLogsSearchPar
         : `/api/v1/daily-logs/search`;
 };
 
-export const getApiV1DailyLogsSearch = async (
-    params: GetApiV1DailyLogsSearchParams,
+export const searchDailyLogs = async (
+    params: SearchDailyLogsParams,
     options?: RequestInit
-): Promise<GetApiV1DailyLogsSearch200Item[]> => {
-    return customInstance<GetApiV1DailyLogsSearch200Item[]>(getGetApiV1DailyLogsSearchUrl(params), {
+): Promise<DailyLogSearchItem[]> => {
+    return customInstance<DailyLogSearchItem[]>(getSearchDailyLogsUrl(params), {
         ...options,
         method: 'GET',
     });
 };
 
-export const getGetApiV1DailyLogsSearchQueryKey = (params?: GetApiV1DailyLogsSearchParams) => {
+export const getSearchDailyLogsQueryKey = (params?: SearchDailyLogsParams) => {
     return [`/api/v1/daily-logs/search`, ...(params ? [params] : [])] as const;
 };
 
-export const getGetApiV1DailyLogsSearchQueryOptions = <
-    TData = Awaited<ReturnType<typeof getApiV1DailyLogsSearch>>,
+export const getSearchDailyLogsQueryOptions = <
+    TData = Awaited<ReturnType<typeof searchDailyLogs>>,
     TError = Error | UnauthorizedResponse,
 >(
-    params: GetApiV1DailyLogsSearchParams,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DailyLogsSearch>>, TError, TData>> }
+    params: SearchDailyLogsParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchDailyLogs>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    }
 ) => {
-    const { query: queryOptions } = options ?? {};
+    const { query: queryOptions, request: requestOptions } = options ?? {};
 
-    const queryKey = queryOptions?.queryKey ?? getGetApiV1DailyLogsSearchQueryKey(params);
+    const queryKey = queryOptions?.queryKey ?? getSearchDailyLogsQueryKey(params);
 
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof getApiV1DailyLogsSearch>>> = ({ signal }) =>
-        getApiV1DailyLogsSearch(params, { signal });
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof searchDailyLogs>>> = ({ signal }) =>
+        searchDailyLogs(params, { signal, ...requestOptions });
 
     return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
-        Awaited<ReturnType<typeof getApiV1DailyLogsSearch>>,
+        Awaited<ReturnType<typeof searchDailyLogs>>,
         TError,
         TData
     > & { queryKey: DataTag<QueryKey, TData, TError> };
 };
 
-export type GetApiV1DailyLogsSearchQueryResult = NonNullable<Awaited<ReturnType<typeof getApiV1DailyLogsSearch>>>;
-export type GetApiV1DailyLogsSearchQueryError = Error | UnauthorizedResponse;
+export type SearchDailyLogsQueryResult = NonNullable<Awaited<ReturnType<typeof searchDailyLogs>>>;
+export type SearchDailyLogsQueryError = Error | UnauthorizedResponse;
 
-export function useGetApiV1DailyLogsSearch<
-    TData = Awaited<ReturnType<typeof getApiV1DailyLogsSearch>>,
+export function useSearchDailyLogs<
+    TData = Awaited<ReturnType<typeof searchDailyLogs>>,
     TError = Error | UnauthorizedResponse,
 >(
-    params: GetApiV1DailyLogsSearchParams,
+    params: SearchDailyLogsParams,
     options: {
-        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DailyLogsSearch>>, TError, TData>> &
+        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchDailyLogs>>, TError, TData>> &
             Pick<
                 DefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getApiV1DailyLogsSearch>>,
+                    Awaited<ReturnType<typeof searchDailyLogs>>,
                     TError,
-                    Awaited<ReturnType<typeof getApiV1DailyLogsSearch>>
+                    Awaited<ReturnType<typeof searchDailyLogs>>
                 >,
                 'initialData'
             >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetApiV1DailyLogsSearch<
-    TData = Awaited<ReturnType<typeof getApiV1DailyLogsSearch>>,
+export function useSearchDailyLogs<
+    TData = Awaited<ReturnType<typeof searchDailyLogs>>,
     TError = Error | UnauthorizedResponse,
 >(
-    params: GetApiV1DailyLogsSearchParams,
+    params: SearchDailyLogsParams,
     options?: {
-        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DailyLogsSearch>>, TError, TData>> &
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchDailyLogs>>, TError, TData>> &
             Pick<
                 UndefinedInitialDataOptions<
-                    Awaited<ReturnType<typeof getApiV1DailyLogsSearch>>,
+                    Awaited<ReturnType<typeof searchDailyLogs>>,
                     TError,
-                    Awaited<ReturnType<typeof getApiV1DailyLogsSearch>>
+                    Awaited<ReturnType<typeof searchDailyLogs>>
                 >,
                 'initialData'
             >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetApiV1DailyLogsSearch<
-    TData = Awaited<ReturnType<typeof getApiV1DailyLogsSearch>>,
+export function useSearchDailyLogs<
+    TData = Awaited<ReturnType<typeof searchDailyLogs>>,
     TError = Error | UnauthorizedResponse,
 >(
-    params: GetApiV1DailyLogsSearchParams,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DailyLogsSearch>>, TError, TData>> },
+    params: SearchDailyLogsParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchDailyLogs>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
 /**
  * @summary 데일리 로그 검색
  */
 
-export function useGetApiV1DailyLogsSearch<
-    TData = Awaited<ReturnType<typeof getApiV1DailyLogsSearch>>,
+export function useSearchDailyLogs<
+    TData = Awaited<ReturnType<typeof searchDailyLogs>>,
     TError = Error | UnauthorizedResponse,
 >(
-    params: GetApiV1DailyLogsSearchParams,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DailyLogsSearch>>, TError, TData>> },
+    params: SearchDailyLogsParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchDailyLogs>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-    const queryOptions = getGetApiV1DailyLogsSearchQueryOptions(params, options);
+    const queryOptions = getSearchDailyLogsQueryOptions(params, options);
 
     const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
         queryKey: DataTag<QueryKey, TData, TError>;
@@ -527,15 +549,18 @@ export function useGetApiV1DailyLogsSearch<
 /**
  * @summary 데일리 로그 검색
  */
-export const prefetchGetApiV1DailyLogsSearchQuery = async <
-    TData = Awaited<ReturnType<typeof getApiV1DailyLogsSearch>>,
+export const prefetchSearchDailyLogsQuery = async <
+    TData = Awaited<ReturnType<typeof searchDailyLogs>>,
     TError = Error | UnauthorizedResponse,
 >(
     queryClient: QueryClient,
-    params: GetApiV1DailyLogsSearchParams,
-    options?: { query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getApiV1DailyLogsSearch>>, TError, TData>> }
+    params: SearchDailyLogsParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof searchDailyLogs>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    }
 ): Promise<QueryClient> => {
-    const queryOptions = getGetApiV1DailyLogsSearchQueryOptions(params, options);
+    const queryOptions = getSearchDailyLogsQueryOptions(params, options);
 
     await queryClient.prefetchQuery(queryOptions);
 
@@ -547,139 +572,133 @@ export const prefetchGetApiV1DailyLogsSearchQuery = async <
 
  * @summary 데일리 로그 수정
  */
-export const getPatchApiV1DailyLogsIdUrl = (id: string) => {
+export const getUpdateDailyLogUrl = (id: string) => {
     return `/api/v1/daily-logs/${id}`;
 };
 
-export const patchApiV1DailyLogsId = async (
+export const updateDailyLog = async (
     id: string,
-    patchApiV1DailyLogsIdBody: PatchApiV1DailyLogsIdBody,
+    updateDailyLogRequest: UpdateDailyLogRequest,
     options?: RequestInit
 ): Promise<DailyLog> => {
-    return customInstance<DailyLog>(getPatchApiV1DailyLogsIdUrl(id), {
+    return customInstance<DailyLog>(getUpdateDailyLogUrl(id), {
         ...options,
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', ...options?.headers },
-        body: JSON.stringify(patchApiV1DailyLogsIdBody),
+        body: JSON.stringify(updateDailyLogRequest),
     });
 };
 
-export const getPatchApiV1DailyLogsIdMutationOptions = <
+export const getUpdateDailyLogMutationOptions = <
     TError = ForbiddenResponse | NotFoundResponse,
     TContext = unknown,
 >(options?: {
     mutation?: UseMutationOptions<
-        Awaited<ReturnType<typeof patchApiV1DailyLogsId>>,
+        Awaited<ReturnType<typeof updateDailyLog>>,
         TError,
-        { id: string; data: PatchApiV1DailyLogsIdBody },
+        { id: string; data: UpdateDailyLogRequest },
         TContext
     >;
+    request?: SecondParameter<typeof customInstance>;
 }): UseMutationOptions<
-    Awaited<ReturnType<typeof patchApiV1DailyLogsId>>,
+    Awaited<ReturnType<typeof updateDailyLog>>,
     TError,
-    { id: string; data: PatchApiV1DailyLogsIdBody },
+    { id: string; data: UpdateDailyLogRequest },
     TContext
 > => {
-    const mutationKey = ['patchApiV1DailyLogsId'];
-    const { mutation: mutationOptions } = options
+    const mutationKey = ['updateDailyLog'];
+    const { mutation: mutationOptions, request: requestOptions } = options
         ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
             ? options
             : { ...options, mutation: { ...options.mutation, mutationKey } }
-        : { mutation: { mutationKey } };
+        : { mutation: { mutationKey }, request: undefined };
 
     const mutationFn: MutationFunction<
-        Awaited<ReturnType<typeof patchApiV1DailyLogsId>>,
-        { id: string; data: PatchApiV1DailyLogsIdBody }
+        Awaited<ReturnType<typeof updateDailyLog>>,
+        { id: string; data: UpdateDailyLogRequest }
     > = (props) => {
         const { id, data } = props ?? {};
 
-        return patchApiV1DailyLogsId(id, data);
+        return updateDailyLog(id, data, requestOptions);
     };
 
     return { mutationFn, ...mutationOptions };
 };
 
-export type PatchApiV1DailyLogsIdMutationResult = NonNullable<Awaited<ReturnType<typeof patchApiV1DailyLogsId>>>;
-export type PatchApiV1DailyLogsIdMutationBody = PatchApiV1DailyLogsIdBody;
-export type PatchApiV1DailyLogsIdMutationError = ForbiddenResponse | NotFoundResponse;
+export type UpdateDailyLogMutationResult = NonNullable<Awaited<ReturnType<typeof updateDailyLog>>>;
+export type UpdateDailyLogMutationBody = UpdateDailyLogRequest;
+export type UpdateDailyLogMutationError = ForbiddenResponse | NotFoundResponse;
 
 /**
  * @summary 데일리 로그 수정
  */
-export const usePatchApiV1DailyLogsId = <TError = ForbiddenResponse | NotFoundResponse, TContext = unknown>(
+export const useUpdateDailyLog = <TError = ForbiddenResponse | NotFoundResponse, TContext = unknown>(
     options?: {
         mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof patchApiV1DailyLogsId>>,
+            Awaited<ReturnType<typeof updateDailyLog>>,
             TError,
-            { id: string; data: PatchApiV1DailyLogsIdBody },
+            { id: string; data: UpdateDailyLogRequest },
             TContext
         >;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): UseMutationResult<
-    Awaited<ReturnType<typeof patchApiV1DailyLogsId>>,
+    Awaited<ReturnType<typeof updateDailyLog>>,
     TError,
-    { id: string; data: PatchApiV1DailyLogsIdBody },
+    { id: string; data: UpdateDailyLogRequest },
     TContext
 > => {
-    return useMutation(getPatchApiV1DailyLogsIdMutationOptions(options), queryClient);
+    return useMutation(getUpdateDailyLogMutationOptions(options), queryClient);
 };
 /**
  * 데일리 로그 삭제. `daily_focus_stats.has_daily_log = false` UPSERT.
  * @summary 데일리 로그 삭제
  */
-export const getDeleteApiV1DailyLogsIdUrl = (id: string) => {
+export const getDeleteDailyLogUrl = (id: string) => {
     return `/api/v1/daily-logs/${id}`;
 };
 
-export const deleteApiV1DailyLogsId = async (id: string, options?: RequestInit): Promise<void> => {
-    return customInstance<void>(getDeleteApiV1DailyLogsIdUrl(id), {
+export const deleteDailyLog = async (id: string, options?: RequestInit): Promise<void> => {
+    return customInstance<void>(getDeleteDailyLogUrl(id), {
         ...options,
         method: 'DELETE',
     });
 };
 
-export const getDeleteApiV1DailyLogsIdMutationOptions = <
-    TError = Error | NotFoundResponse,
-    TContext = unknown,
->(options?: {
-    mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteApiV1DailyLogsId>>, TError, { id: string }, TContext>;
-}): UseMutationOptions<Awaited<ReturnType<typeof deleteApiV1DailyLogsId>>, TError, { id: string }, TContext> => {
-    const mutationKey = ['deleteApiV1DailyLogsId'];
-    const { mutation: mutationOptions } = options
+export const getDeleteDailyLogMutationOptions = <TError = Error | NotFoundResponse, TContext = unknown>(options?: {
+    mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteDailyLog>>, TError, { id: string }, TContext>;
+    request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<Awaited<ReturnType<typeof deleteDailyLog>>, TError, { id: string }, TContext> => {
+    const mutationKey = ['deleteDailyLog'];
+    const { mutation: mutationOptions, request: requestOptions } = options
         ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
             ? options
             : { ...options, mutation: { ...options.mutation, mutationKey } }
-        : { mutation: { mutationKey } };
+        : { mutation: { mutationKey }, request: undefined };
 
-    const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteApiV1DailyLogsId>>, { id: string }> = (
-        props
-    ) => {
+    const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteDailyLog>>, { id: string }> = (props) => {
         const { id } = props ?? {};
 
-        return deleteApiV1DailyLogsId(id);
+        return deleteDailyLog(id, requestOptions);
     };
 
     return { mutationFn, ...mutationOptions };
 };
 
-export type DeleteApiV1DailyLogsIdMutationResult = NonNullable<Awaited<ReturnType<typeof deleteApiV1DailyLogsId>>>;
+export type DeleteDailyLogMutationResult = NonNullable<Awaited<ReturnType<typeof deleteDailyLog>>>;
 
-export type DeleteApiV1DailyLogsIdMutationError = Error | NotFoundResponse;
+export type DeleteDailyLogMutationError = Error | NotFoundResponse;
 
 /**
  * @summary 데일리 로그 삭제
  */
-export const useDeleteApiV1DailyLogsId = <TError = Error | NotFoundResponse, TContext = unknown>(
+export const useDeleteDailyLog = <TError = Error | NotFoundResponse, TContext = unknown>(
     options?: {
-        mutation?: UseMutationOptions<
-            Awaited<ReturnType<typeof deleteApiV1DailyLogsId>>,
-            TError,
-            { id: string },
-            TContext
-        >;
+        mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteDailyLog>>, TError, { id: string }, TContext>;
+        request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
-): UseMutationResult<Awaited<ReturnType<typeof deleteApiV1DailyLogsId>>, TError, { id: string }, TContext> => {
-    return useMutation(getDeleteApiV1DailyLogsIdMutationOptions(options), queryClient);
+): UseMutationResult<Awaited<ReturnType<typeof deleteDailyLog>>, TError, { id: string }, TContext> => {
+    return useMutation(getDeleteDailyLogMutationOptions(options), queryClient);
 };
