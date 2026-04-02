@@ -1,7 +1,7 @@
 import { Input, Toggle } from '@/components/form';
 import { CenteredLayout, Container, SectionHeader } from '@/components/layout';
-import { Button, Icon, Modal } from '@/components/ui';
-import { useToast } from '@/hooks';
+import { Button, Icon } from '@/components/ui';
+import { useModal, useToast } from '@/hooks';
 import { useEffect, useState } from 'react';
 
 export default function My() {
@@ -12,10 +12,10 @@ export default function My() {
     const [focusTime, setFocusTime] = useState(0);
     const [shortBreakTime, setShortBreakTime] = useState(0);
     const [longBreakTime, setLongBreakTime] = useState(0);
-    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [todoToggle, setTodoToggle] = useState(true);
 
     const { showToast } = useToast();
+    const { showModal } = useModal();
 
     const dummyUser = {
         id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
@@ -64,8 +64,12 @@ export default function My() {
 
     const handleDeleteAcount = () => {
         // TODO: 계정 삭제 로직
-        setDeleteModalOpen(false);
-        showToast('계정이 삭제되었어요', { durationMs: 3000 });
+        showToast({
+            message: '계정이 삭제되었어요',
+            iconName: 'check',
+            duration: 3000,
+        });
+
         setTimeout(() => {
             // TODO: 랜딩 이동
         }, 3000);
@@ -99,6 +103,16 @@ export default function My() {
         setTodoToggle(!todoToggle);
 
         // TODO: 투두 자동 이월 변경 api
+    };
+
+    const handleDeleteConfirm = () => {
+        showModal({
+            title: '계정 삭제',
+            description: `삭제한 기록은 복구할 수 없어요\n그래도 삭제하시겠어요?`,
+            tone: 'danger',
+            confirmLabel: '삭제하기',
+            onConfirm: handleDeleteAcount,
+        });
     };
 
     return (
@@ -136,7 +150,7 @@ export default function My() {
 
                             <div className='flex p-5 justify-between items-center border-1 border-(--color-neutral-lighter) rounded-xl'>
                                 <p className='text-neutral-darker'>계정 삭제 시 모든 기록은 삭제됩니다.</p>
-                                <Button variant='outline' onClick={() => setDeleteModalOpen(true)}>
+                                <Button variant='outline' onClick={handleDeleteConfirm}>
                                     삭제하기
                                 </Button>
                             </div>
@@ -240,20 +254,6 @@ export default function My() {
                         </div>
                     </div>
                 </section>
-
-                <Modal
-                    cancelLabel='취소'
-                    confirmLabel='삭제'
-                    onCancel={() => setDeleteModalOpen(false)}
-                    onConfirm={handleDeleteAcount}
-                    open={deleteModalOpen}
-                    title='계정 삭제'
-                >
-                    <br />
-                    삭제한 기록은 복구할 수 없어요
-                    <br />
-                    그래도 삭제하시겠어요?
-                </Modal>
             </CenteredLayout>
         </Container>
     );
