@@ -77,7 +77,7 @@ export const Header = ({ leftSlot, centerSlot, rightSlot, className, ...props }:
     );
 };
 
-export const DefaultHeader = ({
+export const AuthHeader = ({
     navItems = defaultNavItems,
     utilitySlot,
     profileSlot,
@@ -240,7 +240,7 @@ export const GuestHeader = ({
                         회원가입
                     </Button>
                     <Button onClick={() => navigate(loginHref)} size='md'>
-                        로그인
+                        시작하기
                     </Button>
                 </div>
             }

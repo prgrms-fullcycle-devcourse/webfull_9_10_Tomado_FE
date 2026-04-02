@@ -1,4 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+
+import { useModal } from '@/hooks';
+
 import { useTimerStore } from './useTimerStore';
 
 const formatTimeParts = (totalSeconds: number) => {
@@ -12,6 +15,7 @@ const formatTimeParts = (totalSeconds: number) => {
 };
 
 export const useTimerSession = () => {
+    const { showModal } = useModal();
     const focusSeconds = useTimerStore((state) => state.focusSeconds);
     const shortBreakSeconds = useTimerStore((state) => state.shortBreakSeconds);
     const longBreakSeconds = useTimerStore((state) => state.longBreakSeconds);
@@ -25,7 +29,6 @@ export const useTimerSession = () => {
     const completedFocusSessions = useTimerStore((state) => state.completedFocusSessions);
     const completedSets = useTimerStore((state) => state.completedSets);
     const toggle = useTimerStore((state) => state.toggle);
-    const openStopConfirm = useTimerStore((state) => state.openStopConfirm);
     const closeStopConfirm = useTimerStore((state) => state.closeStopConfirm);
     const confirmStop = useTimerStore((state) => state.confirmStop);
     const [now, setNow] = useState(() => Date.now());
@@ -86,6 +89,18 @@ export const useTimerSession = () => {
         return '집중';
     }, [sessionType]);
 
+    const handleRequestStopTimer = useCallback(() => {
+        showModal({
+            title: '집중 세션 중단',
+            description: '세션 중단 시 기록은 저장되지 않아요. 그래도 중단 하시겠어요?',
+            tone: 'danger',
+            confirmLabel: '중단하기',
+            onConfirm: confirmStop,
+            onCancel: closeStopConfirm,
+            onClose: closeStopConfirm,
+        });
+    }, [closeStopConfirm, confirmStop, showModal]);
+
     return {
         initialSeconds,
         remainingSeconds,
@@ -104,7 +119,7 @@ export const useTimerSession = () => {
         timerProgress: progress,
         progress,
         handleToggleTimer: toggle,
-        handleRequestStopTimer: openStopConfirm,
+        handleRequestStopTimer,
         handleCloseStopConfirm: closeStopConfirm,
         handleConfirmStopTimer: confirmStop,
     };

@@ -1,4 +1,6 @@
-import { useLoginForm } from '@@@/auth';
+import { useNavigate } from 'react-router-dom';
+
+import { DEMO_LOGIN_CREDENTIALS, useLoginForm } from '@@@/auth';
 import { Input } from '@@/form';
 import { Container } from '@@/layout';
 import { Button } from '@@/ui';
@@ -11,7 +13,20 @@ const fieldsClassName = 'flex flex-col gap-6';
 const errorMessageClassName = 'text-center text-sm text-danger';
 
 export default function Login() {
-    const { values, isFormValid, showAuthError, setFieldValue, submit } = useLoginForm();
+    const navigate = useNavigate();
+    const { values, isFormValid, isPending, showAuthError, setFieldValue, submit, loginAsDemo } = useLoginForm();
+
+    const handleSubmit = async () => {
+        if (await submit()) {
+            navigate('/main', { replace: true });
+        }
+    };
+
+    const handleDemoLogin = () => {
+        if (loginAsDemo()) {
+            navigate('/main', { replace: true });
+        }
+    };
 
     return (
         <main>
@@ -41,12 +56,25 @@ export default function Login() {
                             </div>
 
                             <div className='flex flex-col gap-4'>
+                                <p className='text-center text-xs text-neutral-darker'>
+                                    데모 계정: {DEMO_LOGIN_CREDENTIALS.userId} / {DEMO_LOGIN_CREDENTIALS.password}
+                                </p>
                                 {showAuthError ? (
                                     <p className={errorMessageClassName}>아이디 또는 비밀번호를 확인해 주세요</p>
                                 ) : null}
 
-                                <Button disabled={!isFormValid} fullWidth onClick={submit} size='lg'>
-                                    로그인
+                                <Button disabled={!isFormValid || isPending} fullWidth onClick={handleSubmit} size='lg'>
+                                    {isPending ? '로그인 중...' : '로그인'}
+                                </Button>
+
+                                <Button
+                                    disabled={isPending}
+                                    fullWidth
+                                    onClick={handleDemoLogin}
+                                    size='lg'
+                                    variant='outline'
+                                >
+                                    데모 계정으로 시작
                                 </Button>
                             </div>
                         </div>

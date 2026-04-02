@@ -35,7 +35,7 @@ export const useInputLimit = ({ maxChars, toastMessage }: UseInputLimitOptions) 
             setValue(truncatedValue);
 
             if (exceeded && toastMessage && !hasExceededRef.current) {
-                showToast(toastMessage);
+                showToast({ iconName: 'warning', message: toastMessage, duration: 1000 });
             }
 
             if (!exceeded) {

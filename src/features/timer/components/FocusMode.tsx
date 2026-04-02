@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { HTMLAttributes, ReactNode } from 'react';
 
-import { useDirectionKey, useEscapeKey, useToast } from '@/hooks';
+import { useDirectionKey, useGlobalKeyboardShortcuts, useToast } from '@/hooks';
 import { Button } from '@@/ui/Button';
 import { Icon } from '@@/ui/Icon/Icon';
 import { PlayerButton } from '@@/ui/PlayerButton';
@@ -86,7 +86,11 @@ export const FocusMode = ({
         [handleNextBackground, handlePrevBackground, handleTodoCollapse, handleTodoExpand]
     );
 
-    useEscapeKey(handleClose, { enabled: open && Boolean(onClose) });
+    useGlobalKeyboardShortcuts({
+        enabled: open,
+        onEscape: onClose,
+    });
+
     useDirectionKey(handleDirection, { enabled: open });
 
     useEffect(() => {
@@ -96,10 +100,10 @@ export const FocusMode = ({
         }
 
         if (!wasOpenRef.current) {
-            showToast('집중모드를 종료하려면 Esc 키를 누르세요', {
-                icon: true,
-                textButton: false,
-                durationMs: 5000,
+            showToast({
+                message: '집중모드를 종료하려면 Esc 키를 누르세요',
+                iconName: 'noti_focus',
+                duration: 5000,
             });
         }
 
