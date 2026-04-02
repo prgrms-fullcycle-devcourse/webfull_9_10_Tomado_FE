@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { PlayerModal } from '@@/ui/PlayerModal';
+import { BGMPlayer } from '@/components/ui/BGMPlayer';
 import { useBgmPlayer } from '../useBgmPlayer';
 
 interface BgmPlayerLayerProps {
@@ -38,7 +38,7 @@ export const BgmPlayerLayer = ({
     }, [onPlayerToggle, onToggleHandled, requestToggle]);
 
     return (
-        <PlayerModal
+        <BGMPlayer
             onClose={onClose}
             tone={tone}
             open={open}

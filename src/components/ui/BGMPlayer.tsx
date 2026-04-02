@@ -135,7 +135,7 @@ const renderCard = ({
     );
 };
 
-export const PlayerModal = ({
+export const BGMPlayer = ({
     open = true,
     inline = false,
     tone = 'default',

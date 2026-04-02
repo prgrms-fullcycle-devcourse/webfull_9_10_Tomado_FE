@@ -64,11 +64,12 @@ export const useTodoList = ({ assignedDate = getTodayDate() }: UseTodoListOption
                 return;
             }
 
-            showToast(`투두 항목을 삭제했어요`, {
-                icon: true,
+            showToast({
+                message: `투두 항목을 삭제했어요`,
+                iconName: 'delete',
                 textButton: true,
                 textButtonLabel: '취소',
-                durationMs: 5000,
+                duration: 5000,
                 onTextButtonClick: () => {
                     restoreTodo(deletedTodo, deletedIndex);
                 },

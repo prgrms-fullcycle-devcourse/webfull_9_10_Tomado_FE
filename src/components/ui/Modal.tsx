@@ -1,151 +1,69 @@
-import type { HTMLAttributes, MouseEventHandler, ReactNode } from 'react';
+import { useModalStore } from '@/stores/modal';
 
-import { Icon, Button, ButtonGroup } from '.';
+import { Button, ButtonGroup, Icon } from '.';
 
-export type ModalTone = 'default' | 'danger';
-
-export interface ModalProps extends Omit<HTMLAttributes<HTMLDivElement>, 'title'> {
-    open?: boolean;
-    inline?: boolean;
-    tone?: ModalTone;
-    title?: ReactNode;
-    description?: ReactNode;
-    footer?: ReactNode;
-    cancelLabel?: ReactNode;
-    confirmLabel?: ReactNode;
-    closeButton?: boolean;
-    onClose?: () => void;
+export type ModalType = {
+    title: string;
+    description: string;
+    cancelLabel?: string;
+    confirmLabel?: string;
+    tone?: 'default' | 'danger';
     onCancel?: () => void;
     onConfirm?: () => void;
-    onBackdropClick?: MouseEventHandler<HTMLButtonElement>;
+    onClose?: () => void;
+};
+
+interface ModalProps {
+    modal: ModalType;
 }
 
-const overlayBackdropClassName = 'absolute inset-0';
-const standardCloseButtonWrapperClassName = 'absolute top-4 right-4';
-const standardContentClassName = 'flex flex-col items-center px-3 pt-12 pb-2 text-center';
-const standardBodyClassName = 'w-full';
-const standardFooterClassName = 'mt-[30px] w-full';
+const surfaceClassName =
+    'relative w-full max-w-[400px] min-w-[280px] rounded-3xl border border-neutral-lighter bg-white p-4 shadow-1';
+const closeButtonWrapperClassName = 'absolute top-4 right-4';
+const contentClassName = 'flex flex-col items-center px-3 pt-12 pb-2 text-center';
+const titleClassName = 'text-2xl font-bold text-gray-900';
+const descriptionClassName = 'mt-5 mb-8 min-h-[48px] text-lg text-neutral-darker';
+const footerClassName = 'mt-[30px] w-full';
 
-const getOverlayClassName = (inline = false) => {
-    if (inline) {
-        return 'relative flex w-full justify-center';
-    }
+export const Modal = ({ modal }: ModalProps) => {
+    const { close, cancel, confirm } = useModalStore();
 
-    return 'fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4';
-};
-
-const getSurfaceClassName = () => {
-    return 'relative w-full max-w-[400px] min-w-[280px] rounded-3xl border bg-white p-4 shadow-1 border-neutral-lighter';
-};
-
-const getTitleClassName = () => {
-    return 'text-2xl font-bold text-gray-900';
-};
-
-const getDescriptionClassName = () => {
-    return 'mt-5 mb-8 min-h-[48px] text-lg text-neutral-darker';
-};
-
-const getDefaultConfirmLabel = (tone: ModalTone = 'default') => {
-    return tone === 'danger' ? '삭제' : '확인';
-};
-
-const renderDefaultFooter = ({
-    tone = 'default',
-    cancelLabel,
-    confirmLabel,
-    onCancel,
-    onConfirm,
-}: Pick<ModalProps, 'tone' | 'cancelLabel' | 'confirmLabel' | 'onCancel' | 'onConfirm'>) => {
     return (
-        <div className={standardFooterClassName}>
-            <ButtonGroup>
+        <div aria-modal className={surfaceClassName} role='dialog'>
+            <div className={closeButtonWrapperClassName}>
                 <Button
-                    className='!border-transparent !bg-neutral-subtle !text-black hover:!bg-neutral-subtle'
-                    onClick={onCancel}
-                    variant='filled'
+                    aria-label='Close modal'
+                    icon={<Icon color='currentColor' name='close' />}
+                    iconOnly
+                    onClick={close}
+                    size='lg'
+                    variant='ghost'
                 >
-                    {cancelLabel ?? '취소'}
+                    닫기
                 </Button>
-                <Button
-                    className={tone === 'danger' ? '!bg-danger hover:!bg-danger-darker' : undefined}
-                    onClick={onConfirm}
-                    variant='filled'
-                >
-                    {confirmLabel ?? getDefaultConfirmLabel(tone)}
-                </Button>
-            </ButtonGroup>
-        </div>
-    );
-};
+            </div>
 
-const renderCloseButton = (onClose?: () => void) => {
-    if (!onClose) {
-        return null;
-    }
+            <div className={contentClassName}>
+                <div className={titleClassName}>{modal.title}</div>
+                <div className={descriptionClassName}>{modal.description}</div>
 
-    return (
-        <div className={standardCloseButtonWrapperClassName}>
-            <Button
-                aria-label='Close modal'
-                icon={<Icon color='currentColor' name='close' />}
-                iconOnly
-                onClick={onClose}
-                size='lg'
-                variant='ghost'
-            >
-                닫기
-            </Button>
-        </div>
-    );
-};
-
-export const Modal = ({
-    open = true,
-    inline = false,
-    tone = 'default',
-    title,
-    description,
-    footer,
-    cancelLabel,
-    confirmLabel,
-    closeButton = true,
-    onClose,
-    onCancel,
-    onConfirm,
-    onBackdropClick,
-    children,
-    className,
-    ...props
-}: ModalProps) => {
-    if (!open) {
-        return null;
-    }
-
-    return (
-        <div className={getOverlayClassName(inline)}>
-            {!inline ? (
-                <button
-                    aria-label='Close modal backdrop'
-                    className={overlayBackdropClassName}
-                    onClick={onBackdropClick ?? onClose}
-                    type='button'
-                />
-            ) : null}
-            <div {...props} aria-modal={inline ? undefined : true} className={getSurfaceClassName()} role='dialog'>
-                {closeButton ? renderCloseButton(onClose) : null}
-                <div className={standardContentClassName}>
-                    {title ? <div className={getTitleClassName()}>{title}</div> : null}
-                    {description ? <div className={getDescriptionClassName()}>{description}</div> : null}
-                    <div className={standardBodyClassName}>{children}</div>
-                    {footer ??
-                        renderDefaultFooter({
-                            tone,
-                            cancelLabel,
-                            confirmLabel,
-                            onCancel: onCancel ?? onClose,
-                            onConfirm,
-                        })}
+                <div className={footerClassName}>
+                    <ButtonGroup>
+                        <Button
+                            className='!border-transparent !bg-neutral-subtle !text-black hover:!bg-neutral-subtle'
+                            onClick={cancel}
+                            variant='filled'
+                        >
+                            {modal.cancelLabel ?? '취소'}
+                        </Button>
+                        <Button
+                            className={modal.tone === 'danger' ? '!bg-danger hover:!bg-danger-darker' : undefined}
+                            onClick={confirm}
+                            variant='filled'
+                        >
+                            {modal.confirmLabel ?? '확인'}
+                        </Button>
+                    </ButtonGroup>
                 </div>
             </div>
         </div>

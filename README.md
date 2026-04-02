@@ -23,18 +23,27 @@ npm run format   # 코드 포맷팅
 
 ```
 src
-├─ api          # API 통신 관련 모듈
+├─ api          # 공통 API client
 ├─ assets       # 이미지, 아이콘 등 정적 리소스
-├─ components   # 재사용 가능한 UI 컴포넌트
-├─ layouts      # 공통 레이아웃
+├─ components   # 공용 UI / 배치 컴포넌트
+├─ features     # 도메인별 기능 모듈 (auth, timer, todo ...)
+├─ hooks        # 공용 커스텀 훅
 ├─ pages        # 페이지 단위 컴포넌트
-├─ router       # 라우팅 설정
-├─ store        # 전역 상태 관리
+├─ routes       # 라우트 정의와 라우트 전용 레이아웃
+├─ stores       # 전역 UI 상태 (toast, modal 등)
 ├─ styles       # 글로벌 스타일 및 디자인 토큰
 ├─ utils        # 공통 유틸 함수
-├─ App.tsx
-└─ main.tsx
+├─ App.tsx      # 앱 전역 조합과 RouterProvider
+└─ main.tsx     # 앱 엔트리 포인트
 ```
+
+## App Flow
+
+- `main.tsx`는 엔트리만 담당합니다.
+- `App.tsx`는 전역 컴포넌트와 `RouterProvider`를 조합합니다.
+- `src/routes/routes.tsx`는 route tree를 정의합니다.
+- `AuthLayout` / `GuestLayout`은 라우트 전용 레이아웃입니다.
+- `features/*` 안의 store는 도메인 상태를 담당하고, `stores/*`는 toast / modal 같은 전역 UI 상태를 담당합니다.
 
 ## Branch Strategy
 
