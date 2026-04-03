@@ -4,6 +4,7 @@ import { Container, SectionHeader, SidebarContentLayout } from '@/components/lay
 import { Badge, Button, DailyLogCard, Icon } from '@/components/ui';
 import { useEffect, useRef, useState } from 'react';
 import { Calendar } from '@@/ui';
+import { useModal, useToast } from '@/hooks';
 
 export default function DailyLog() {
     const today = new Date();
@@ -17,6 +18,9 @@ export default function DailyLog() {
     const [isAutoSaveProgresing, setIsAutoSaveProgresing] = useState(false);
     const [isOpenCalendar, setIsOpenCalendar] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+
+    const { showModal } = useModal();
+    const { showToast } = useToast();
 
     // const testdata = [
     //     {
@@ -228,8 +232,6 @@ export default function DailyLog() {
         setSearch(val);
 
         if (!val) {
-            console.log('검색어 비어있음');
-
             getLogList();
         }
     };
@@ -240,6 +242,25 @@ export default function DailyLog() {
         setSelectedDate(new Date(`${log.log_date}T00:00:00`));
         const lastSaved = formatLastSaved(log.updated_at);
         setAutoSaveText(lastSaved);
+    };
+
+    const handleDeleteConfirm = (log: Log): void => {
+        showModal({
+            title: `${log.log_date} 로그 삭제`,
+            description: `지금 삭제하시면 복구할 수 없어요.\n그래도 삭제하시겠어요?`,
+            tone: 'danger',
+            confirmLabel: '삭제하기',
+            onConfirm: () => deleteLog(log),
+        });
+    };
+
+    const deleteLog = (log: Log) => {
+        // TODO: 로그 삭제 api
+
+        showToast({
+            message: `${log.log_date} 로그가 성공적으로 삭제되었습니다.`,
+            duration: 3000,
+        });
     };
 
     const formatSectionHeaderDate = (date: Date): string => {
@@ -319,6 +340,7 @@ export default function DailyLog() {
                                         dateLabel={relativeDate(log.created_at)}
                                         title={log.title}
                                         onClick={() => handleLogClick(log)}
+                                        onDeleteClick={() => handleDeleteConfirm(log)}
                                     />
                                 ))}
                             </div>
