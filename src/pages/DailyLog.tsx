@@ -9,6 +9,7 @@ export default function DailyLog() {
     const today = new Date();
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
+    const [search, setSearch] = useState('');
     const [content, setContent] = useState('');
     const [title, setTitle] = useState('');
     const [autoSaveText, setAutoSaveText] = useState('');
@@ -223,6 +224,16 @@ export default function DailyLog() {
         return `마지막 저장 ${yy}. ${mm}. ${dd} ${formatKoreanTime(target)}`;
     };
 
+    const handleChangeSearchInput = (val: string) => {
+        setSearch(val);
+
+        if (!val) {
+            console.log('검색어 비어있음');
+
+            getLogList();
+        }
+    };
+
     const handleLogClick = (log: Log): void => {
         setContent(log.content);
         setTitle(log.title);
@@ -262,6 +273,16 @@ export default function DailyLog() {
         });
     };
 
+    const getLogList = () => {
+        // TODO: 정해진 기간의 로그 목록을 가져오는 api 호출
+    };
+
+    const searchLogList = () => {
+        console.log(search);
+
+        // TODO: 키워드에 해당하는 로그 목록을 가져오는 api 호출
+    };
+
     return (
         <Container className='overflow-hidden'>
             <div className='flex h-[calc(100dvh-140px)] min-h-0 flex-col overflow-hidden'>
@@ -273,7 +294,19 @@ export default function DailyLog() {
                 >
                     <aside className='h-full min-h-0'>
                         <section className={panelClassName}>
-                            <SearchInput placeholder='제목 또는 내용으로 검색하세요' />
+                            <div className='flex w-full gap-2'>
+                                <SearchInput
+                                    className='flex-1 min-w-0'
+                                    placeholder='제목 또는 내용으로 검색하세요'
+                                    value={search}
+                                    onChange={(e) => handleChangeSearchInput(e.target.value)}
+                                />
+                                {search && (
+                                    <Button className='!px-2' variant='outline' onClick={searchLogList}>
+                                        <Icon name='search' size={20} />
+                                    </Button>
+                                )}
+                            </div>
                             <div className='mt-4 mb-2 flex w-full justify-between'>
                                 <p className='text-neutral-darker'>전체</p>
                                 <Badge label='총 0건' />
