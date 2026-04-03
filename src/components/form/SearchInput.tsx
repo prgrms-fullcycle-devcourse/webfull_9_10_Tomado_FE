@@ -1,4 +1,4 @@
-import type { FocusEvent, InputHTMLAttributes } from 'react';
+import type { InputHTMLAttributes } from 'react';
 import { forwardRef, useState } from 'react';
 
 import { Icon, Shortcut } from '@@/ui';
