@@ -1,4 +1,4 @@
-import { Suspense, lazy, useCallback, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
 
 import { AuthHeader } from '@/components/layout/Header';
 import { useAuthStore } from '@/features/auth';
@@ -8,9 +8,12 @@ import {
     TimerProgressBar,
     useTimerMetadata,
     useTimerNotifications,
-    useTimerSession,
+    useTimerSessionController,
+    useTimerStore,
 } from '@/features/timer';
+import { useGetMySettings } from '@/api/generated/users/users';
 import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { formatTimeParts } from '@/utils/timeUtils';
 
 const LazyBgmPlayerLayer = lazy(() =>
     import('@/features/settings/components/BgmPlayerLayer').then((module) => ({
@@ -25,12 +28,20 @@ export function AuthLayout() {
     const [pendingBgmToggle, setPendingBgmToggle] = useState(false);
     const location = useLocation();
     const navigate = useNavigate();
+    const { showModal } = useModal();
+
+    const settingsQuery = useGetMySettings();
     const isAuth = useAuthStore((state) => state.isAuth);
     const logout = useAuthStore((state) => state.logout);
-    const { showModal } = useModal();
     const shouldShowTimerProgressBar = location.pathname !== '/main' && !isFocusMode;
+    const { handleToggleTimer, handleRequestStopTimer } = useTimerSessionController();
 
-    const { isRunning, sessionType, timerParts } = useTimerSession();
+    const isRunning = useTimerStore((state) => state.isRunning);
+    const sessionType = useTimerStore((state) => state.sessionType);
+    const remainingSeconds = useTimerStore((state) => state.remainingSeconds);
+    const setDurations = useTimerStore((state) => state.setDurations);
+
+    const timerParts = formatTimeParts(remainingSeconds);
 
     useTimerMetadata({
         isRunning,
@@ -52,6 +63,19 @@ export function AuthLayout() {
         },
     });
 
+    useEffect(() => {
+        if (!settingsQuery.data) return;
+        setDurations(
+            {
+                focusSeconds: (settingsQuery.data.focus_min ?? 25) * 60,
+                shortBreakSeconds: (settingsQuery.data.short_break_min ?? 5) * 60,
+                longBreakSeconds: (settingsQuery.data.long_break_min ?? 15) * 60,
+                sessionsPerSet: settingsQuery.data.sessions_per_set ?? 4,
+            },
+            { resetCurrent: true }
+        );
+    }, [settingsQuery.data, setDurations]);
+
     const handleMusicClick = useCallback(() => {
         setShouldLoadBgmPlayer(true);
         setPlayerModalOpen(true);
@@ -70,9 +94,7 @@ export function AuthLayout() {
         });
     }, [logout, navigate, showModal]);
 
-    if (!isAuth) {
-        return <Navigate to='/' replace />;
-    }
+    if (!isAuth) return <Navigate to='/' replace />;
 
     return (
         <>
@@ -82,8 +104,14 @@ export function AuthLayout() {
                 onMusicClick={handleMusicClick}
             />
             {shouldShowTimerProgressBar ? <TimerProgressBar /> : null}
-            <Outlet />
-            <FocusMode open={isFocusMode} onMusicClick={handleMusicClick} onClose={() => setIsFocusMode(false)} />
+            <Outlet context={{ handleToggleTimer, handleRequestStopTimer }} />
+            <FocusMode
+                open={isFocusMode}
+                onMusicClick={handleMusicClick}
+                onClose={() => setIsFocusMode(false)}
+                handleToggleTimer={handleToggleTimer}
+                handleRequestStopTimer={handleRequestStopTimer}
+            />
             {shouldLoadBgmPlayer ? (
                 <Suspense fallback={null}>
                     <LazyBgmPlayerLayer
