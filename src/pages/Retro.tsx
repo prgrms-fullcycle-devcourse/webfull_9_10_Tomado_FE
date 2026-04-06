@@ -1,5 +1,7 @@
+import RetroItem from '@/features/log/components/RetroItem';
+import { RETRO_CATEGORY_NAME } from '@/features/log/retroQueryString';
 import { DATE_FORMAT, formatDate } from '@/utils';
-import { SearchInput, SegmentedControl, TextArea } from '@@/form';
+import { SearchInput, SegmentedControl } from '@@/form';
 import { Container, SectionHeader, SidebarContentLayout } from '@@/layout';
 import { Badge, Button, Calendar, Icon, RetroCard } from '@@/ui';
 import { useRef, useState } from 'react';
@@ -45,9 +47,8 @@ export default function Retro() {
 
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
     const [isOpenCalendar, setIsOpenCalendar] = useState(false);
-    const [content, setContent] = useState<ContentState>({
-        tech: ['배운 기술이에요', ' 적용한 기술이에요', '기술적 어려움 이에요', '다음에 시도할 내용이에요'],
-    });
+    const [content, setContent] = useState<Record<string, Record<string, string>>>({});
+    const [selectedCategory, setSelectedCategory] = useState(RETRO_CATEGORY_NAME.TECH);
 
     // type Retro = {
     //     id: string;
@@ -61,10 +62,6 @@ export default function Retro() {
     //     created_at: string;
     //     updated_at: string;
     // };
-
-    type ContentState = {
-        [key: string]: string[];
-    };
 
     const panelClassName =
         'flex h-full min-h-0 w-full flex-col items-center rounded-2xl bg-white px-6 py-5 shadow-shadow-1';
@@ -101,10 +98,12 @@ export default function Retro() {
     // setAutoSaveText(lastSaved);
     // };
 
-    const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>, type: string, index: number) => {
-        const newArr = [...(content[type] || [])];
-        newArr[index] = e.target.value;
-        setContent({ [type]: newArr });
+    const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>, type: string, key: string) => {
+        const newObj = { ...content };
+
+        newObj[type] ?? (newObj[type] = {});
+        newObj[type][key] = e.target.value;
+        setContent(newObj);
     };
 
     const relativeDate = (targetDate: string): string => {
@@ -220,44 +219,21 @@ export default function Retro() {
                                 className='mt-5 mb-3'
                                 ariaLabel='기록 타입'
                                 options={[
-                                    { value: 'tech', label: '기술' },
-                                    { value: 'decision', label: '의사결정' },
-                                    { value: 'communication', label: '소통' },
-                                    { value: 'emotion', label: '감정' },
+                                    { value: RETRO_CATEGORY_NAME.TECH, label: '기술' },
+                                    { value: RETRO_CATEGORY_NAME.DECISION, label: '의사결정' },
+                                    { value: RETRO_CATEGORY_NAME.COMMUNICATION, label: '소통' },
+                                    { value: RETRO_CATEGORY_NAME.EMOTION, label: '감정' },
                                 ]}
-                                defaultValue='tech'
+                                defaultValue={RETRO_CATEGORY_NAME.TECH}
+                                value={selectedCategory}
+                                onValueChange={(value: string) => setSelectedCategory(value)}
                             />
 
-                            <div className='grid grid-cols-2 gap-3 w-full h-full auto-rows-fr'>
-                                <TextArea
-                                    className='h-full flex flex-col min-h-0 [&_label+div]:flex-1 [&_textarea]:flex-1 [&_textarea]:min-h-0 [&_textarea]:resize-none [&_textarea]:overflow-y-auto'
-                                    label='오늘 배운 기술'
-                                    placeholder='어떤 기술이나 도구를 배웠나요?'
-                                    value={content['tech'][0]}
-                                    onChange={(e) => handleTextareaChange(e, 'tech', 0)}
-                                />
-                                <TextArea
-                                    className='h-full flex flex-col min-h-0 [&_label+div]:flex-1 [&_textarea]:flex-1 [&_textarea]:min-h-0 [&_textarea]:resize-none [&_textarea]:overflow-y-auto'
-                                    label='적용한 기술'
-                                    placeholder='실제로 어떻게 적용했나요?'
-                                    value={content['tech'][1]}
-                                    onChange={(e) => handleTextareaChange(e, 'tech', 1)}
-                                />
-                                <TextArea
-                                    className='h-full flex flex-col min-h-0 [&_label+div]:flex-1 [&_textarea]:flex-1 [&_textarea]:min-h-0 [&_textarea]:resize-none [&_textarea]:overflow-y-auto'
-                                    label='기술적 어려움'
-                                    placeholder='어떤 기술적 문제를 만났나요?'
-                                    value={content['tech'][2]}
-                                    onChange={(e) => handleTextareaChange(e, 'tech', 2)}
-                                />
-                                <TextArea
-                                    className='h-full flex flex-col min-h-0 [&_label+div]:flex-1 [&_textarea]:flex-1 [&_textarea]:min-h-0 [&_textarea]:resize-none [&_textarea]:overflow-y-auto'
-                                    label='다음에 시도할 것'
-                                    placeholder='다음에 시도해볼 기술은 무엇인가요?'
-                                    value={content['tech'][3]}
-                                    onChange={(e) => handleTextareaChange(e, 'tech', 3)}
-                                />
-                            </div>
+                            <RetroItem
+                                content={content}
+                                selectedCategory={selectedCategory}
+                                onChangeTextarea={handleTextareaChange}
+                            />
 
                             <div>
                                 <Button
