@@ -1,7 +1,7 @@
 import type { ChangeEvent } from 'react';
 
 import { TextArea } from '@@/form';
-import { RETRO_CATEGORY_NAME, RETRO_FORM } from '@/features/log/retroQueryString';
+import { RETRO_CATEGORY_NAME, RETRO_FORM } from '@/features/log/retroConstants';
 
 type RetroKey =
     | typeof RETRO_CATEGORY_NAME.TECH

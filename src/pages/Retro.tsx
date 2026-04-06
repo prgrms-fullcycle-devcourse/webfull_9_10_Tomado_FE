@@ -1,5 +1,6 @@
 import RetroItem from '@/features/log/components/RetroItem';
-import { RETRO_CATEGORY_NAME } from '@/features/log/retroQueryString';
+import { RETRO_CATEGORY_NAME, RETRO_FORM } from '@/features/log/retroConstants';
+import { useToast } from '@/hooks';
 import { DATE_FORMAT, formatDate } from '@/utils';
 import { SearchInput, SegmentedControl } from '@@/form';
 import { Container, SectionHeader, SidebarContentLayout } from '@@/layout';
@@ -15,33 +16,87 @@ export default function Retro() {
             id: 'b8c9d0e1-f2a3-4567-0123-678901234567',
             user_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
             daily_log_id: 'f6a7b8c9-d0e1-2345-f012-456789012345',
-            retro_date: '2026-03-28',
+            retro_date: '2026-04-01',
             template_type: 'Tech',
             content: {
-                what_went_well: 'API 명세서 설계가 예상보다 빨리 완료됨',
-                what_to_improve: '에러 케이스 예시 작성이 미흡했음',
-                action_items: '다음 PR 전에 에러 시나리오 테스트 케이스 추가',
+                learned_today: 'Prisma $transaction으로 생성과 통계 갱신을 한 번에 처리하는 패턴을 배웠다.',
+                applied_technology: 'optional JSON 필드 null 처리에 Prisma.DbNull을 적용했다.',
+                technical_difficulty: 'PATCH 시 Json 타입과 DbNull 조합에서 타입 에러가 났다.',
+                next_to_try: '회고 content 검색에 인덱스/쿼리 전략을 실험해본다.',
+            },
+            is_dirty: false,
+            draft_content: null,
+            created_at: '2026-04-01T19:00:00Z',
+            updated_at: '2026-04-01T19:30:00Z',
+        },
+        {
+            id: 'b8c9d0e1-f2a3-4567-0123-678901234567',
+            user_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+            daily_log_id: 'f6a7b8c9-d0e1-2345-f012-456789012345',
+            retro_date: '2026-04-01',
+            template_type: 'Decision',
+            content: {
+                decision_made:
+                    '같은 날짜에 템플릿별로 회고를 나누고, 조회는 date+daily_log_id 또는 date+template_type으로 한다.',
+                decision_reason: '일일 로그 없이도 회고를 남길 수 있어 템플릿으로 구분해야 한다.',
+                outcome_impact: 'CONFLICT는 날짜+템플릿 단위로만 발생한다.',
+                alternatives_considered: '날짜당 단일 회고만 허용하는 안은 폐기했다.',
+            },
+            is_dirty: false,
+            draft_content: null,
+            created_at: '2026-04-01T19:00:00Z',
+            updated_at: '2026-04-01T19:30:00Z',
+        },
+        {
+            id: 'b8c9d0e1-f2a3-4567-0123-678901234567',
+            user_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+            daily_log_id: 'f6a7b8c9-d0e1-2345-f012-456789012345',
+            retro_date: '2026-04-01',
+            template_type: 'Communication',
+            content: {
+                communication_highlights: '짧은 미팅으로 API 계약을 빠르게 맞췄다.',
+                communication_friction: '초기 문서에는 쿼리 파라미터가 하나만 필수라고 적혀 있었다.',
+                feedback_received: '400 에러와 field를 명시해 달라는 요청을 받았다.',
+                improvements: '명세 변경 시 Swagger와 Notion을 동시에 갱신하겠다.',
+            },
+            is_dirty: false,
+            draft_content: null,
+            created_at: '2026-04-01T19:00:00Z',
+            updated_at: '2026-04-01T19:30:00Z',
+        },
+        {
+            id: 'b8c9d0e1-f2a3-4567-0123-678901234567',
+            user_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+            daily_log_id: 'f6a7b8c9-d0e1-2345-f012-456789012345',
+            retro_date: '2026-04-01',
+            template_type: 'Emotion',
+            content: {
+                mood_today: '병합 해소 후 안도감이 크다. 다소 피곤하다.',
+                what_energized: '동료와 짝으로 디버깅한 시간.',
+                what_drained: '인증·회고 작업을 번갈아 하며 맥락 전환이 잦았다.',
+                grateful_for: '리뷰 코멘트가 구체적이어서 수정이 빨랐다.',
+            },
+            is_dirty: false,
+            draft_content: null,
+            created_at: '2026-04-01T19:00:00Z',
+            updated_at: '2026-04-01T19:30:00Z',
+        },
+        {
+            id: 'b8c9d0e1-f2a3-4567-0123-678901234577',
+            user_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+            daily_log_id: 'f6a7b8c9-d0e1-2345-f012-456789012347',
+            retro_date: '2026-03-28',
+            template_type: 'Emotion',
+            content: {
+                mood_today: '병합 해소 후 안도감이 크다.',
+                what_energized: '동료와 짝으로 디버깅한 시간.',
+                what_drained: '인증·회고 작업을 번갈아 하며 맥락 전환이 잦았다.',
+                grateful_for: '리뷰 코멘트가 구체적이어서 수정이 빨랐다.',
             },
             is_dirty: false,
             draft_content: null,
             created_at: '2026-03-28T19:00:00Z',
             updated_at: '2026-03-28T19:30:00Z',
-        },
-        {
-            id: 'b8c9d0e1-f2a3-4567-0123-678901233567',
-            user_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-            daily_log_id: 'f6a7b8c9-d0e1-2345-f012-456789012345',
-            retro_date: '2026-03-18',
-            template_type: 'Tech',
-            content: {
-                what_went_well: 'API 명세서 설계가 예상보다 빨리 완료됨',
-                what_to_improve: '에러 케이스 예시 작성이 미흡했음',
-                action_items: '다음 PR 전에 에러 시나리오 테스트 케이스 추가',
-            },
-            is_dirty: false,
-            draft_content: null,
-            created_at: '2026-03-18T19:00:00Z',
-            updated_at: '2026-03-18T19:30:00Z',
         },
     ];
 
@@ -49,6 +104,8 @@ export default function Retro() {
     const [isOpenCalendar, setIsOpenCalendar] = useState(false);
     const [content, setContent] = useState<Record<string, Record<string, string>>>({});
     const [selectedCategory, setSelectedCategory] = useState(RETRO_CATEGORY_NAME.TECH);
+
+    const { showToast } = useToast();
 
     // type Retro = {
     //     id: string;
@@ -125,6 +182,39 @@ export default function Retro() {
         const d = String(target.getDate());
 
         return `${m}월 ${d}일`;
+    };
+
+    const copyContent = async () => {
+        console.log(content[selectedCategory]);
+        const selectedCategoryKey = selectedCategory.toUpperCase() as keyof typeof RETRO_FORM;
+
+        const selectedCategoryForm = RETRO_FORM[selectedCategoryKey];
+        const selectedCategoryContent = content[selectedCategory] ?? {};
+
+        let copyContent = '';
+
+        Object.entries(selectedCategoryForm).map(([key, value]) => {
+            console.log('key', key);
+            console.log('value', value);
+
+            copyContent += `
+# ${value.label}
+${selectedCategoryContent[key] ?? ''}
+
+-----
+
+            `;
+        });
+
+        console.log('----');
+        console.log(copyContent);
+
+        await navigator.clipboard.writeText(copyContent);
+        showToast({
+            iconName: 'check',
+            message: '클립보드에 복사되었습니다.',
+            duration: 2000,
+        });
     };
 
     return (
@@ -240,8 +330,8 @@ export default function Retro() {
                                     className='mt-3 mr-2 px-6'
                                     variant='outline'
                                     size='lg'
-                                    // disabled={!content}
-                                    // onClick={saveContent}
+                                    disabled={!Object.values(content[selectedCategory] ?? {}).some((v) => v?.trim())}
+                                    onClick={copyContent}
                                 >
                                     내용 복사
                                 </Button>
