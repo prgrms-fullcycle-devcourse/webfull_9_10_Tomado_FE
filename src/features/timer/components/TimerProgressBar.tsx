@@ -1,10 +1,8 @@
 import { useState } from 'react';
 
-import { formatTimeLabel } from '@/utils/timeUtils';
+import { formatTimeLabel, cn } from '@/utils';
 import { Tooltip } from '@@/ui';
 import { useTimerSessionView, type TTimerSessionType } from '@@@/timer';
-
-const cx = (...classes: Array<string | false | null | undefined>) => classes.filter(Boolean).join(' ');
 
 const rootClassName = 'relative z-40 h-1 w-full bg-neutral-lighter';
 const fillClassName = 'h-full rounded-r-full will-change-[width]';
@@ -25,7 +23,7 @@ export const TimerProgressBar = () => {
     return (
         <div className={rootClassName} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
             <div
-                className={cx(fillClassName, getProgressBarToneClassName(sessionType))}
+                className={cn(fillClassName, getProgressBarToneClassName(sessionType))}
                 style={{ width: `${progress * 100}%` }}
             />
 
