@@ -1,4 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+
+import { getSupabaseImageUrl } from '@/lib/storage';
+
 import { useFocusModeBackgroundStore } from './useFocusModeStore';
 
 type SlideDirection = 'next' | 'prev';
@@ -10,12 +13,20 @@ interface BackgroundTransitionState {
     phase: 'prepare' | 'animate';
 }
 
-const backgroundModules = import.meta.glob('@/assets/focus-mode/*.{png,jpg,jpeg,webp,gif}', {
-    eager: true,
-    import: 'default',
-}) as Record<string, string>;
+const backgroundFileNames = [
+    'focusModeBG_01.png',
+    'focusModeBG_02.png',
+    'focusModeBG_03.png',
+    'focusModeBG_04.png',
+    'focusModeBG_05.png',
+    'focusModeBG_06.png',
+    'focusModeBG_07.png',
+    'focusModeBG_08.png',
+] as const;
 
-export const focusModeBackgrounds = Object.values(backgroundModules);
+export const focusModeBackgrounds = backgroundFileNames.map((fileName) =>
+    getSupabaseImageUrl(`focus-mode/backgrounds/${fileName}`)
+);
 
 const getSlideClassName = (index: number, currentIndex: number, transition: BackgroundTransitionState | null) => {
     if (!transition) {
@@ -54,11 +65,24 @@ interface UseFocusModeBackgroundOptions {
 export const useFocusModeBackground = ({ backgroundIndex }: UseFocusModeBackgroundOptions = {}) => {
     const persistedBackgroundIndex = useFocusModeBackgroundStore((state) => state.backgroundIndex);
     const setPersistedBackgroundIndex = useFocusModeBackgroundStore((state) => state.setBackgroundIndex);
-    const [currentBackgroundIndex, setCurrentBackgroundIndex] = useState(backgroundIndex ?? persistedBackgroundIndex);
+    const [currentBackgroundIndex, setCurrentBackgroundIndex] = useState(() => {
+        if (focusModeBackgrounds.length === 0) {
+            return 0;
+        }
+
+        return Math.min(backgroundIndex ?? persistedBackgroundIndex, focusModeBackgrounds.length - 1);
+    });
     const [backgroundTransition, setBackgroundTransition] = useState<BackgroundTransitionState | null>(null);
 
     useEffect(() => {
-        setCurrentBackgroundIndex(backgroundIndex ?? persistedBackgroundIndex);
+        if (focusModeBackgrounds.length === 0) {
+            setCurrentBackgroundIndex(0);
+            return;
+        }
+
+        setCurrentBackgroundIndex(
+            Math.min(backgroundIndex ?? persistedBackgroundIndex, focusModeBackgrounds.length - 1)
+        );
     }, [backgroundIndex, persistedBackgroundIndex]);
 
     useEffect(() => {
