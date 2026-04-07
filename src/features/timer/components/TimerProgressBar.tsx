@@ -2,7 +2,7 @@ import { useState } from 'react';
 
 import { cn } from '@/utils';
 import { Tooltip } from '@@/ui';
-import { useTimerSessionView, type TTimerSessionType } from '@@@/timer';
+import type { TTimerSessionType, ITimerProgressBarProps } from '@@@/timer';
 
 const rootClassName = 'relative z-40 h-1 w-full bg-neutral-lighter';
 const fillClassName = 'h-full rounded-r-full will-change-[width]';
@@ -14,9 +14,8 @@ const getProgressBarToneClassName = (sessionType: TTimerSessionType) => {
     return 'bg-primary';
 };
 
-export const TimerProgressBar = () => {
+export const TimerProgressBar = ({ timerSession }: ITimerProgressBarProps) => {
     const [hovered, setHovered] = useState(false);
-    const timerSession = useTimerSessionView();
 
     if (!timerSession.isRunning) return null;
 
