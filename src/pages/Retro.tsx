@@ -2,101 +2,104 @@ import RetroItem from '@/features/log/components/RetroItem';
 import { RETRO_CATEGORY_NAME, RETRO_FORM } from '@/features/log/retroConstants';
 import { useToast } from '@/hooks';
 import { DATE_FORMAT, formatDate } from '@/utils';
+import { isSameDate } from '@/utils/dateUtils';
 import { SearchInput, SegmentedControl } from '@@/form';
 import { Container, SectionHeader, SidebarContentLayout } from '@@/layout';
 import { Badge, Button, Calendar, Icon, RetroCard } from '@@/ui';
 import { useRef, useState } from 'react';
 
+export type Retro = {
+    retro_date: string;
+    template_types: string[];
+    count: number;
+    latest_created_at: string;
+    retros: {
+        id: string;
+        user_id: string;
+        daily_log_id: string;
+        retro_date: string;
+        template_type: string;
+        content: {
+            [key in string]: string;
+        };
+        is_dirty: boolean;
+        draft_content: null;
+        created_at: string;
+        updated_at: string;
+    }[];
+};
+
 export default function Retro() {
     const today = new Date();
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
-    const testRetroArr = [
+    const testRetroArr: Retro[] = [
         {
-            id: 'b8c9d0e1-f2a3-4567-0123-678901234567',
-            user_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-            daily_log_id: 'f6a7b8c9-d0e1-2345-f012-456789012345',
-            retro_date: '2026-04-01',
-            template_type: 'Tech',
-            content: {
-                learned_today: 'Prisma $transaction으로 생성과 통계 갱신을 한 번에 처리하는 패턴을 배웠다.',
-                applied_technology: 'optional JSON 필드 null 처리에 Prisma.DbNull을 적용했다.',
-                technical_difficulty: 'PATCH 시 Json 타입과 DbNull 조합에서 타입 에러가 났다.',
-                next_to_try: '회고 content 검색에 인덱스/쿼리 전략을 실험해본다.',
-            },
-            is_dirty: false,
-            draft_content: null,
-            created_at: '2026-04-01T19:00:00Z',
-            updated_at: '2026-04-01T19:30:00Z',
+            retro_date: '2026-03-18',
+            template_types: ['Emotion'],
+            count: 1,
+            latest_created_at: '2026-03-18T09:10:00Z',
+            retros: [
+                {
+                    id: 'b8c9d0e1-f2a3-4567-0123-678901234567',
+                    user_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+                    daily_log_id: 'f6a7b8c9-d0e1-2345-f012-456789012345',
+                    retro_date: '2026-03-18',
+                    template_type: 'Emotion',
+                    content: {
+                        mood_today: '피곤했지만 성취감이 있었다.',
+                        what_energized: '팀원과 빠르게 이슈를 해결한 순간.',
+                        what_drained: '잦은 컨텍스트 스위칭.',
+                        grateful_for: '정확한 피드백을 받은 것.',
+                    },
+                    is_dirty: false,
+                    draft_content: null,
+                    created_at: '2026-03-18T09:10:00Z',
+                    updated_at: '2026-03-18T09:20:00Z',
+                },
+            ],
         },
         {
-            id: 'b8c9d0e1-f2a3-4567-0123-678901234567',
-            user_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-            daily_log_id: 'f6a7b8c9-d0e1-2345-f012-456789012345',
-            retro_date: '2026-04-01',
-            template_type: 'Decision',
-            content: {
-                decision_made:
-                    '같은 날짜에 템플릿별로 회고를 나누고, 조회는 date+daily_log_id 또는 date+template_type으로 한다.',
-                decision_reason: '일일 로그 없이도 회고를 남길 수 있어 템플릿으로 구분해야 한다.',
-                outcome_impact: 'CONFLICT는 날짜+템플릿 단위로만 발생한다.',
-                alternatives_considered: '날짜당 단일 회고만 허용하는 안은 폐기했다.',
-            },
-            is_dirty: false,
-            draft_content: null,
-            created_at: '2026-04-01T19:00:00Z',
-            updated_at: '2026-04-01T19:30:00Z',
-        },
-        {
-            id: 'b8c9d0e1-f2a3-4567-0123-678901234567',
-            user_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-            daily_log_id: 'f6a7b8c9-d0e1-2345-f012-456789012345',
-            retro_date: '2026-04-01',
-            template_type: 'Communication',
-            content: {
-                communication_highlights: '짧은 미팅으로 API 계약을 빠르게 맞췄다.',
-                communication_friction: '초기 문서에는 쿼리 파라미터가 하나만 필수라고 적혀 있었다.',
-                feedback_received: '400 에러와 field를 명시해 달라는 요청을 받았다.',
-                improvements: '명세 변경 시 Swagger와 Notion을 동시에 갱신하겠다.',
-            },
-            is_dirty: false,
-            draft_content: null,
-            created_at: '2026-04-01T19:00:00Z',
-            updated_at: '2026-04-01T19:30:00Z',
-        },
-        {
-            id: 'b8c9d0e1-f2a3-4567-0123-678901234567',
-            user_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-            daily_log_id: 'f6a7b8c9-d0e1-2345-f012-456789012345',
-            retro_date: '2026-04-01',
-            template_type: 'Emotion',
-            content: {
-                mood_today: '병합 해소 후 안도감이 크다. 다소 피곤하다.',
-                what_energized: '동료와 짝으로 디버깅한 시간.',
-                what_drained: '인증·회고 작업을 번갈아 하며 맥락 전환이 잦았다.',
-                grateful_for: '리뷰 코멘트가 구체적이어서 수정이 빨랐다.',
-            },
-            is_dirty: false,
-            draft_content: null,
-            created_at: '2026-04-01T19:00:00Z',
-            updated_at: '2026-04-01T19:30:00Z',
-        },
-        {
-            id: 'b8c9d0e1-f2a3-4567-0123-678901234577',
-            user_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-            daily_log_id: 'f6a7b8c9-d0e1-2345-f012-456789012347',
-            retro_date: '2026-03-28',
-            template_type: 'Emotion',
-            content: {
-                mood_today: '병합 해소 후 안도감이 크다.',
-                what_energized: '동료와 짝으로 디버깅한 시간.',
-                what_drained: '인증·회고 작업을 번갈아 하며 맥락 전환이 잦았다.',
-                grateful_for: '리뷰 코멘트가 구체적이어서 수정이 빨랐다.',
-            },
-            is_dirty: false,
-            draft_content: null,
-            created_at: '2026-03-28T19:00:00Z',
-            updated_at: '2026-03-28T19:30:00Z',
+            retro_date: '2026-03-14',
+            template_types: ['Tech', 'Communication'],
+            count: 2,
+            latest_created_at: '2026-03-14T11:20:00Z',
+            retros: [
+                {
+                    id: 'c9d0e1f2-a3b4-5678-0123-789012345678',
+                    user_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+                    daily_log_id: 'f6a7b8c9-d0e1-2345-f012-456789012345',
+                    retro_date: '2026-03-14',
+                    template_type: 'Tech',
+                    content: {
+                        learned_today: '트랜잭션 처리 패턴을 학습했다.',
+                        applied_technology: 'Prisma transaction을 적용했다.',
+                        technical_difficulty: 'JSON 타입 정합성 이슈가 있었다.',
+                        next_to_try: '검색 성능 최적화를 시도한다.',
+                    },
+                    is_dirty: false,
+                    draft_content: null,
+                    created_at: '2026-03-14T10:00:00Z',
+                    updated_at: '2026-03-14T10:30:00Z',
+                },
+                {
+                    id: 'd0e1f2a3-b4c5-6789-0123-890123456789',
+                    user_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+                    daily_log_id: 'f6a7b8c9-d0e1-2345-f012-456789012345',
+                    retro_date: '2026-03-14',
+                    template_type: 'Communication',
+                    content: {
+                        communication_highlights: '논의 포인트를 빠르게 합의했다.',
+                        communication_friction: '요구사항 전달이 일부 늦었다.',
+                        feedback_received: '에러 메시지 명확화 요청을 받았다.',
+                        improvements: '변경 사항 공유 템플릿을 표준화한다.',
+                    },
+                    is_dirty: false,
+                    draft_content: null,
+                    created_at: '2026-03-14T11:00:00Z',
+                    updated_at: '2026-03-14T11:20:00Z',
+                },
+            ],
         },
     ];
 
@@ -106,19 +109,6 @@ export default function Retro() {
     const [selectedCategory, setSelectedCategory] = useState(RETRO_CATEGORY_NAME.TECH);
 
     const { showToast } = useToast();
-
-    // type Retro = {
-    //     id: string;
-    //     user_id: string;
-    //     log_date: string;
-    //     content: string;
-    //     title: string;
-    //     tags: string[];
-    //     is_dirty: boolean;
-    //     draft_content: null;
-    //     created_at: string;
-    //     updated_at: string;
-    // };
 
     const panelClassName =
         'flex h-full min-h-0 w-full flex-col items-center rounded-2xl bg-white px-6 py-5 shadow-shadow-1';
@@ -147,13 +137,22 @@ export default function Retro() {
         });
     };
 
-    // const handleRetroClick = (retro: Retro): void => {
-    // setContent(log.content);
-    // setTitle(log.title);
-    // setSelectedDate(new Date(`${log.log_date}T00:00:00`));
-    // const lastSaved = formatLastSaved(log.updated_at);
-    // setAutoSaveText(lastSaved);
-    // };
+    const handleRetroClick = (retro: Retro): void => {
+        if (!retro) return;
+
+        const newObj: Record<string, { [key: string]: string }> = {};
+
+        retro.retros.map((retro) => {
+            newObj[retro.template_type.toLowerCase()] = { ...retro.content };
+        });
+
+        setContent(newObj);
+        setSelectedDate(new Date(`${retro.retro_date}T00:00:00`));
+        setSelectedCategory(retro.template_types[0].toLowerCase());
+
+        // const lastSaved = formatLastSaved(log.updated_at);
+        // setAutoSaveText(lastSaved);
+    };
 
     const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>, type: string, key: string) => {
         const newObj = { ...content };
@@ -163,29 +162,7 @@ export default function Retro() {
         setContent(newObj);
     };
 
-    const relativeDate = (targetDate: string): string => {
-        const now = new Date();
-        const target = new Date(targetDate);
-
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const targetDay = new Date(target.getFullYear(), target.getMonth(), target.getDate());
-
-        const diffTime = today.getTime() - targetDay.getTime();
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-        if (diffDays === 0) return '오늘';
-        if (diffDays === 1) return '어제';
-        if (diffDays <= 3) return `${diffDays}일 전`;
-
-        // 그 이상은 날짜 출력
-        const m = String(target.getMonth() + 1);
-        const d = String(target.getDate());
-
-        return `${m}월 ${d}일`;
-    };
-
     const copyContent = async () => {
-        console.log(content[selectedCategory]);
         const selectedCategoryKey = selectedCategory.toUpperCase() as keyof typeof RETRO_FORM;
 
         const selectedCategoryForm = RETRO_FORM[selectedCategoryKey];
@@ -194,9 +171,6 @@ export default function Retro() {
         let copyContent = '';
 
         Object.entries(selectedCategoryForm).map(([key, value]) => {
-            console.log('key', key);
-            console.log('value', value);
-
             copyContent += `
 # ${value.label}
 ${selectedCategoryContent[key] ?? ''}
@@ -205,9 +179,6 @@ ${selectedCategoryContent[key] ?? ''}
 
             `;
         });
-
-        console.log('----');
-        console.log(copyContent);
 
         await navigator.clipboard.writeText(copyContent);
         showToast({
@@ -231,15 +202,16 @@ ${selectedCategoryContent[key] ?? ''}
                             <SearchInput placeholder='제목 또는 내용으로 검색하세요' />
                             <div className='mt-4 mb-2 flex w-full justify-between'>
                                 <p className='text-neutral-darker'>전체</p>
-                                <Badge label='총 0건' />
+                                <Badge label={`총 ${testRetroArr.length}건`} />
                             </div>
 
                             <div className='flex min-h-0 w-full flex-1 flex-col gap-3 overflow-y-auto mask-b-from-97% pb-10'>
-                                {testRetroArr.map((retro) => (
+                                {testRetroArr.map((retro: Retro) => (
                                     <RetroCard
-                                        key={retro.id}
-                                        date={relativeDate(retro.created_at)}
-                                        // onClick={() => handleRetroClick(retro)}
+                                        key={retro.retro_date}
+                                        retro={retro}
+                                        state={isSameDate(retro.retro_date, selectedDate) ? 'selected' : 'default'}
+                                        onClick={() => handleRetroClick(retro)}
                                     />
                                 ))}
                             </div>

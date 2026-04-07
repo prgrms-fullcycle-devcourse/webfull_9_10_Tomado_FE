@@ -53,3 +53,14 @@ export const parseDate = (value: string, options: formatDateOptions = DATE_FORMA
             return new Date(`${value}T00:00:00`);
     }
 };
+
+export const isSameDate = (a: Date | string, b: Date | string) => {
+    const aDate = typeof a === 'string' ? new Date(a) : a;
+    const bDate = typeof b === 'string' ? new Date(b) : b;
+
+    return (
+        aDate.getFullYear() === bDate.getFullYear() &&
+        aDate.getMonth() === bDate.getMonth() &&
+        aDate.getDate() === bDate.getDate()
+    );
+};
