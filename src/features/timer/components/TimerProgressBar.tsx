@@ -16,21 +16,21 @@ const getProgressBarToneClassName = (sessionType: TTimerSessionType) => {
 
 export const TimerProgressBar = () => {
     const [hovered, setHovered] = useState(false);
-    const { isRunning, sessionType, visualRemainingSeconds, progress } = useTimerSessionView();
+    const timerSession = useTimerSessionView();
 
-    if (!isRunning) return null;
+    if (!timerSession.isRunning) return null;
 
     return (
         <div className={rootClassName} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
             <div
-                className={cn(fillClassName, getProgressBarToneClassName(sessionType))}
-                style={{ width: `${progress * 100}%` }}
+                className={cn(fillClassName, getProgressBarToneClassName(timerSession.sessionType))}
+                style={{ width: `${timerSession.progress * 100}%` }}
             />
 
             {hovered ? (
                 <Tooltip
                     className={tooltipWrapperClassName}
-                    label={`남은 시간 ${formatTimeLabel(Math.ceil(visualRemainingSeconds))}`}
+                    label={`남은 시간 ${formatTimeLabel(Math.ceil(timerSession.visualRemainingSeconds))}`}
                 />
             ) : null}
         </div>
