@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 
 type TimerMetadataOptions = {
     isRunning: boolean;
-    sessionType: 'focus' | 'shortBreak' | 'longBreak';
+    sessionType: 'focus' | 'short_break' | 'long_break';
     minutes: string;
     seconds: string;
 };

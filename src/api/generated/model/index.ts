@@ -51,6 +51,8 @@ export * from './reorderTodoRequest';
 export * from './retroLog';
 export * from './retroLogContent';
 export * from './retroLogDraftContent';
+export * from './retroLogListItem';
+export * from './retroLogListItemTemplateTypesItem';
 export * from './retroLogSearchItem';
 export * from './retroLogSearchItemTemplateType';
 export * from './retroLogTemplateType';

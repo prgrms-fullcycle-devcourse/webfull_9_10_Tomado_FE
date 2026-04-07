@@ -14,13 +14,12 @@ Access Token 만료 시 `/auth/refresh`로 재발급하세요.
  * OpenAPI spec version: 1.0.0
  */
 
-export type GetRetroLogParams = {
-    /**
-     * 회고 날짜 (YYYY-MM-DD).
-     */
-    date: string;
-    /**
-     * 연관 일일 로그 ID (선택). 전달 시 date와 일치해야 한다.
-     */
-    daily_log_id?: string;
-};
+export type RetroLogListItemTemplateTypesItem =
+    (typeof RetroLogListItemTemplateTypesItem)[keyof typeof RetroLogListItemTemplateTypesItem];
+
+export const RetroLogListItemTemplateTypesItem = {
+    Tech: 'Tech',
+    Decision: 'Decision',
+    Communication: 'Communication',
+    Emotion: 'Emotion',
+} as const;
