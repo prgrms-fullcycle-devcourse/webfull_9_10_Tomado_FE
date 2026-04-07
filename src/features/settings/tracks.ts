@@ -1,3 +1,5 @@
+import { getSupabaseAudioUrl } from '@/lib/storage';
+
 type BgmCategory = 'lofi' | 'rain' | 'cafe';
 
 export interface BgmTrack {
@@ -34,29 +36,25 @@ const categoryMeta: Record<BgmCategory, Omit<BgmPlayerItem, 'id'>> = {
     },
 };
 
-const trackModules = import.meta.glob('../../assets/audio/bgm/*/*.{mp3,wav,ogg,m4a,aac}', {
-    eager: true,
-    import: 'default',
-}) as Record<string, string>;
+const trackDefinitions = [
+    { category: 'cafe', fileName: 'cafe_01' },
+    { category: 'cafe', fileName: 'cafe_02' },
+    { category: 'lofi', fileName: 'lofi_01' },
+    { category: 'lofi', fileName: 'lofi_02' },
+    { category: 'rain', fileName: 'rain_01' },
+    { category: 'rain', fileName: 'rain_02' },
+] as const satisfies ReadonlyArray<{ category: BgmCategory; fileName: string }>;
 
 export const bgmPlayerItems: BgmPlayerItem[] = (Object.keys(categoryMeta) as BgmCategory[]).map((category) => ({
     id: category,
     ...categoryMeta[category],
 }));
 
-export const bgmTracks: BgmTrack[] = Object.entries(trackModules)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([path, src]) => {
-        const match = path.match(/\/bgm\/([^/]+)\/([^/]+)\.[^.]+$/);
-        const category = (match?.[1] ?? 'lofi') as BgmCategory;
-        const fileName = match?.[2] ?? category;
-
-        return {
-            id: `${category}/${fileName}`,
-            category,
-            title: categoryMeta[category].title,
-            description: categoryMeta[category].description,
-            imageSrc: categoryMeta[category].imageSrc,
-            src,
-        };
-    });
+export const bgmTracks: BgmTrack[] = trackDefinitions.map(({ category, fileName }) => ({
+    id: `${category}/${fileName}`,
+    category,
+    title: categoryMeta[category].title,
+    description: categoryMeta[category].description,
+    imageSrc: categoryMeta[category].imageSrc,
+    src: getSupabaseAudioUrl(`bgm/${category}/${fileName}.mp3`),
+}));

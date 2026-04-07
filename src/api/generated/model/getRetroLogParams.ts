@@ -16,11 +16,11 @@ Access Token 만료 시 `/auth/refresh`로 재발급하세요.
 
 export type GetRetroLogParams = {
     /**
-     * 회고 날짜 (YYYY-MM-DD). daily_log_id와 함께 필수.
+     * 회고 날짜 (YYYY-MM-DD).
      */
     date: string;
     /**
-     * 연관 일일 로그 ID. date와 함께 필수.
+     * 연관 일일 로그 ID (선택). 전달 시 date와 일치해야 한다.
      */
-    daily_log_id: string;
+    daily_log_id?: string;
 };

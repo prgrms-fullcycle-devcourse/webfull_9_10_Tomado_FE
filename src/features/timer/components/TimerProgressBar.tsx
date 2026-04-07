@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Tooltip } from '@@/ui';
 import { useTimerStore } from '../useTimerStore';
+import { formatTimeLabel } from '@/utils/timeUtils';
 
 const cx = (...classes: Array<string | false | null | undefined>) => classes.filter(Boolean).join(' ');
 
@@ -8,19 +9,12 @@ const rootClassName = 'relative z-40 h-1 w-full bg-neutral-lighter';
 const fillClassName = 'h-full rounded-r-full will-change-[width]';
 const tooltipWrapperClassName = 'pointer-events-none absolute top-full left-1/2 mt-2 -translate-x-1/2 shadow-shadow-1';
 
-const formatTimeParts = (totalSeconds: number) => {
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-
-    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-};
-
-const getProgressBarToneClassName = (sessionType: 'focus' | 'shortBreak' | 'longBreak') => {
-    if (sessionType === 'shortBreak') {
+const getProgressBarToneClassName = (sessionType: 'focus' | 'short_break' | 'long_break') => {
+    if (sessionType === 'short_break') {
         return 'bg-green-300';
     }
 
-    if (sessionType === 'longBreak') {
+    if (sessionType === 'long_break') {
         return 'bg-green-600';
     }
 
@@ -39,11 +33,11 @@ export const TimerProgressBar = () => {
     const [now, setNow] = useState(() => Date.now());
 
     const totalSeconds = useMemo(() => {
-        if (sessionType === 'shortBreak') {
+        if (sessionType === 'short_break') {
             return shortBreakSeconds;
         }
 
-        if (sessionType === 'longBreak') {
+        if (sessionType === 'long_break') {
             return longBreakSeconds;
         }
 
@@ -99,7 +93,7 @@ export const TimerProgressBar = () => {
             {hovered ? (
                 <Tooltip
                     className={tooltipWrapperClassName}
-                    label={`남은 시간 ${formatTimeParts(Math.ceil(visualRemainingSeconds))}`}
+                    label={`남은 시간 ${formatTimeLabel(Math.ceil(visualRemainingSeconds))}`}
                 />
             ) : null}
         </div>

@@ -36,6 +36,7 @@ import type {
     GetRetroLogParams,
     NotFoundResponse,
     RetroLog,
+    RetroLogListItem,
     RetroLogSearchItem,
     SearchRetroLogsParams,
     UnauthorizedResponse,
@@ -47,7 +48,10 @@ import { customInstance } from '../../mutator/custom-instance';
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 
 /**
- * `daily_log_id`와 `date`(YYYY-MM-DD)로 회고 조회. 두 쿼리 파라미터 모두 필수.
+ * `date`(YYYY-MM-DD) 기준으로 해당 날짜에 작성한 회고를 모두 조회한다.
+`daily_log_id`는 선택 파라미터이며, 전달 시 사용자 소유·날짜 일치 검증에만 사용한다.
+응답은 `template_type`별 회고를 포함한 배열이다.
+
  * @summary 회고 조회
  */
 export const getGetRetroLogUrl = (params: GetRetroLogParams) => {
@@ -64,8 +68,8 @@ export const getGetRetroLogUrl = (params: GetRetroLogParams) => {
     return stringifiedParams.length > 0 ? `/api/v1/retro-logs?${stringifiedParams}` : `/api/v1/retro-logs`;
 };
 
-export const getRetroLog = async (params: GetRetroLogParams, options?: RequestInit): Promise<RetroLog> => {
-    return customInstance<RetroLog>(getGetRetroLogUrl(params), {
+export const getRetroLog = async (params: GetRetroLogParams, options?: RequestInit): Promise<RetroLog[]> => {
+    return customInstance<RetroLog[]>(getGetRetroLogUrl(params), {
         ...options,
         method: 'GET',
     });
@@ -77,7 +81,7 @@ export const getGetRetroLogQueryKey = (params?: GetRetroLogParams) => {
 
 export const getGetRetroLogQueryOptions = <
     TData = Awaited<ReturnType<typeof getRetroLog>>,
-    TError = UnauthorizedResponse | Error,
+    TError = Error | UnauthorizedResponse,
 >(
     params: GetRetroLogParams,
     options?: {
@@ -100,9 +104,9 @@ export const getGetRetroLogQueryOptions = <
 };
 
 export type GetRetroLogQueryResult = NonNullable<Awaited<ReturnType<typeof getRetroLog>>>;
-export type GetRetroLogQueryError = UnauthorizedResponse | Error;
+export type GetRetroLogQueryError = Error | UnauthorizedResponse;
 
-export function useGetRetroLog<TData = Awaited<ReturnType<typeof getRetroLog>>, TError = UnauthorizedResponse | Error>(
+export function useGetRetroLog<TData = Awaited<ReturnType<typeof getRetroLog>>, TError = Error | UnauthorizedResponse>(
     params: GetRetroLogParams,
     options: {
         query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRetroLog>>, TError, TData>> &
@@ -118,7 +122,7 @@ export function useGetRetroLog<TData = Awaited<ReturnType<typeof getRetroLog>>, 
     },
     queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetRetroLog<TData = Awaited<ReturnType<typeof getRetroLog>>, TError = UnauthorizedResponse | Error>(
+export function useGetRetroLog<TData = Awaited<ReturnType<typeof getRetroLog>>, TError = Error | UnauthorizedResponse>(
     params: GetRetroLogParams,
     options?: {
         query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRetroLog>>, TError, TData>> &
@@ -134,7 +138,7 @@ export function useGetRetroLog<TData = Awaited<ReturnType<typeof getRetroLog>>, 
     },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useGetRetroLog<TData = Awaited<ReturnType<typeof getRetroLog>>, TError = UnauthorizedResponse | Error>(
+export function useGetRetroLog<TData = Awaited<ReturnType<typeof getRetroLog>>, TError = Error | UnauthorizedResponse>(
     params: GetRetroLogParams,
     options?: {
         query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRetroLog>>, TError, TData>>;
@@ -146,7 +150,7 @@ export function useGetRetroLog<TData = Awaited<ReturnType<typeof getRetroLog>>, 
  * @summary 회고 조회
  */
 
-export function useGetRetroLog<TData = Awaited<ReturnType<typeof getRetroLog>>, TError = UnauthorizedResponse | Error>(
+export function useGetRetroLog<TData = Awaited<ReturnType<typeof getRetroLog>>, TError = Error | UnauthorizedResponse>(
     params: GetRetroLogParams,
     options?: {
         query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getRetroLog>>, TError, TData>>;
@@ -168,7 +172,7 @@ export function useGetRetroLog<TData = Awaited<ReturnType<typeof getRetroLog>>, 
  */
 export const prefetchGetRetroLogQuery = async <
     TData = Awaited<ReturnType<typeof getRetroLog>>,
-    TError = UnauthorizedResponse | Error,
+    TError = Error | UnauthorizedResponse,
 >(
     queryClient: QueryClient,
     params: GetRetroLogParams,
@@ -406,6 +410,128 @@ export const prefetchSearchRetroLogsQuery = async <
     }
 ): Promise<QueryClient> => {
     const queryOptions = getSearchRetroLogsQueryOptions(params, options);
+
+    await queryClient.prefetchQuery(queryOptions);
+
+    return queryClient;
+};
+
+/**
+ * 현재 사용자 기준으로 작성된 회고를 날짜 단위로 묶어 반환한다.
+좌측 사이드바 목록 렌더링용 API.
+
+ * @summary 회고 로그 목록 조회
+ */
+export const getListRetroLogsUrl = () => {
+    return `/api/v1/retro-logs/list`;
+};
+
+export const listRetroLogs = async (options?: RequestInit): Promise<RetroLogListItem[]> => {
+    return customInstance<RetroLogListItem[]>(getListRetroLogsUrl(), {
+        ...options,
+        method: 'GET',
+    });
+};
+
+export const getListRetroLogsQueryKey = () => {
+    return [`/api/v1/retro-logs/list`] as const;
+};
+
+export const getListRetroLogsQueryOptions = <
+    TData = Awaited<ReturnType<typeof listRetroLogs>>,
+    TError = UnauthorizedResponse,
+>(options?: {
+    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listRetroLogs>>, TError, TData>>;
+    request?: SecondParameter<typeof customInstance>;
+}) => {
+    const { query: queryOptions, request: requestOptions } = options ?? {};
+
+    const queryKey = queryOptions?.queryKey ?? getListRetroLogsQueryKey();
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listRetroLogs>>> = ({ signal }) =>
+        listRetroLogs({ signal, ...requestOptions });
+
+    return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+        Awaited<ReturnType<typeof listRetroLogs>>,
+        TError,
+        TData
+    > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type ListRetroLogsQueryResult = NonNullable<Awaited<ReturnType<typeof listRetroLogs>>>;
+export type ListRetroLogsQueryError = UnauthorizedResponse;
+
+export function useListRetroLogs<TData = Awaited<ReturnType<typeof listRetroLogs>>, TError = UnauthorizedResponse>(
+    options: {
+        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof listRetroLogs>>, TError, TData>> &
+            Pick<
+                DefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof listRetroLogs>>,
+                    TError,
+                    Awaited<ReturnType<typeof listRetroLogs>>
+                >,
+                'initialData'
+            >;
+        request?: SecondParameter<typeof customInstance>;
+    },
+    queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useListRetroLogs<TData = Awaited<ReturnType<typeof listRetroLogs>>, TError = UnauthorizedResponse>(
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listRetroLogs>>, TError, TData>> &
+            Pick<
+                UndefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof listRetroLogs>>,
+                    TError,
+                    Awaited<ReturnType<typeof listRetroLogs>>
+                >,
+                'initialData'
+            >;
+        request?: SecondParameter<typeof customInstance>;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useListRetroLogs<TData = Awaited<ReturnType<typeof listRetroLogs>>, TError = UnauthorizedResponse>(
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listRetroLogs>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary 회고 로그 목록 조회
+ */
+
+export function useListRetroLogs<TData = Awaited<ReturnType<typeof listRetroLogs>>, TError = UnauthorizedResponse>(
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listRetroLogs>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+    const queryOptions = getListRetroLogsQueryOptions(options);
+
+    const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+        queryKey: DataTag<QueryKey, TData, TError>;
+    };
+
+    return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary 회고 로그 목록 조회
+ */
+export const prefetchListRetroLogsQuery = async <
+    TData = Awaited<ReturnType<typeof listRetroLogs>>,
+    TError = UnauthorizedResponse,
+>(
+    queryClient: QueryClient,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listRetroLogs>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    }
+): Promise<QueryClient> => {
+    const queryOptions = getListRetroLogsQueryOptions(options);
 
     await queryClient.prefetchQuery(queryOptions);
 

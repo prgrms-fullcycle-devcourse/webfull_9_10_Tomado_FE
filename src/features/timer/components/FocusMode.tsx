@@ -2,17 +2,14 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { HTMLAttributes, ReactNode } from 'react';
 
 import { useDirectionKey, useGlobalKeyboardShortcuts, useToast } from '@/hooks';
+import { useTimerStore, getInitialSeconds } from '@/features/timer';
+import { formatTimeParts } from '@/utils/timeUtils';
+
 import { Button } from '@@/ui/Button';
 import { Icon } from '@@/ui/Icon/Icon';
 import { PlayerButton } from '@@/ui/PlayerButton';
 import { TodoPanel } from '@@@/todo';
-import {
-    SessionIndicator,
-    focusModeBackgrounds,
-    useFocusModeBackground,
-    FocusModeBackgroundLayer,
-    useTimerSession,
-} from '@@@/timer';
+import { focusModeBackgrounds, useFocusModeBackground, FocusModeBackgroundLayer, SessionIndicator } from '@@@/timer';
 
 const backgroundNavButtonWrapperClassName = 'bottom-0 group absolute inset-y-40 z-30 w-28 hover:cursor-pointer';
 
@@ -27,6 +24,8 @@ export interface FocusModeProps extends Omit<HTMLAttributes<HTMLDivElement>, 'ch
     backgroundIndex?: number;
     onClose?: () => void;
     onMusicClick?: () => void;
+    handleToggleTimer: () => void;
+    handleRequestStopTimer: () => void;
     children?: ReactNode;
 }
 
@@ -39,6 +38,8 @@ export const FocusMode = ({
     backgroundIndex,
     onClose,
     onMusicClick,
+    handleToggleTimer,
+    handleRequestStopTimer,
     className,
     children,
     ...props
@@ -49,14 +50,26 @@ export const FocusMode = ({
     const { backgroundSlideClassNames, handleNextBackground, handlePrevBackground } = useFocusModeBackground({
         backgroundIndex,
     });
-    const {
-        isRunning,
-        hasStarted,
-        sessionIndicatorFilledCount,
-        timerParts,
-        handleToggleTimer,
-        handleRequestStopTimer,
-    } = useTimerSession();
+
+    const isRunning = useTimerStore((state) => state.isRunning);
+    const remainingSeconds = useTimerStore((state) => state.remainingSeconds);
+    const sessionType = useTimerStore((state) => state.sessionType);
+    const focusSessionInSet = useTimerStore((state) => state.focusSessionInSet);
+    const focusSeconds = useTimerStore((state) => state.focusSeconds);
+    const shortBreakSeconds = useTimerStore((state) => state.shortBreakSeconds);
+    const longBreakSeconds = useTimerStore((state) => state.longBreakSeconds);
+
+    const initialSeconds = getInitialSeconds({
+        sessionType,
+        focusSeconds,
+        shortBreakSeconds,
+        longBreakSeconds,
+    });
+
+    const hasStarted = remainingSeconds !== initialSeconds;
+    const sessionIndicatorFilledCount = focusSessionInSet;
+    const timerParts = formatTimeParts(remainingSeconds);
+
     const handleClose = useCallback(() => onClose?.(), [onClose]);
     const handleToggleTodoExpanded = useCallback(() => setIsTodoExpanded((prev) => !prev), []);
     const handleTodoExpand = useCallback(() => setIsTodoExpanded(true), []);
