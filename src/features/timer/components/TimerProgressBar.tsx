@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-import { formatTimeLabel, cn } from '@/utils';
+import { cn } from '@/utils';
 import { Tooltip } from '@@/ui';
 import { useTimerSessionView, type TTimerSessionType } from '@@@/timer';
 
@@ -28,10 +28,7 @@ export const TimerProgressBar = () => {
             />
 
             {hovered ? (
-                <Tooltip
-                    className={tooltipWrapperClassName}
-                    label={`남은 시간 ${formatTimeLabel(Math.ceil(timerSession.visualRemainingSeconds))}`}
-                />
+                <Tooltip className={tooltipWrapperClassName} label={`남은 시간 ${timerSession.timeLabel}`} />
             ) : null}
         </div>
     );
