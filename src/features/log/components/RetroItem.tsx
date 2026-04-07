@@ -32,7 +32,7 @@ function RetroItem({ content, selectedCategory, onChangeTextarea }: Props) {
                         className='h-full flex flex-col min-h-0 [&_label+div]:flex-1 [&_textarea]:flex-1 [&_textarea]:min-h-0 [&_textarea]:resize-none [&_textarea]:overflow-y-auto'
                         label={field.label}
                         placeholder={field.placeholder}
-                        value={content[categoryKey]?.[fieldKey]}
+                        value={content[categoryKey]?.[fieldKey] ?? ''}
                         onChange={(e) => onChangeTextarea(e, categoryKey, fieldKey)}
                     />
                 ))}
