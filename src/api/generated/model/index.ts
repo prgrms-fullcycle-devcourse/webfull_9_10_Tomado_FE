@@ -5,7 +5,7 @@
  * 포모도로 타이머 + 투두리스트 + 데일리로그 + 회고록을 통합한 생산성 기록 서비스
 
 ## 인증
-보호된 엔드포인트는 `Authorization: Bearer {access_token}` 헤더가 필요합니다.
+보호된 엔드포인트는 `Authorization: Bearer {access_token}` 헤더 또는 `access_token` 쿠키가 필요합니다.
 Access Token 만료 시 `/auth/refresh`로 재발급하세요.
 
 ## 삭제 정책
@@ -70,5 +70,6 @@ export * from './updateRetroLogRequestContent';
 export * from './updateRetroLogRequestDraftContent';
 export * from './updateSettingsRequest';
 export * from './updateTodoRequest';
+export * from './uploadMyAvatarBody';
 export * from './user';
 export * from './userSettings';
