@@ -5,14 +5,15 @@
  * 포모도로 타이머 + 투두리스트 + 데일리로그 + 회고록을 통합한 생산성 기록 서비스
 
 ## 인증
-보호된 엔드포인트는 `Authorization: Bearer {access_token}` 헤더가 필요합니다.
+보호된 엔드포인트는 `Authorization: Bearer {access_token}` 헤더 또는 `access_token` 쿠키가 필요합니다.
 Access Token 만료 시 `/auth/refresh`로 재발급하세요.
 
-## 삭제 정책
+## 삭제
 완료된 투두(`completed_at IS NOT NULL`)는 삭제 불가 — 기록 보존 원칙.
 
  * OpenAPI spec version: 1.0.0
  */
+import type { RetroLog } from './retroLog';
 import type { RetroLogListItemTemplateTypesItem } from './retroLogListItemTemplateTypesItem';
 
 export interface RetroLogListItem {
@@ -20,4 +21,6 @@ export interface RetroLogListItem {
     template_types?: RetroLogListItemTemplateTypesItem[];
     count?: number;
     latest_created_at?: string;
+    /** 해당 날짜에 작성된 회고 상세 목록(템플릿별 content 포함) */
+    retros?: RetroLog[];
 }

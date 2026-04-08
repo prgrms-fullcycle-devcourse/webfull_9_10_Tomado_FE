@@ -5,10 +5,10 @@
  * 포모도로 타이머 + 투두리스트 + 데일리로그 + 회고록을 통합한 생산성 기록 서비스
 
 ## 인증
-보호된 엔드포인트는 `Authorization: Bearer {access_token}` 헤더가 필요합니다.
+보호된 엔드포인트는 `Authorization: Bearer {access_token}` 헤더 또는 `access_token` 쿠키가 필요합니다.
 Access Token 만료 시 `/auth/refresh`로 재발급하세요.
 
-## 삭제 정책
+## 삭제
 완료된 투두(`completed_at IS NOT NULL`)는 삭제 불가 — 기록 보존 원칙.
 
  * OpenAPI spec version: 1.0.0
@@ -144,6 +144,8 @@ export const useLogin = <TError = Error, TContext = unknown>(
 };
 /**
  * Refresh Token으로 Access Token 재발급 (Rotation). 기존 Refresh Token은 즉시 폐기됨.
+기본 동작은 쿠키(`refresh_token`) 기반이며, body의 `refresh_token`은 선택값이다.
+
  * @summary 토큰 재발급
  */
 export const getRefreshTokenUrl = () => {
@@ -151,7 +153,7 @@ export const getRefreshTokenUrl = () => {
 };
 
 export const refreshToken = async (
-    refreshTokenRequest: RefreshTokenRequest,
+    refreshTokenRequest?: RefreshTokenRequest,
     options?: RequestInit
 ): Promise<AuthTokens> => {
     return customInstance<AuthTokens>(getRefreshTokenUrl(), {

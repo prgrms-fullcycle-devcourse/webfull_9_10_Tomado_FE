@@ -14,17 +14,7 @@ Access Token 만료 시 `/auth/refresh`로 재발급하세요.
  * OpenAPI spec version: 1.0.0
  */
 
-export interface DailyLog {
-    id?: string;
-    user_id?: string;
-    log_date?: string;
-    /** @nullable */
-    title?: string | null;
-    content?: string;
-    tags?: string[];
-    is_dirty?: boolean;
-    /** @nullable */
-    draft_content?: string | null;
-    created_at?: string;
-    updated_at?: string;
-}
+export type UploadMyAvatarBody = {
+    /** 업로드할 프로필 이미지 파일 */
+    avatar: Blob;
+};
