@@ -16,6 +16,11 @@
 - 팀 규칙/참고 문서: [docs/references/index.md](./docs/references/index.md)
 - 품질 기준: [docs/QUALITY_SCORE.md](./docs/QUALITY_SCORE.md), [docs/RELIABILITY.md](./docs/RELIABILITY.md)
 
+## External References
+
+- Swagger UI: [https://webfull-9-10-tomado-be.onrender.com/api-docs/](https://webfull-9-10-tomado-be.onrender.com/api-docs/)
+- Backend Repository: [https://github.com/prgrms-fullcycle-devcourse/webfull_9_10_Tomado_BE](https://github.com/prgrms-fullcycle-devcourse/webfull_9_10_Tomado_BE)
+
 ## Working Rules
 
 - 루트 `README.md`는 외부/프로젝트 소개 문서로 유지합니다.
