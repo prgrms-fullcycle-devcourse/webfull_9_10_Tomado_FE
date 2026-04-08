@@ -1,7 +1,7 @@
 import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
 
 import { AuthHeader } from '@/components/layout/Header';
-import { useAuthStore } from '@/features/auth';
+import { DEMO_AUTH_USER, useAuthStore } from '@/features/auth';
 import { useGlobalKeyboardShortcuts, useModal } from '@/hooks';
 import {
     FocusMode,
@@ -31,7 +31,9 @@ export function AuthLayout() {
     const navigate = useNavigate();
     const { showModal } = useModal();
 
-    const settingsQuery = useGetMySettings();
+    const authUser = useAuthStore((state) => state.user);
+    const isDemoSession = authUser?.id === DEMO_AUTH_USER.id;
+    const settingsQuery = useGetMySettings({ query: { enabled: !isDemoSession } });
     const { mutateAsync: logoutFromServer } = useLogout();
     const isAuth = useAuthStore((state) => state.isAuth);
     const logout = useAuthStore((state) => state.logout);

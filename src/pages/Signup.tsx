@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 
 import {
     getSignupFieldState,
-    mapRegisterResponseToAuthTokens,
     mapRegisterResponseToAuthUser,
     type SignupFormValues,
     useAuthStore,
@@ -74,7 +73,7 @@ export default function Signup() {
                 data: getSubmitPayload(),
             });
 
-            login(mapRegisterResponseToAuthUser(response), mapRegisterResponseToAuthTokens(response));
+            login(mapRegisterResponseToAuthUser(response));
             navigate('/main', { replace: true });
         } catch (error) {
             setSubmitError(error instanceof Error ? error.message : '회원가입에 실패했습니다.');

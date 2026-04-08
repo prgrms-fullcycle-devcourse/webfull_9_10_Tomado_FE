@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 
 import { useLogin } from '@/api/generated/auth/auth';
 import { useAuthStore } from './useAuthStore';
-import { mapLoginResponseToAuthTokens, mapLoginResponseToAuthUser } from './api';
+import { mapLoginResponseToAuthUser } from './api';
 import { DEMO_AUTH_USER, DEMO_LOGIN_CREDENTIALS } from './types';
 import type { LoginFormValues, LoginRequest } from './types';
 
@@ -50,7 +50,7 @@ export const useLoginForm = () => {
                 data: getSubmitPayload(),
             });
 
-            login(mapLoginResponseToAuthUser(response), mapLoginResponseToAuthTokens(response));
+            login(mapLoginResponseToAuthUser(response));
             setShowAuthError(false);
 
             return true;
