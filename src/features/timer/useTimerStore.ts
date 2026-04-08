@@ -7,17 +7,11 @@ const FALLBACK_SHORT_BREAK_SECONDS = 5 * 60;
 const FALLBACK_LONG_BREAK_SECONDS = 15 * 60;
 const FOCUS_SESSIONS_PER_SET = 4;
 
-const getDurationForSession = (
+export const getDurationForSession = (
     state: Pick<ITimerState, 'sessionType' | 'focusSeconds' | 'shortBreakSeconds' | 'longBreakSeconds'>
 ) => {
-    if (state.sessionType === 'short_break') {
-        return state.shortBreakSeconds;
-    }
-
-    if (state.sessionType === 'long_break') {
-        return state.longBreakSeconds;
-    }
-
+    if (state.sessionType === 'short_break') return state.shortBreakSeconds;
+    if (state.sessionType === 'long_break') return state.longBreakSeconds;
     return state.focusSeconds;
 };
 

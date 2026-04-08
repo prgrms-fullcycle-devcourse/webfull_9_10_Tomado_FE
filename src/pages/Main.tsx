@@ -2,35 +2,19 @@ import { useMemo } from 'react';
 import { useOutletContext } from 'react-router-dom';
 
 import { formatDate, getTodayDate, DATE_FORMAT } from '@/utils';
-import { Container } from '@@/layout/Container';
-import { DoubleColumnLayout } from '@@/layout/DoubleColumnLayout';
-import { SectionHeader } from '@@/layout/SectionHeader';
-import { Badge } from '@@/ui/Badge';
-import { TimerPanel } from '@@@/timer/components/TimerPanel';
-import { useTimerSession } from '@/features/timer/useTimerSessionView';
-import { TodoPanel } from '@@@/todo/components/TodoPanel';
-import { useTodoStore } from '@@@/todo/useTodoStore';
 
-interface TimerControllerContext {
-    handleToggleTimer: () => void;
-    handleRequestStopTimer: () => void;
-}
+import { Container, DoubleColumnLayout, SectionHeader } from '@@/layout';
+import { Badge } from '@@/ui';
+
+import { TimerPanel, type ITimerControllerContext } from '@@@/timer';
+import { TodoPanel, useTodoStore } from '@@@/todo';
 
 const panelClassName = 'flex flex-col items-center  h-full w-full rounded-2xl bg-white px-6 py-5 shadow-shadow-1';
 const panelHeadingRowClassName = 'flex items-start w-full justify-between';
 const panelHeadingClassName = 'text-2xl font-bold gray-900';
 
 export default function Main() {
-    const { handleToggleTimer, handleRequestStopTimer } = useOutletContext<TimerControllerContext>();
-    const {
-        isRunning,
-        hasStarted,
-        sessionType,
-        sessionIndicatorFilledCount,
-        timerParts,
-        timerProgress,
-        completedSets,
-    } = useTimerSession();
+    const { timerSession, handleToggleTimer, handleRequestStopTimer } = useOutletContext<ITimerControllerContext>();
 
     const todayDate = getTodayDate();
     const today = formatDate(todayDate, DATE_FORMAT.display);
@@ -48,16 +32,16 @@ export default function Main() {
                     <section className={`${panelClassName} relative`}>
                         <div className={panelHeadingRowClassName}>
                             <h2 className={panelHeadingClassName}>TODAY</h2>
-                            <Badge label={`${completedSets}set`} />
+                            <Badge label={`${timerSession.completedSets}set`} />
                         </div>
                         <TimerPanel
-                            hasStarted={hasStarted}
-                            isRunning={isRunning}
-                            sessionType={sessionType}
-                            sessionIndicatorFilledCount={sessionIndicatorFilledCount}
-                            timerMinutes={timerParts.minutes}
-                            timerSeconds={timerParts.seconds}
-                            tomatoProgress={timerProgress}
+                            hasStarted={timerSession.hasStarted}
+                            isRunning={timerSession.isRunning}
+                            sessionType={timerSession.sessionType}
+                            focusSessionInSet={timerSession.focusSessionInSet}
+                            timerMinutes={timerSession.timerParts.minutes}
+                            timerSeconds={timerSession.timerParts.seconds}
+                            tomatoProgress={timerSession.progress}
                             onRequestStop={handleRequestStopTimer}
                             onToggleTimer={handleToggleTimer}
                         />

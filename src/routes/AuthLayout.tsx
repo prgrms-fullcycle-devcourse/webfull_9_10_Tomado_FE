@@ -1,19 +1,21 @@
 import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
+import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
-import { AuthHeader } from '@/components/layout/Header';
-import { useAuthStore } from '@/features/auth';
 import { useGlobalKeyboardShortcuts, useModal } from '@/hooks';
+import { useGetMySettings } from '@/api/generated/users/users';
+
+import { AuthHeader } from '@@/layout';
+
+import { useAuthStore } from '@@@/auth';
 import {
     FocusMode,
     TimerProgressBar,
     useTimerMetadata,
     useTimerNotifications,
     useTimerSessionController,
+    useTimerSessionView,
     useTimerStore,
-} from '@/features/timer';
-import { useGetMySettings } from '@/api/generated/users/users';
-import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { formatTimeParts } from '@/utils/timeUtils';
+} from '@@@/timer';
 
 const LazyBgmPlayerLayer = lazy(() =>
     import('@/features/settings/components/BgmPlayerLayer').then((module) => ({
@@ -26,6 +28,7 @@ export function AuthLayout() {
     const [playerModalOpen, setPlayerModalOpen] = useState(false);
     const [shouldLoadBgmPlayer, setShouldLoadBgmPlayer] = useState(false);
     const [pendingBgmToggle, setPendingBgmToggle] = useState(false);
+
     const location = useLocation();
     const navigate = useNavigate();
     const { showModal } = useModal();
@@ -33,21 +36,18 @@ export function AuthLayout() {
     const settingsQuery = useGetMySettings();
     const isAuth = useAuthStore((state) => state.isAuth);
     const logout = useAuthStore((state) => state.logout);
-    const shouldShowTimerProgressBar = location.pathname !== '/main' && !isFocusMode;
-    const { handleToggleTimer, handleRequestStopTimer } = useTimerSessionController();
 
-    const isRunning = useTimerStore((state) => state.isRunning);
-    const sessionType = useTimerStore((state) => state.sessionType);
-    const remainingSeconds = useTimerStore((state) => state.remainingSeconds);
+    const shouldShowTimerProgressBar = location.pathname !== '/main' && !isFocusMode;
     const setDurations = useTimerStore((state) => state.setDurations);
 
-    const timerParts = formatTimeParts(remainingSeconds);
+    const timerSession = useTimerSessionView();
+    const { handleToggleTimer, handleRequestStopTimer } = useTimerSessionController();
 
     useTimerMetadata({
-        isRunning,
-        sessionType,
-        minutes: timerParts.minutes,
-        seconds: timerParts.seconds,
+        isRunning: timerSession.isRunning,
+        sessionType: timerSession.sessionType,
+        minutes: timerSession.timerParts.minutes,
+        seconds: timerSession.timerParts.seconds,
     });
 
     useTimerNotifications();
@@ -103,12 +103,13 @@ export function AuthLayout() {
                 onLogoutClick={handleLogoutClick}
                 onMusicClick={handleMusicClick}
             />
-            {shouldShowTimerProgressBar ? <TimerProgressBar /> : null}
-            <Outlet context={{ handleToggleTimer, handleRequestStopTimer }} />
+            {shouldShowTimerProgressBar ? <TimerProgressBar timerSession={timerSession} /> : null}
+            <Outlet context={{ timerSession, handleToggleTimer, handleRequestStopTimer }} />
             <FocusMode
                 open={isFocusMode}
                 onMusicClick={handleMusicClick}
                 onClose={() => setIsFocusMode(false)}
+                timerSession={timerSession}
                 handleToggleTimer={handleToggleTimer}
                 handleRequestStopTimer={handleRequestStopTimer}
             />

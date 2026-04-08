@@ -1,6 +1,17 @@
+import type { HTMLAttributes, ReactNode } from 'react';
+import type { useTimerSessionView } from './useTimerSessionView';
+
 export type TTimerSessionType = 'focus' | 'short_break' | 'long_break';
 
 export type TTimerStore = ITimerState & ITimerActions;
+
+export type TDirectionShortcut = 'left' | 'right' | 'up' | 'down';
+
+export interface ITimerControllerContext {
+    timerSession: ReturnType<typeof useTimerSessionView>;
+    handleToggleTimer: () => void;
+    handleRequestStopTimer: () => void;
+}
 
 export interface ITimerDurations {
     focusSeconds: number;
@@ -45,10 +56,43 @@ export interface ITimerPanelProps {
     hasStarted: boolean;
     isRunning: boolean;
     sessionType?: TTimerSessionType;
-    sessionIndicatorFilledCount?: number;
+    focusSessionInSet?: number;
     timerMinutes: string;
     timerSeconds: string;
     tomatoProgress: number;
     onRequestStop: () => void;
     onToggleTimer: () => void;
+}
+export interface ITimerProgressBarProps {
+    timerSession: ReturnType<typeof useTimerSessionView>;
+}
+
+export interface IFocusModeProps extends Omit<HTMLAttributes<HTMLDivElement>, 'children'> {
+    open?: boolean;
+    backgroundIndex?: number;
+    onClose?: () => void;
+    onMusicClick?: () => void;
+    handleToggleTimer: () => void;
+    handleRequestStopTimer: () => void;
+    children?: ReactNode;
+    timerSession: ReturnType<typeof useTimerSessionView>;
+}
+
+export interface ITimerMetadataOptions {
+    isRunning: boolean;
+    sessionType: TTimerSessionType;
+    minutes: string;
+    seconds: string;
+}
+
+export interface IBackgroundTransitionState {
+    previousIndex: number;
+    currentIndex: number;
+    direction: TDirectionShortcut;
+    phase: 'prepare' | 'animate';
+}
+
+export interface IFocusModeBackgroundStoreState {
+    backgroundIndex: number;
+    setBackgroundIndex: (index: number) => void;
 }
