@@ -71,10 +71,6 @@ const refreshSessionViaCookie = async (): Promise<void> => {
     const response = await fetch(buildRequestUrl(REFRESH_PATH), {
         method: 'POST',
         credentials: 'include',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({}),
     });
 
     if (!response.ok) {
