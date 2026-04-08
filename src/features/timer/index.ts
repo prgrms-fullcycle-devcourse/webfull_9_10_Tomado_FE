@@ -6,7 +6,7 @@ export { FocusMode } from './components/FocusMode';
 export { FocusModeBackgroundLayer } from './components/FocusModeBackgroundLayer';
 export { TimerTicker } from './components/TimerTicker';
 
-export { useFocusModeBackground, focusModeBackgrounds } from './useFocusModeBackground';
+export { useFocusModeBackground } from './useFocusModeBackground';
 export { useTimerMetadata } from './useTimerMetadata';
 export { useTimerNotifications } from './useTimerNotifications';
 export { useTimerSessionView } from './useTimerSessionView';

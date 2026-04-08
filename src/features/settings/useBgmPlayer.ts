@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import type { ChangeEvent } from 'react';
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
@@ -12,7 +13,7 @@ import {
     syncAudioTrack,
 } from './bgmAudioRuntime';
 import { bgmStorageKey, getPersistedBgmState } from './bgmStorage';
-import { bgmPlayerItems, bgmTracks } from './tracks';
+import { buildBgmPlayerItems, loadBgmTracks, type BgmTrack } from './tracks';
 
 // INFO: store와 audio 싱글턴이 같은 초기값에서 시작하도록 persisted 상태를 먼저 읽습니다.
 const persistedInitialState = getPersistedBgmState();
@@ -20,8 +21,6 @@ const persistedInitialState = getPersistedBgmState();
 if (bgmAudio) {
     bgmAudio.preload = 'auto';
     bgmAudio.volume = persistedInitialState.playerVolume / 100;
-    syncAudioTrack(bgmTracks, persistedInitialState.currentTrackId);
-    syncAudioCurrentTime(persistedInitialState.currentTime);
 }
 
 interface BgmPlayerStoreState {
@@ -72,60 +71,100 @@ const useBgmPlayerStore = create<BgmPlayerStoreState>()(
     )
 );
 
-if (bgmAudio) {
-    // INFO: audio 엘리먼트 이벤트를 store와 동기화해서 화면 전환 후에도 상태를 이어갑니다.
-    const audio = bgmAudio;
-    const initialState = useBgmPlayerStore.getState();
-    audio.volume = initialState.playerVolume / 100;
-
-    audio.addEventListener('ended', () => {
-        const nextTrackId = moveTrackId(bgmTracks, useBgmPlayerStore.getState().currentTrackId, 1);
-
-        if (!nextTrackId) {
-            useBgmPlayerStore.getState().setPlayerPlaying(false);
-            return;
-        }
-
-        useBgmPlayerStore.getState().setCurrentTrackId(nextTrackId);
-        useBgmPlayerStore.getState().setCurrentTime(0);
-
-        if (useBgmPlayerStore.getState().playerPlaying) {
-            playCurrentTrack(bgmTracks, nextTrackId, () => useBgmPlayerStore.getState().setPlayerPlaying(false));
-        }
-    });
-
-    audio.addEventListener('timeupdate', () => {
-        useBgmPlayerStore.getState().setCurrentTime(audio.currentTime);
-    });
-
-    if (initialState.playerPlaying && audio.paused) {
-        playCurrentTrack(bgmTracks, initialState.currentTrackId, () => {
-            armResumeOnInteraction(bgmTracks, useBgmPlayerStore.getState);
-        });
-    }
-}
-
 export const useBgmPlayer = () => {
+    const [bgmTracks, setBgmTracks] = useState<BgmTrack[]>([]);
     // INFO: 이 훅은 UI가 바로 사용할 핸들러와 현재 재생 상태만 노출합니다.
     const playerVolume = useBgmPlayerStore((state) => state.playerVolume);
     const playerPlaying = useBgmPlayerStore((state) => state.playerPlaying);
     const currentTrackId = useBgmPlayerStore((state) => state.currentTrackId);
-    // const currentTime = useBgmPlayerStore((state) => state.currentTime);
+    const currentTime = useBgmPlayerStore((state) => state.currentTime);
     const setPlayerVolume = useBgmPlayerStore((state) => state.setPlayerVolume);
     const setPlayerPlaying = useBgmPlayerStore((state) => state.setPlayerPlaying);
     const setCurrentTrackId = useBgmPlayerStore((state) => state.setCurrentTrackId);
     const setCurrentTime = useBgmPlayerStore((state) => state.setCurrentTime);
 
+    useEffect(() => {
+        let cancelled = false;
+
+        const loadTracks = async () => {
+            try {
+                const tracks = await loadBgmTracks();
+
+                if (!cancelled) {
+                    setBgmTracks(tracks);
+                }
+            } catch (error) {
+                console.error('BGM 목록을 불러오지 못했습니다.', error);
+            }
+        };
+
+        void loadTracks();
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!bgmAudio || bgmTracks.length === 0) {
+            return;
+        }
+
+        const resolvedTrackId = getTrackById(bgmTracks, currentTrackId)?.id ?? bgmTracks[0]?.id ?? null;
+
+        if (resolvedTrackId !== currentTrackId) {
+            setCurrentTrackId(resolvedTrackId);
+            setCurrentTime(0);
+            return;
+        }
+
+        syncAudioTrack(bgmTracks, resolvedTrackId);
+        syncAudioCurrentTime(currentTime);
+
+        if (playerPlaying && bgmAudio.paused) {
+            playCurrentTrack(bgmTracks, resolvedTrackId, () => {
+                armResumeOnInteraction(bgmTracks, useBgmPlayerStore.getState);
+            });
+        }
+    }, [bgmTracks, currentTime, currentTrackId, playerPlaying, setCurrentTime, setCurrentTrackId]);
+
+    useEffect(() => {
+        if (!bgmAudio || bgmTracks.length === 0) {
+            return;
+        }
+
+        const audio = bgmAudio;
+
+        const handleEnded = () => {
+            const nextTrackId = moveTrackId(bgmTracks, useBgmPlayerStore.getState().currentTrackId, 1);
+
+            if (!nextTrackId) {
+                useBgmPlayerStore.getState().setPlayerPlaying(false);
+                return;
+            }
+
+            useBgmPlayerStore.getState().setCurrentTrackId(nextTrackId);
+            useBgmPlayerStore.getState().setCurrentTime(0);
+
+            if (useBgmPlayerStore.getState().playerPlaying) {
+                playCurrentTrack(bgmTracks, nextTrackId, () => useBgmPlayerStore.getState().setPlayerPlaying(false));
+            }
+        };
+
+        const handleTimeUpdate = () => {
+            useBgmPlayerStore.getState().setCurrentTime(audio.currentTime);
+        };
+
+        audio.addEventListener('ended', handleEnded);
+        audio.addEventListener('timeupdate', handleTimeUpdate);
+
+        return () => {
+            audio.removeEventListener('ended', handleEnded);
+            audio.removeEventListener('timeupdate', handleTimeUpdate);
+        };
+    }, [bgmTracks]);
+
     const currentTrack = getTrackById(bgmTracks, currentTrackId);
-
-    // INFO: 훅 렌더마다 시간을 다시 밀어넣으면 재생 중 위치가 튈 수 있어서 트랙만 동기화합니다.
-    syncAudioTrack(bgmTracks, currentTrackId);
-
-    if (bgmAudio && currentTrack && playerPlaying && bgmAudio.paused) {
-        playCurrentTrack(bgmTracks, currentTrack.id, () => {
-            armResumeOnInteraction(bgmTracks, useBgmPlayerStore.getState);
-        });
-    }
 
     // INFO: input range는 값만 바꾸고 실제 volume 반영은 store setter에서 처리합니다.
     const handlePlayerVolumeChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -194,7 +233,7 @@ export const useBgmPlayer = () => {
         });
     };
 
-    const playerItems = bgmPlayerItems.map((item) => ({
+    const playerItems = buildBgmPlayerItems(bgmTracks).map((item) => ({
         ...item,
         active: currentTrack?.category === item.id,
     }));
@@ -209,5 +248,6 @@ export const useBgmPlayer = () => {
         onPlayerPrevious: handlePlayerPrevious,
         onPlayerNext: handlePlayerNext,
         onPlayerItemSelect: handlePlayerItemSelect,
+        tracksReady: bgmTracks.length > 0,
     };
 };

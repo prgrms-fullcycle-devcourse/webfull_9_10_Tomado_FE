@@ -31,9 +31,10 @@ export const useFocusModeController = ({
     }, [open, showToast]);
 
     // INFO: 배경 슬라이드 컨트롤
-    const { backgroundSlideClassNames, handlePrevBackground, handleNextBackground } = useFocusModeBackground({
-        backgroundIndex,
-    });
+    const { focusModeBackgrounds, backgroundSlideClassNames, handlePrevBackground, handleNextBackground } =
+        useFocusModeBackground({
+            backgroundIndex,
+        });
 
     // INFO: 투두 패널 토글
     const handleTodoExpand = useCallback(() => setIsTodoExpanded(true), []);
@@ -71,6 +72,7 @@ export const useFocusModeController = ({
     return {
         isTodoExpanded,
         handleToggleTodo,
+        focusModeBackgrounds,
         backgroundSlideClassNames,
         handlePrevBackground,
         handleNextBackground,

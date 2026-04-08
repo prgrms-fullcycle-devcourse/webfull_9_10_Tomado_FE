@@ -2,9 +2,7 @@ import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
 import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { useLogout } from '@/api/generated/auth/auth';
-import { useGetMySettings } from '@/api/generated/users/users';
-import { AuthHeader } from '@@/layout';
-import { DEMO_AUTH_USER, useAuthStore } from '@@@/auth';
+import { useGetMyProfile, useGetMySettings } from '@/api/generated/users/users';
 import { useGlobalKeyboardShortcuts, useModal } from '@/hooks';
 import {
     FocusMode,
@@ -16,6 +14,8 @@ import {
     useTimerStore,
     type ITimerDurations,
 } from '@@@/timer';
+import { AuthHeader } from '@@/layout';
+import { DEMO_AUTH_USER, mapUserDtoToAuthUser, useAuthStore } from '@@@/auth';
 
 const LazyBgmPlayerLayer = lazy(() =>
     import('@/features/settings/components/BgmPlayerLayer').then((module) => ({
@@ -36,10 +36,16 @@ export function AuthLayout() {
     const authUser = useAuthStore((state) => state.user);
     const isAuth = useAuthStore((state) => state.isAuth);
     const logout = useAuthStore((state) => state.logout);
+    const updateUser = useAuthStore((state) => state.updateUser);
     const isDemoSession = authUser?.id === DEMO_AUTH_USER.id;
 
     const { mutateAsync: logoutFromServer } = useLogout();
     const settingsQuery = useGetMySettings({ query: { enabled: !isDemoSession && isAuth } });
+    const profileQuery = useGetMyProfile({
+        query: {
+            enabled: !isDemoSession && isAuth,
+        },
+    });
 
     const setDurations = useTimerStore((state) => state.setDurations);
     const timerSession = useTimerSessionView();
@@ -53,7 +59,6 @@ export function AuthLayout() {
         minutes: timerSession.timerParts.minutes,
         seconds: timerSession.timerParts.seconds,
     });
-
     useTimerNotifications();
 
     useGlobalKeyboardShortcuts({
@@ -80,6 +85,14 @@ export function AuthLayout() {
 
         setDurations(next, { resetCurrent: true });
     }, [settingsQuery.data, setDurations]);
+
+    useEffect(() => {
+        if (!profileQuery.data) {
+            return;
+        }
+
+        updateUser(mapUserDtoToAuthUser(profileQuery.data));
+    }, [profileQuery.data, updateUser]);
 
     const handleMusicClick = useCallback(() => {
         setShouldLoadBgmPlayer(true);
@@ -110,6 +123,7 @@ export function AuthLayout() {
     return (
         <>
             <AuthHeader
+                avatarSrc={authUser?.avatarSrc ?? undefined}
                 onFocusModeClick={() => setIsFocusMode(true)}
                 onLogoutClick={handleLogoutClick}
                 onMusicClick={handleMusicClick}

@@ -66,7 +66,7 @@ const readErrorMessage = async (response: Response) => {
     }
 };
 
-/** Refresh 쿠키로 세션 갱신(백엔드가 Set-Cookie로 토큰을 갱신한다고 가정). */
+// INFO: refresh 쿠키를 사용해 세션을 복구합니다.
 const refreshSessionViaCookie = async (): Promise<void> => {
     const response = await fetch(buildRequestUrl(REFRESH_PATH), {
         method: 'POST',
@@ -90,14 +90,16 @@ const refreshSessionOnce = async (): Promise<void> => {
 };
 
 export const customInstance = async <TResponse>(url: string, config: CustomInstanceConfig = {}): Promise<TResponse> => {
-    const { params, headers, ...requestInit } = config;
+    const { params, headers, body, ...requestInit } = config;
+    const isFormDataBody = typeof FormData !== 'undefined' && body instanceof FormData;
 
     const executeRequest = async () =>
         fetch(buildRequestUrl(url, params), {
             ...requestInit,
+            body,
             credentials: 'include',
             headers: {
-                'Content-Type': 'application/json',
+                ...(isFormDataBody ? {} : { 'Content-Type': 'application/json' }),
                 ...headers,
             },
         });

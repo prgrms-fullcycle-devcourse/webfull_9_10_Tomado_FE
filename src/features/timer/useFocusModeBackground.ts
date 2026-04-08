@@ -1,24 +1,21 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { getSupabaseImageUrl } from '@/lib/storage';
+import { getSupabaseImageUrl, listSupabaseImageFiles } from '@/lib/storage';
 
 import { useFocusModeBackgroundStore } from './useFocusModeStore';
 import type { IBackgroundTransitionState, TDirectionShortcut } from './types';
 
-const backgroundFileNames = [
-    'focusModeBG_01.png',
-    'focusModeBG_02.png',
-    'focusModeBG_03.png',
-    'focusModeBG_04.png',
-    'focusModeBG_05.png',
-    'focusModeBG_06.png',
-    'focusModeBG_07.png',
-    'focusModeBG_08.png',
-] as const;
+let focusModeBackgroundsPromise: Promise<string[]> | null = null;
 
-export const focusModeBackgrounds = backgroundFileNames.map((fileName) =>
-    getSupabaseImageUrl(`focus-mode/backgrounds/${fileName}`)
-);
+const loadFocusModeBackgrounds = async () => {
+    if (!focusModeBackgroundsPromise) {
+        focusModeBackgroundsPromise = listSupabaseImageFiles('focus-mode/backgrounds').then((files) =>
+            files.map(({ name }) => getSupabaseImageUrl(`focus-mode/backgrounds/${name}`))
+        );
+    }
+
+    return focusModeBackgroundsPromise;
+};
 
 const getSlideClassName = (index: number, currentIndex: number, transition: IBackgroundTransitionState | null) => {
     if (!transition) {
@@ -55,6 +52,7 @@ interface UseFocusModeBackgroundOptions {
 }
 
 export const useFocusModeBackground = ({ backgroundIndex }: UseFocusModeBackgroundOptions = {}) => {
+    const [focusModeBackgrounds, setFocusModeBackgrounds] = useState<string[]>([]);
     const persistedBackgroundIndex = useFocusModeBackgroundStore((state) => state.backgroundIndex);
     const setPersistedBackgroundIndex = useFocusModeBackgroundStore((state) => state.setBackgroundIndex);
     const [currentBackgroundIndex, setCurrentBackgroundIndex] = useState(() => {
@@ -67,6 +65,28 @@ export const useFocusModeBackground = ({ backgroundIndex }: UseFocusModeBackgrou
     const [backgroundTransition, setBackgroundTransition] = useState<IBackgroundTransitionState | null>(null);
 
     useEffect(() => {
+        let cancelled = false;
+
+        const loadBackgrounds = async () => {
+            try {
+                const backgrounds = await loadFocusModeBackgrounds();
+
+                if (!cancelled) {
+                    setFocusModeBackgrounds(backgrounds);
+                }
+            } catch (error) {
+                console.error('집중모드 배경 목록을 불러오지 못했습니다.', error);
+            }
+        };
+
+        void loadBackgrounds();
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
+
+    useEffect(() => {
         if (focusModeBackgrounds.length === 0) {
             setCurrentBackgroundIndex(0);
             return;
@@ -75,14 +95,14 @@ export const useFocusModeBackground = ({ backgroundIndex }: UseFocusModeBackgrou
         setCurrentBackgroundIndex(
             Math.min(backgroundIndex ?? persistedBackgroundIndex, focusModeBackgrounds.length - 1)
         );
-    }, [backgroundIndex, persistedBackgroundIndex]);
+    }, [backgroundIndex, focusModeBackgrounds.length, persistedBackgroundIndex]);
 
     useEffect(() => {
         focusModeBackgrounds.forEach((src) => {
             const image = new Image();
             image.src = src;
         });
-    }, []);
+    }, [focusModeBackgrounds]);
 
     useEffect(() => {
         if (backgroundTransition?.phase !== 'prepare') {
@@ -132,14 +152,14 @@ export const useFocusModeBackground = ({ backgroundIndex }: UseFocusModeBackgrou
             setCurrentBackgroundIndex(nextIndex);
             setPersistedBackgroundIndex(nextIndex);
         },
-        [backgroundTransition, currentBackgroundIndex, setPersistedBackgroundIndex]
+        [backgroundTransition, currentBackgroundIndex, focusModeBackgrounds.length, setPersistedBackgroundIndex]
     );
 
     const backgroundSlideClassNames = useMemo(() => {
         return focusModeBackgrounds.map((_, index) =>
             getSlideClassName(index, currentBackgroundIndex, backgroundTransition)
         );
-    }, [backgroundTransition, currentBackgroundIndex]);
+    }, [backgroundTransition, currentBackgroundIndex, focusModeBackgrounds]);
 
     return {
         focusModeBackgrounds,

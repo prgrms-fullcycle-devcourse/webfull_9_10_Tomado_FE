@@ -153,12 +153,7 @@ export default function Signup() {
 
                             {submitError ? <p className={errorMessageClassName}>{submitError}</p> : null}
 
-                            <Button
-                                disabled={!isFormValid || isPending}
-                                fullWidth
-                                onClick={handleSubmit}
-                                size='lg'
-                            >
+                            <Button disabled={!isFormValid || isPending} fullWidth onClick={handleSubmit} size='lg'>
                                 {isPending ? '가입 중...' : '회원가입'}
                             </Button>
                         </div>
