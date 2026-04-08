@@ -8,7 +8,7 @@ export const TimerPanel = memo(
         hasStarted,
         isRunning,
         sessionType = 'focus',
-        sessionIndicatorFilledCount = 1,
+        focusSessionInSet = 1,
         timerMinutes,
         timerSeconds,
         tomatoProgress,
@@ -18,7 +18,7 @@ export const TimerPanel = memo(
         return (
             <div>
                 <div className='flex flex-col gap-5 mt-18 mb-8 items-center'>
-                    <SessionIndicator filledCount={sessionIndicatorFilledCount} />
+                    <SessionIndicator filledCount={focusSessionInSet} />
                     <div className='flex gap-5 text-xl mb-8 font-bold'>
                         <span className={sessionType === 'focus' ? 'text-neutral-darker' : 'text-neutral-lighter'}>
                             집중

@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useRef } from 'react';
 
 import { useModal, useToast } from '@/hooks';
-import { useTimerStore } from './useTimerStore';
+import { useTimerStore, getDurationForSession } from './useTimerStore';
 import { useStartPomodoroSession, useEndPomodoroSession } from '@/api/generated/pomodoro/pomodoro';
-import { getInitialSeconds } from './selectors';
 
 export const useTimerSessionController = () => {
     const { showModal } = useModal();
@@ -11,11 +10,9 @@ export const useTimerSessionController = () => {
     const lastHandledCompletedAtRef = useRef<number | null>(null);
 
     const isRunning = useTimerStore((state) => state.isRunning);
+    const initialSeconds = useTimerStore(getDurationForSession);
     const activeSessionId = useTimerStore((state) => state.activeSessionId);
     const sessionType = useTimerStore((state) => state.sessionType);
-    const focusSeconds = useTimerStore((state) => state.focusSeconds);
-    const shortBreakSeconds = useTimerStore((state) => state.shortBreakSeconds);
-    const longBreakSeconds = useTimerStore((state) => state.longBreakSeconds);
     const lastCompletedAt = useTimerStore((state) => state.lastCompletedAt);
 
     const setActiveSessionId = useTimerStore((state) => state.setActiveSessionId);
@@ -27,13 +24,6 @@ export const useTimerSessionController = () => {
 
     const closeStopConfirm = useTimerStore((state) => state.closeStopConfirm);
     const confirmStop = useTimerStore((state) => state.confirmStop);
-
-    const initialSeconds = getInitialSeconds({
-        sessionType,
-        focusSeconds,
-        shortBreakSeconds,
-        longBreakSeconds,
-    });
 
     // INFO: 타이머 토글 핸들러
     const handleToggleTimer = useCallback(async () => {
@@ -163,8 +153,6 @@ export const useTimerSessionController = () => {
         showToast,
         startPomodoroSessionMutation,
     ]);
-
-    // TODO: 세션 타입 변경 시 API 호출
 
     return {
         handleToggleTimer,

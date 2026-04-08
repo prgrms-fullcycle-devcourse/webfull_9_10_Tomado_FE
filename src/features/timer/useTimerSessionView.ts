@@ -1,28 +1,26 @@
 import { useEffect, useMemo, useState } from 'react';
 
-import { useTimerStore } from './useTimerStore';
-import { formatTimeParts } from '@/utils/timeUtils';
-import { getInitialSeconds } from './selectors';
+import { formatTimeLabel, formatTimeParts } from '@/utils';
+import { useTimerStore, getDurationForSession } from './useTimerStore';
 
-export const useTimerSession = () => {
+export const useTimerSessionView = () => {
     const [now, setNow] = useState(() => Date.now());
 
     const isRunning = useTimerStore((state) => state.isRunning);
 
-    const focusSeconds = useTimerStore((state) => state.focusSeconds);
-    const shortBreakSeconds = useTimerStore((state) => state.shortBreakSeconds);
-    const longBreakSeconds = useTimerStore((state) => state.longBreakSeconds);
     const sessionType = useTimerStore((state) => state.sessionType);
+    const initialSeconds = useTimerStore(getDurationForSession);
 
     const remainingSeconds = useTimerStore((state) => state.remainingSeconds);
     const focusSessionInSet = useTimerStore((state) => state.focusSessionInSet);
     const completedSets = useTimerStore((state) => state.completedSets);
-
     const lastTickAt = useTimerStore((state) => state.lastTickAt);
 
     // INFO: 타이머 실행 중일 시, 현재 시각 갱신하는 루프
     useEffect(() => {
-        if (!isRunning) return;
+        if (!isRunning) {
+            return;
+        }
 
         let frameId = 0;
 
@@ -31,19 +29,12 @@ export const useTimerSession = () => {
             setNow(Date.now());
             frameId = window.requestAnimationFrame(update);
         };
+
         frameId = window.requestAnimationFrame(update);
 
         // 컴포넌트 언마운트 또는 해당 effect가 다시 실행되기 전에 애니메이션 프레임 정리
         return () => window.cancelAnimationFrame(frameId);
     }, [isRunning]);
-
-    // INFO: 타이머 세션 타입에 따라 초기 시간 계산
-    const initialSeconds = getInitialSeconds({
-        sessionType,
-        focusSeconds,
-        shortBreakSeconds,
-        longBreakSeconds,
-    });
 
     // INFO: 시각적으로 표시할 남은 시간 계산
     const visualRemainingSeconds = useMemo(() => {
@@ -57,20 +48,26 @@ export const useTimerSession = () => {
 
     // INFO: 타이머 파트 계산
     const timerParts = useMemo(() => formatTimeParts(Math.ceil(visualRemainingSeconds)), [visualRemainingSeconds]);
+    const timeLabel = useMemo(() => formatTimeLabel(Math.ceil(visualRemainingSeconds)), [visualRemainingSeconds]);
 
     // INFO: 진행률 계산
     const progress = useMemo(
-        () => (initialSeconds - visualRemainingSeconds) / initialSeconds,
+        () =>
+            initialSeconds <= 0
+                ? 0
+                : Math.min(1, Math.max(0, (initialSeconds - visualRemainingSeconds) / initialSeconds)),
         [initialSeconds, visualRemainingSeconds]
     );
 
     return {
-        sessionType,
         isRunning,
-        timerParts,
+        sessionType,
         completedSets,
+        visualRemainingSeconds,
+        timerParts,
+        timeLabel,
+        progress,
         hasStarted: remainingSeconds !== initialSeconds,
-        sessionIndicatorFilledCount: focusSessionInSet,
-        timerProgress: progress,
+        focusSessionInSet,
     };
 };
