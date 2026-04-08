@@ -5,7 +5,7 @@
  * 포모도로 타이머 + 투두리스트 + 데일리로그 + 회고록을 통합한 생산성 기록 서비스
 
 ## 인증
-보호된 엔드포인트는 `Authorization: Bearer {access_token}` 헤더가 필요합니다.
+보호된 엔드포인트는 `Authorization: Bearer {access_token}` 헤더 또는 `access_token` 쿠키가 필요합니다.
 Access Token 만료 시 `/auth/refresh`로 재발급하세요.
 
 ## 삭제 정책
@@ -34,6 +34,7 @@ import type {
     UnauthorizedResponse,
     UpdateProfileRequest,
     UpdateSettingsRequest,
+    UploadMyAvatarBody,
     User,
     UserSettings,
 } from '../model';
@@ -163,7 +164,7 @@ export const prefetchGetMyProfileQuery = async <
 };
 
 /**
- * 닉네임 또는 아바타 URL 수정. 변경할 필드만 전송 가능.
+ * 닉네임 수정. 변경할 필드만 전송 가능.
  * @summary 프로필 수정
  */
 export const getUpdateMyProfileUrl = () => {
@@ -234,6 +235,124 @@ export const useUpdateMyProfile = <TError = Error | UnauthorizedResponse, TConte
     queryClient?: QueryClient
 ): UseMutationResult<Awaited<ReturnType<typeof updateMyProfile>>, TError, { data: UpdateProfileRequest }, TContext> => {
     return useMutation(getUpdateMyProfileMutationOptions(options), queryClient);
+};
+/**
+ * 현재 로그인한 사용자의 프로필 이미지를 업로드하거나 교체합니다.
+이미 등록된 이미지가 있으면 삭제 후 새 파일 1개만 유지합니다.
+
+ * @summary 프로필 이미지 업로드/교체
+ */
+export const getUploadMyAvatarUrl = () => {
+    return `/api/v1/users/me/avatar`;
+};
+
+export const uploadMyAvatar = async (uploadMyAvatarBody: UploadMyAvatarBody, options?: RequestInit): Promise<User> => {
+    const formData = new FormData();
+    formData.append(`avatar`, uploadMyAvatarBody.avatar);
+
+    return customInstance<User>(getUploadMyAvatarUrl(), {
+        ...options,
+        method: 'POST',
+        body: formData,
+    });
+};
+
+export const getUploadMyAvatarMutationOptions = <TError = Error | UnauthorizedResponse, TContext = unknown>(options?: {
+    mutation?: UseMutationOptions<
+        Awaited<ReturnType<typeof uploadMyAvatar>>,
+        TError,
+        { data: UploadMyAvatarBody },
+        TContext
+    >;
+    request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<Awaited<ReturnType<typeof uploadMyAvatar>>, TError, { data: UploadMyAvatarBody }, TContext> => {
+    const mutationKey = ['uploadMyAvatar'];
+    const { mutation: mutationOptions, request: requestOptions } = options
+        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+            ? options
+            : { ...options, mutation: { ...options.mutation, mutationKey } }
+        : { mutation: { mutationKey }, request: undefined };
+
+    const mutationFn: MutationFunction<Awaited<ReturnType<typeof uploadMyAvatar>>, { data: UploadMyAvatarBody }> = (
+        props
+    ) => {
+        const { data } = props ?? {};
+
+        return uploadMyAvatar(data, requestOptions);
+    };
+
+    return { mutationFn, ...mutationOptions };
+};
+
+export type UploadMyAvatarMutationResult = NonNullable<Awaited<ReturnType<typeof uploadMyAvatar>>>;
+export type UploadMyAvatarMutationBody = UploadMyAvatarBody;
+export type UploadMyAvatarMutationError = Error | UnauthorizedResponse;
+
+/**
+ * @summary 프로필 이미지 업로드/교체
+ */
+export const useUploadMyAvatar = <TError = Error | UnauthorizedResponse, TContext = unknown>(
+    options?: {
+        mutation?: UseMutationOptions<
+            Awaited<ReturnType<typeof uploadMyAvatar>>,
+            TError,
+            { data: UploadMyAvatarBody },
+            TContext
+        >;
+        request?: SecondParameter<typeof customInstance>;
+    },
+    queryClient?: QueryClient
+): UseMutationResult<Awaited<ReturnType<typeof uploadMyAvatar>>, TError, { data: UploadMyAvatarBody }, TContext> => {
+    return useMutation(getUploadMyAvatarMutationOptions(options), queryClient);
+};
+/**
+ * 현재 로그인한 사용자의 프로필 이미지를 삭제하고 기본 아바타 상태로 되돌립니다.
+ * @summary 프로필 이미지 삭제
+ */
+export const getDeleteMyAvatarUrl = () => {
+    return `/api/v1/users/me/avatar`;
+};
+
+export const deleteMyAvatar = async (options?: RequestInit): Promise<User> => {
+    return customInstance<User>(getDeleteMyAvatarUrl(), {
+        ...options,
+        method: 'DELETE',
+    });
+};
+
+export const getDeleteMyAvatarMutationOptions = <TError = UnauthorizedResponse, TContext = unknown>(options?: {
+    mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteMyAvatar>>, TError, void, TContext>;
+    request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<Awaited<ReturnType<typeof deleteMyAvatar>>, TError, void, TContext> => {
+    const mutationKey = ['deleteMyAvatar'];
+    const { mutation: mutationOptions, request: requestOptions } = options
+        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+            ? options
+            : { ...options, mutation: { ...options.mutation, mutationKey } }
+        : { mutation: { mutationKey }, request: undefined };
+
+    const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteMyAvatar>>, void> = () => {
+        return deleteMyAvatar(requestOptions);
+    };
+
+    return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteMyAvatarMutationResult = NonNullable<Awaited<ReturnType<typeof deleteMyAvatar>>>;
+
+export type DeleteMyAvatarMutationError = UnauthorizedResponse;
+
+/**
+ * @summary 프로필 이미지 삭제
+ */
+export const useDeleteMyAvatar = <TError = UnauthorizedResponse, TContext = unknown>(
+    options?: {
+        mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteMyAvatar>>, TError, void, TContext>;
+        request?: SecondParameter<typeof customInstance>;
+    },
+    queryClient?: QueryClient
+): UseMutationResult<Awaited<ReturnType<typeof deleteMyAvatar>>, TError, void, TContext> => {
+    return useMutation(getDeleteMyAvatarMutationOptions(options), queryClient);
 };
 /**
  * 사용자 앱 설정 (포모도로 시간, 자동이월 등) 조회.
