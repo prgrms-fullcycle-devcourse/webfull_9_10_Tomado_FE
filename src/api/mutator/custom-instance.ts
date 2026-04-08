@@ -23,7 +23,7 @@ export interface CustomInstanceConfig extends Omit<RequestInit, 'body'> {
 }
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-const REFRESH_PATH = '/auth/refresh';
+const REFRESH_PATH = '/api/v1/auth/refresh';
 
 // INFO: 여러 요청이 동시에 401을 받아도 refresh 요청은 한 번만 보내기 위한 공유 promise입니다.
 let refreshPromise: Promise<AuthTokens | null> | null = null;

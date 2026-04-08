@@ -11,6 +11,7 @@ import {
     useTimerSessionController,
     useTimerStore,
 } from '@/features/timer';
+import { useLogout } from '@/api/generated/auth/auth';
 import { useGetMySettings } from '@/api/generated/users/users';
 import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { formatTimeParts } from '@/utils/timeUtils';
@@ -31,6 +32,7 @@ export function AuthLayout() {
     const { showModal } = useModal();
 
     const settingsQuery = useGetMySettings();
+    const { mutateAsync: logoutFromServer } = useLogout();
     const isAuth = useAuthStore((state) => state.isAuth);
     const logout = useAuthStore((state) => state.logout);
     const shouldShowTimerProgressBar = location.pathname !== '/main' && !isFocusMode;
@@ -87,12 +89,18 @@ export function AuthLayout() {
             description: '로그아웃하면 다시 로그인해야 해요. 그래도 로그아웃 하시겠어요?',
             tone: 'danger',
             confirmLabel: '로그아웃',
-            onConfirm: () => {
-                logout();
-                navigate('/', { replace: true });
+            onConfirm: async () => {
+                try {
+                    await logoutFromServer();
+                } catch {
+                    // 서버 로그아웃이 실패해도 클라이언트 인증 상태는 제거합니다.
+                } finally {
+                    logout();
+                    navigate('/', { replace: true });
+                }
             },
         });
-    }, [logout, navigate, showModal]);
+    }, [logout, logoutFromServer, navigate, showModal]);
 
     if (!isAuth) return <Navigate to='/' replace />;
 
