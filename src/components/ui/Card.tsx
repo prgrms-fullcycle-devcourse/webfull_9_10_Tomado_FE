@@ -2,6 +2,8 @@ import { useState } from 'react';
 import type { ButtonHTMLAttributes, HTMLAttributes, MouseEvent, MouseEventHandler } from 'react';
 
 import { Icon, Tag } from '.';
+import type { Retro } from '@/pages/Retro';
+import { RETRO_CATEGORY_NAME } from '@/features/log/retroConstants';
 
 export type DailyLogCardState = 'default' | 'selected' | 'hover';
 export type RetroCardState = DailyLogCardState | 'empty';
@@ -20,13 +22,14 @@ export interface DailyLogCardProps extends HTMLAttributes<HTMLDivElement>, CardA
 }
 
 export interface RetroCategoryItem {
+    type: string;
     label: string;
     iconName: string;
     tone: RetroCategoryTone;
 }
 
 export interface RetroCardProps extends HTMLAttributes<HTMLDivElement>, CardActionProps {
-    date?: string;
+    retro?: Retro;
     categories?: RetroCategoryItem[];
     state?: RetroCardState;
     emptyText?: string;
@@ -104,11 +107,15 @@ const getRetroCategoryItemClassName = (tone: RetroCategoryTone) => {
 const retroEmptyClassName =
     'flex min-h-44 w-full items-center justify-center rounded-[1.75rem] text-center text-3xl leading-tight font-bold text-neutral';
 
+const capitalize = (str: string) => {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+};
+
 const defaultCategories = [
-    { label: '기술', iconName: 'tech', tone: 'danger' },
-    { label: '결정', iconName: 'decision', tone: 'warning' },
-    { label: '소통', iconName: 'communication', tone: 'info' },
-    { label: '감정', iconName: 'emotion', tone: 'success' },
+    { type: capitalize(RETRO_CATEGORY_NAME.TECH), label: '기술', iconName: 'tech', tone: 'danger' },
+    { type: capitalize(RETRO_CATEGORY_NAME.DECISION), label: '결정', iconName: 'decision', tone: 'warning' },
+    { type: capitalize(RETRO_CATEGORY_NAME.COMMUNICATION), label: '소통', iconName: 'communication', tone: 'info' },
+    { type: capitalize(RETRO_CATEGORY_NAME.EMOTION), label: '감정', iconName: 'emotion', tone: 'success' },
 ] satisfies NonNullable<RetroCardProps['categories']>;
 
 export const DailyLogCard = ({
@@ -171,7 +178,7 @@ export const DailyLogCard = ({
 };
 
 export const RetroCard = ({
-    date = '',
+    retro,
     categories = defaultCategories,
     state = 'default',
     emptyText = '아직 작성된 회고가 없습니다.',
@@ -209,6 +216,29 @@ export const RetroCard = ({
         onDeleteClick?.(event);
     };
 
+    const relativeDate = (targetDate: string | undefined) => {
+        if (!targetDate) return;
+
+        const now = new Date();
+        const target = new Date(targetDate);
+
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const targetDay = new Date(target.getFullYear(), target.getMonth(), target.getDate());
+
+        const diffTime = today.getTime() - targetDay.getTime();
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 0) return '오늘';
+        if (diffDays === 1) return '어제';
+        if (diffDays <= 3) return `${diffDays}일 전`;
+
+        // 그 이상은 날짜 출력
+        const m = String(target.getMonth() + 1);
+        const d = String(target.getDate());
+
+        return `${m}월 ${d}일`;
+    };
+
     return (
         <div
             {...props}
@@ -218,7 +248,7 @@ export const RetroCard = ({
             onMouseLeave={handleMouseLeave}
         >
             <div className={retroDateRowClassName}>
-                <p className={retroDateClassName}>{date}</p>
+                <p className={retroDateClassName}>{relativeDate(retro?.retro_date)}</p>
                 {shouldShowDeleteAction ? (
                     <button
                         {...deleteButtonProps}
@@ -234,6 +264,8 @@ export const RetroCard = ({
 
             <div className={retroCategoryListClassName}>
                 {categories.map((category) => {
+                    if (!retro?.template_types.includes(category.type)) return;
+
                     return (
                         <Tag
                             key={`${category.iconName}-${category.label}`}

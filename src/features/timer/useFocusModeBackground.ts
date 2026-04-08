@@ -3,15 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { getSupabaseImageUrl, listSupabaseImageFiles } from '@/lib/storage';
 
 import { useFocusModeBackgroundStore } from './useFocusModeStore';
-
-type SlideDirection = 'next' | 'prev';
-
-interface BackgroundTransitionState {
-    previousIndex: number;
-    currentIndex: number;
-    direction: SlideDirection;
-    phase: 'prepare' | 'animate';
-}
+import type { IBackgroundTransitionState, TDirectionShortcut } from './types';
 
 let focusModeBackgroundsPromise: Promise<string[]> | null = null;
 
@@ -25,7 +17,7 @@ const loadFocusModeBackgrounds = async () => {
     return focusModeBackgroundsPromise;
 };
 
-const getSlideClassName = (index: number, currentIndex: number, transition: BackgroundTransitionState | null) => {
+const getSlideClassName = (index: number, currentIndex: number, transition: IBackgroundTransitionState | null) => {
     if (!transition) {
         if (index === currentIndex) {
             return 'translate-x-0 opacity-100 z-10';
@@ -41,18 +33,18 @@ const getSlideClassName = (index: number, currentIndex: number, transition: Back
             return 'translate-x-0 opacity-100 z-10';
         }
 
-        return direction === 'next' ? '-translate-x-full opacity-100 z-10' : 'translate-x-full opacity-100 z-10';
+        return direction === 'right' ? '-translate-x-full opacity-100 z-10' : 'translate-x-full opacity-100 z-10';
     }
 
     if (index === nextIndex) {
         if (phase === 'prepare') {
-            return direction === 'next' ? 'translate-x-full opacity-100 z-20' : '-translate-x-full opacity-100 z-20';
+            return direction === 'right' ? 'translate-x-full opacity-100 z-20' : '-translate-x-full opacity-100 z-20';
         }
 
         return 'translate-x-0 opacity-100 z-20';
     }
 
-    return direction === 'next' ? 'translate-x-full opacity-0 z-0' : '-translate-x-full opacity-0 z-0';
+    return direction === 'right' ? 'translate-x-full opacity-0 z-0' : '-translate-x-full opacity-0 z-0';
 };
 
 interface UseFocusModeBackgroundOptions {
@@ -70,7 +62,7 @@ export const useFocusModeBackground = ({ backgroundIndex }: UseFocusModeBackgrou
 
         return Math.min(backgroundIndex ?? persistedBackgroundIndex, focusModeBackgrounds.length - 1);
     });
-    const [backgroundTransition, setBackgroundTransition] = useState<BackgroundTransitionState | null>(null);
+    const [backgroundTransition, setBackgroundTransition] = useState<IBackgroundTransitionState | null>(null);
 
     useEffect(() => {
         let cancelled = false;
@@ -137,13 +129,13 @@ export const useFocusModeBackground = ({ backgroundIndex }: UseFocusModeBackgrou
     }, [backgroundTransition]);
 
     const startBackgroundTransition = useCallback(
-        (direction: SlideDirection) => {
+        (direction: TDirectionShortcut) => {
             if (focusModeBackgrounds.length <= 1 || backgroundTransition) {
                 return;
             }
 
             const nextIndex =
-                direction === 'next'
+                direction === 'right'
                     ? currentBackgroundIndex === focusModeBackgrounds.length - 1
                         ? 0
                         : currentBackgroundIndex + 1
@@ -173,8 +165,8 @@ export const useFocusModeBackground = ({ backgroundIndex }: UseFocusModeBackgrou
         focusModeBackgrounds,
         backgroundSlideClassNames,
         currentBackgroundIndex,
-        handlePrevBackground: useCallback(() => startBackgroundTransition('prev'), [startBackgroundTransition]),
-        handleNextBackground: useCallback(() => startBackgroundTransition('next'), [startBackgroundTransition]),
+        handlePrevBackground: useCallback(() => startBackgroundTransition('left'), [startBackgroundTransition]),
+        handleNextBackground: useCallback(() => startBackgroundTransition('right'), [startBackgroundTransition]),
         getBackgroundSlideClassName: (index: number) =>
             getSlideClassName(index, currentBackgroundIndex, backgroundTransition),
     };

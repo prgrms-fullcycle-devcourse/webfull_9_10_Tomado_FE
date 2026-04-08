@@ -1,12 +1,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-interface FocusModeBackgroundStoreState {
-    backgroundIndex: number;
-    setBackgroundIndex: (index: number) => void;
-}
+import type { IFocusModeBackgroundStoreState } from './types';
 
-export const useFocusModeBackgroundStore = create<FocusModeBackgroundStoreState>()(
+export const useFocusModeBackgroundStore = create<IFocusModeBackgroundStoreState>()(
     persist(
         (set) => ({
             backgroundIndex: 0,

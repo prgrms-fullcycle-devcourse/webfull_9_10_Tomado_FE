@@ -1,6 +1,6 @@
 import { queryClient } from '@/api/queryClient';
 import { getGetMyProfileQueryKey } from '@/api/generated/users/users';
-import { deleteUserAvatar, mapUserResponseToAuthUser, uploadUserAvatar, useAuthStore } from '@/features/auth';
+import { deleteUserAvatar, mapUserDtoToAuthUser, uploadUserAvatar, useAuthStore } from '@/features/auth';
 import { Input, Toggle } from '@/components/form';
 import { CenteredLayout, Container, SectionHeader } from '@/components/layout';
 import { Button, Icon } from '@/components/ui';
@@ -162,7 +162,7 @@ export default function My() {
 
         try {
             const nextUser = await uploadUserAvatar(selectedFile);
-            updateUser(mapUserResponseToAuthUser(nextUser));
+            updateUser(mapUserDtoToAuthUser(nextUser));
             void queryClient.invalidateQueries({ queryKey: getGetMyProfileQueryKey() });
             showToast({
                 message: '프로필 이미지를 변경했어요',
@@ -189,7 +189,7 @@ export default function My() {
 
         try {
             const nextUser = await deleteUserAvatar();
-            updateUser(mapUserResponseToAuthUser(nextUser));
+            updateUser(mapUserDtoToAuthUser(nextUser));
             void queryClient.invalidateQueries({ queryKey: getGetMyProfileQueryKey() });
             showToast({
                 message: '프로필 이미지를 삭제했어요',
