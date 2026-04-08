@@ -9,7 +9,7 @@ import { Button } from '@@/ui/Button';
 import { Icon } from '@@/ui/Icon/Icon';
 import { PlayerButton } from '@@/ui/PlayerButton';
 import { TodoPanel } from '@@@/todo';
-import { focusModeBackgrounds, useFocusModeBackground, FocusModeBackgroundLayer, SessionIndicator } from '@@@/timer';
+import { useFocusModeBackground, FocusModeBackgroundLayer, SessionIndicator } from '@@@/timer';
 
 const backgroundNavButtonWrapperClassName = 'bottom-0 group absolute inset-y-40 z-30 w-28 hover:cursor-pointer';
 
@@ -47,9 +47,10 @@ export const FocusMode = ({
     const wasOpenRef = useRef(false);
     const [isTodoExpanded, setIsTodoExpanded] = useState(false);
     const { showToast } = useToast();
-    const { backgroundSlideClassNames, handleNextBackground, handlePrevBackground } = useFocusModeBackground({
-        backgroundIndex,
-    });
+    const { focusModeBackgrounds, backgroundSlideClassNames, handleNextBackground, handlePrevBackground } =
+        useFocusModeBackground({
+            backgroundIndex,
+        });
 
     const isRunning = useTimerStore((state) => state.isRunning);
     const remainingSeconds = useTimerStore((state) => state.remainingSeconds);
