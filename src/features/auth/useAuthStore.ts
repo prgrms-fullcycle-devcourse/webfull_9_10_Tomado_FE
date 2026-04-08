@@ -8,6 +8,7 @@ interface AuthStoreState {
     user: AuthUser | null;
     tokens: AuthTokens | null;
     login: (user: AuthUser, tokens?: AuthTokens | null) => void;
+    updateUser: (updates: Partial<AuthUser>) => void;
     setTokens: (tokens: AuthTokens | null) => void;
     logout: () => void;
 }
@@ -25,6 +26,12 @@ export const useAuthStore = create<AuthStoreState>()(
                     user,
                     tokens,
                 });
+            },
+            updateUser: (updates) => {
+                set((state) => ({
+                    ...state,
+                    user: state.user ? { ...state.user, ...updates } : state.user,
+                }));
             },
             setTokens: (tokens) => {
                 // INFO: refresh 성공 후에는 사용자 정보는 유지하고 토큰만 교체합니다.

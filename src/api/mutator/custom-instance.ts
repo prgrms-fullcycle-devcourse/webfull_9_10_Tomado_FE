@@ -125,14 +125,16 @@ const refreshTokens = async () => {
 };
 
 export const customInstance = async <TResponse>(url: string, config: CustomInstanceConfig = {}): Promise<TResponse> => {
-    const { params, headers, ...requestInit } = config;
+    const { params, headers, body, ...requestInit } = config;
+    const isFormDataBody = typeof FormData !== 'undefined' && body instanceof FormData;
 
     // INFO: 생성된 모든 API 호출은 이 함수로 들어오며, base URL과 인증 헤더를 공통 적용합니다.
     const executeRequest = async (accessToken?: string) =>
         fetch(buildRequestUrl(url, params), {
             ...requestInit,
+            body,
             headers: {
-                'Content-Type': 'application/json',
+                ...(isFormDataBody ? {} : { 'Content-Type': 'application/json' }),
                 ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
                 ...headers,
             },

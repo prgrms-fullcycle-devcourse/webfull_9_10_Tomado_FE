@@ -1,18 +1,26 @@
+import { queryClient } from '@/api/queryClient';
+import { getGetMyProfileQueryKey } from '@/api/generated/users/users';
+import { deleteUserAvatar, mapUserResponseToAuthUser, uploadUserAvatar, useAuthStore } from '@/features/auth';
 import { Input, Toggle } from '@/components/form';
 import { CenteredLayout, Container, SectionHeader } from '@/components/layout';
 import { Button, Icon } from '@/components/ui';
 import { useModal, useToast } from '@/hooks';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 export default function My() {
     const panelClassName =
         'flex h-full min-h-0 w-full flex-col items-center rounded-2xl bg-white px-6 py-5 shadow-shadow-1';
+    const profileImageClassName = 'block size-full rounded-full object-cover bg-primary';
 
+    const user = useAuthStore((state) => state.user);
+    const updateUser = useAuthStore((state) => state.updateUser);
     const [name, setName] = useState('');
     const [focusTime, setFocusTime] = useState(0);
     const [shortBreakTime, setShortBreakTime] = useState(0);
     const [longBreakTime, setLongBreakTime] = useState(0);
     const [todoToggle, setTodoToggle] = useState(true);
+    const [isAvatarUploading, setIsAvatarUploading] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement | null>(null);
 
     const { showToast } = useToast();
     const { showModal } = useModal();
@@ -42,21 +50,21 @@ export default function My() {
         longBreakTime: 30,
     };
 
+    const profileNickname = user?.nickname ?? dummyUser.nickname;
+    const profileAvatarSrc = user?.avatarSrc ?? null;
+    const hasAvatar = Boolean(profileAvatarSrc);
+
     useEffect(() => {
-        setName(dummyUser.nickname);
+        setName(profileNickname);
         setFocusTime(dummySettings.focus_min | initialTime.focusTime);
         setShortBreakTime(dummySettings.short_break_min | initialTime.shortBreakTime);
         setLongBreakTime(dummySettings.long_break_min | initialTime.longBreakTime);
         setTodoToggle(dummySettings.auto_carry_todo);
-    }, []);
+    }, [profileNickname]);
 
-    const isActiveNameSaveBtn = (): boolean => {
-        if (name.length >= 2 && name.length <= 20 && name !== dummyUser.nickname) {
-            return false;
-        }
-
-        return true;
-    };
+    const isNameSaveDisabled = useMemo(() => {
+        return !(name.length >= 2 && name.length <= 20 && name !== profileNickname);
+    }, [name, profileNickname]);
 
     const handleNameSave = () => {
         // TODO: 닉네임 저장 로직
@@ -115,6 +123,99 @@ export default function My() {
         });
     };
 
+    const handleAvatarPickerOpen = () => {
+        if (!user?.id || isAvatarUploading) {
+            return;
+        }
+
+        fileInputRef.current?.click();
+    };
+
+    const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const selectedFile = event.target.files?.[0];
+
+        if (!selectedFile || !user?.id) {
+            return;
+        }
+
+        if (!selectedFile.type.startsWith('image/')) {
+            showToast({
+                message: '이미지 파일만 업로드할 수 있어요',
+                iconName: 'error',
+                duration: 3000,
+            });
+            event.target.value = '';
+            return;
+        }
+
+        if (selectedFile.size > 5 * 1024 * 1024) {
+            showToast({
+                message: '프로필 이미지는 5MB 이하만 업로드할 수 있어요',
+                iconName: 'error',
+                duration: 3000,
+            });
+            event.target.value = '';
+            return;
+        }
+
+        setIsAvatarUploading(true);
+
+        try {
+            const nextUser = await uploadUserAvatar(selectedFile);
+            updateUser(mapUserResponseToAuthUser(nextUser));
+            void queryClient.invalidateQueries({ queryKey: getGetMyProfileQueryKey() });
+            showToast({
+                message: '프로필 이미지를 변경했어요',
+                iconName: 'check',
+                duration: 3000,
+            });
+        } catch (error) {
+            console.error('프로필 이미지 업로드에 실패했습니다.', error);
+            showToast({
+                message: '프로필 이미지 업로드에 실패했어요',
+                iconName: 'error',
+                duration: 3000,
+            });
+        } finally {
+            setIsAvatarUploading(false);
+            event.target.value = '';
+        }
+    };
+
+    const handleAvatarDelete = async () => {
+        if (!user?.id || !hasAvatar) {
+            return;
+        }
+
+        try {
+            const nextUser = await deleteUserAvatar();
+            updateUser(mapUserResponseToAuthUser(nextUser));
+            void queryClient.invalidateQueries({ queryKey: getGetMyProfileQueryKey() });
+            showToast({
+                message: '프로필 이미지를 삭제했어요',
+                iconName: 'check',
+                duration: 3000,
+            });
+        } catch (error) {
+            console.error('프로필 이미지 삭제에 실패했습니다.', error);
+            showToast({
+                message: '프로필 이미지 삭제에 실패했어요',
+                iconName: 'error',
+                duration: 3000,
+            });
+        }
+    };
+
+    const handleAvatarDeleteConfirm = () => {
+        showModal({
+            title: '프로필 이미지 삭제',
+            description: '현재 프로필 이미지를 삭제하고 기본 아이콘으로 되돌릴까요?',
+            confirmLabel: '삭제하기',
+            tone: 'danger',
+            onConfirm: handleAvatarDelete,
+        });
+    };
+
     return (
         <Container>
             <CenteredLayout>
@@ -123,14 +224,49 @@ export default function My() {
                         <SectionHeader title='계정 관리' type='sub' />
                         <div className='my-4'>
                             <p className='ml-1 mb-1'>프로필</p>
-                            <div className='w-[100px] h-[100px] relative'>
-                                {/* {avatarSrc ? (
-                            <img alt='사용자 아바타' className={profileImageClassName} src={avatarSrc} />
-                            ) : ( */}
-                                <Icon name='avatar' size={100} />
-                                {/* )} */}
-                                <div className='w-[35px] h-[35px] flex justify-center items-center absolute right-0 bottom-0 border-1 border-(--color-tomato-50) rounded-full bg-primary'>
-                                    <Icon name='edit' color='color-white' size={20} />
+                            <div className='flex items-end gap-4'>
+                                <div className='w-[100px] h-[100px] relative shrink-0'>
+                                    {profileAvatarSrc ? (
+                                        <img
+                                            alt='사용자 아바타'
+                                            className={profileImageClassName}
+                                            src={profileAvatarSrc}
+                                        />
+                                    ) : (
+                                        <Icon name='avatar' size={100} />
+                                    )}
+                                    <button
+                                        aria-label='프로필 이미지 변경'
+                                        className='w-[35px] h-[35px] flex justify-center items-center absolute right-0 bottom-0 border-1 border-(--color-tomato-50) rounded-full bg-primary hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-60'
+                                        disabled={!user?.id || isAvatarUploading}
+                                        onClick={handleAvatarPickerOpen}
+                                        type='button'
+                                    >
+                                        <Icon name='edit' color='color-white' size={20} />
+                                    </button>
+                                    <input
+                                        accept='image/*'
+                                        className='hidden'
+                                        onChange={handleAvatarChange}
+                                        ref={fileInputRef}
+                                        type='file'
+                                    />
+                                </div>
+                                <div className='flex flex-col gap-2'>
+                                    <Button
+                                        disabled={!user?.id || isAvatarUploading}
+                                        onClick={handleAvatarPickerOpen}
+                                        variant='outline'
+                                    >
+                                        {isAvatarUploading ? '업로드 중...' : '이미지 업로드'}
+                                    </Button>
+                                    <Button
+                                        disabled={!hasAvatar || isAvatarUploading}
+                                        onClick={handleAvatarDeleteConfirm}
+                                        variant='ghost'
+                                    >
+                                        이미지 삭제
+                                    </Button>
                                 </div>
                             </div>
                         </div>
@@ -139,7 +275,7 @@ export default function My() {
                             <p className='ml-1 mb-1'>닉네임</p>
                             <div className='flex'>
                                 <Input className='mr-2' value={name} onChange={(e) => setName(e.target.value)} />
-                                <Button onClick={handleNameSave} disabled={isActiveNameSaveBtn()}>
+                                <Button onClick={handleNameSave} disabled={isNameSaveDisabled}>
                                     저장
                                 </Button>
                             </div>

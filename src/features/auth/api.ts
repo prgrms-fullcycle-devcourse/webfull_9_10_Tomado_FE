@@ -1,3 +1,4 @@
+import type { User } from '@/api/generated/model/user';
 import type { Login200 } from '@/api/generated/model/login200';
 import type { AuthTokens, AuthUser } from './types';
 
@@ -6,6 +7,13 @@ export const mapLoginResponseToAuthUser = (response: Login200): AuthUser => ({
     loginId: response.user?.login_id ?? '',
     nickname: response.user?.nickname ?? '',
     avatarSrc: response.user?.avatar_url ?? null,
+});
+
+export const mapUserResponseToAuthUser = (response: User): AuthUser => ({
+    id: response.id ?? '',
+    loginId: response.login_id ?? '',
+    nickname: response.nickname ?? '',
+    avatarSrc: response.avatar_url ?? null,
 });
 
 export const mapLoginResponseToAuthTokens = (response: Login200): AuthTokens => ({

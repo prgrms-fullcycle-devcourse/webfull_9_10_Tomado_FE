@@ -1,7 +1,7 @@
 import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
 
 import { AuthHeader } from '@/components/layout/Header';
-import { useAuthStore } from '@/features/auth';
+import { mapUserResponseToAuthUser, useAuthStore } from '@/features/auth';
 import { useGlobalKeyboardShortcuts, useModal } from '@/hooks';
 import {
     FocusMode,
@@ -11,7 +11,7 @@ import {
     useTimerSessionController,
     useTimerStore,
 } from '@/features/timer';
-import { useGetMySettings } from '@/api/generated/users/users';
+import { useGetMyProfile, useGetMySettings } from '@/api/generated/users/users';
 import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { formatTimeParts } from '@/utils/timeUtils';
 
@@ -30,9 +30,16 @@ export function AuthLayout() {
     const navigate = useNavigate();
     const { showModal } = useModal();
 
-    const settingsQuery = useGetMySettings();
     const isAuth = useAuthStore((state) => state.isAuth);
     const logout = useAuthStore((state) => state.logout);
+    const user = useAuthStore((state) => state.user);
+    const updateUser = useAuthStore((state) => state.updateUser);
+    const settingsQuery = useGetMySettings();
+    const profileQuery = useGetMyProfile({
+        query: {
+            enabled: isAuth,
+        },
+    });
     const shouldShowTimerProgressBar = location.pathname !== '/main' && !isFocusMode;
     const { handleToggleTimer, handleRequestStopTimer } = useTimerSessionController();
 
@@ -76,6 +83,14 @@ export function AuthLayout() {
         );
     }, [settingsQuery.data, setDurations]);
 
+    useEffect(() => {
+        if (!profileQuery.data) {
+            return;
+        }
+
+        updateUser(mapUserResponseToAuthUser(profileQuery.data));
+    }, [profileQuery.data, updateUser]);
+
     const handleMusicClick = useCallback(() => {
         setShouldLoadBgmPlayer(true);
         setPlayerModalOpen(true);
@@ -99,6 +114,7 @@ export function AuthLayout() {
     return (
         <>
             <AuthHeader
+                avatarSrc={user?.avatarSrc ?? undefined}
                 onFocusModeClick={() => setIsFocusMode(true)}
                 onLogoutClick={handleLogoutClick}
                 onMusicClick={handleMusicClick}
