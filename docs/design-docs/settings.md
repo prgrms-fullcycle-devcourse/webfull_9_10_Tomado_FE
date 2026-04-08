@@ -1,20 +1,97 @@
 # Settings Domain
 
-source: [src/features/settings/README.md](../../src/features/settings/README.md)
+이 문서는 settings 도메인의 설계 source of truth입니다.
 
 ## Summary
 
-- 현재는 BGM 플레이어가 중심입니다.
+- 현재 settings 도메인의 중심 기능은 BGM 플레이어입니다.
 - 앱 전역에서 유지되어야 하는 설정 성격 기능을 담당합니다.
+- 향후 타이머 기본 시간, 휴식 시간, 투두 관련 전역 설정도 이 도메인에 포함될 수 있습니다.
+
+## Current Scope
+
+현재 구현된 범위는 BGM 플레이어입니다.
+
+- 트랙 카테고리: `lofi`, `rain`, `cafe`
+- 현재 선택 트랙 표시
+- 재생 / 일시정지 / 재개
+- 이전 / 다음 트랙 이동
+- 볼륨 조절
+- 화면 전환 후에도 재생 유지
+- 새로고침 후 마지막 트랙 / 볼륨 / 재생 위치 복원
+- 브라우저 autoplay 정책에 막힐 경우 첫 사용자 인터랙션에서 재생 재시도
 
 ## Main Parts
 
-- `tracks.ts`
-- `bgmStorage.ts`
-- `bgmAudioRuntime.ts`
-- `useBgmPlayer.ts`
+### `tracks.ts`
 
-## Notes
+- BGM 트랙 메타데이터 정의 파일
+- 카테고리별 제목/설명/카드 이미지 정의
+- 실제 플레이어가 소비할 `bgmTracks` 생성
+- 모달 카드에 쓰는 `bgmPlayerItems` 생성
 
-- 상세 설명은 feature README를 우선 갱신합니다.
-- 향후 타이머 설정과 기타 앱 설정이 추가될 수 있습니다.
+### `bgmStorage.ts`
+
+- 새로고침 복원을 위한 storage 유틸
+- storage key 정의
+- 기본 볼륨 정의
+- 마지막 트랙 / 볼륨 / 재생 여부 / 재생 위치 초기값 복원
+
+### `bgmAudioRuntime.ts`
+
+- 실제 오디오 런타임을 담당하는 실행 레이어
+- 전역 `Audio` 싱글턴 생성
+- 현재 트랙 동기화
+- 현재 시간 동기화
+- 이전/다음 트랙 계산
+- autoplay 실패 시 재시도 유틸
+
+### `useBgmPlayer.ts`
+
+- UI가 직접 사용하는 BGM 훅
+- zustand store 구독
+- 재생 상태와 현재 트랙 노출
+- 볼륨 변경 핸들러
+- 재생/일시정지/이전/다음 핸들러
+- 카테고리 카드 선택 핸들러
+
+### `index.ts`
+
+- settings 도메인 public export 파일
+- 외부에서는 `useBgmPlayer`, `bgmTracks`, `bgmPlayerItems`를 이 파일을 통해 가져온다
+
+## Current Flow
+
+1. `tracks.ts`가 트랙 메타데이터를 준비한다.
+2. `bgmStorage.ts`가 복원할 초기 상태를 읽는다.
+3. `bgmAudioRuntime.ts`가 실제 `Audio` 엘리먼트를 제어한다.
+4. `useBgmPlayer.ts`가 store와 runtime을 조합해서 UI용 API를 노출한다.
+
+## File Rules
+
+- 오디오 파일 자체는 `src/assets/audio/bgm`에 둔다.
+- settings 도메인의 핵심은 전역 설정 기능 로직이다.
+- 공용 UI는 `src/components/ui`를 재사용한다.
+- settings 도메인에는 전역에서 접근 가능하고 페이지를 넘어서 유지되어야 하는 기능을 둔다.
+
+## Asset Rules
+
+현재 BGM 파일 경로 규칙은 아래를 따른다.
+
+```txt
+src/assets/audio/bgm/
+├─ lofi/
+├─ rain/
+└─ cafe/
+```
+
+새 파일을 추가하면 현재 구조상 트랙 메타데이터와 카테고리 메타가 함께 갱신되어야 한다.
+
+## Future Scope
+
+아직 아래 항목은 실제 구현 전이다.
+
+- 타이머 설정값 조절 로직
+- 집중/휴식/장휴식 시간 설정값 저장
+- 투두 날짜 이동 관련 설정 처리
+- settings 전용 store 세분화

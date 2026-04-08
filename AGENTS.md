@@ -22,7 +22,7 @@
 - 내부 운영 문서는 `docs/`를 source of truth로 사용합니다.
 - 문서가 코드와 어긋나면 코드를 기준으로 문서를 함께 수정합니다.
 - 하나의 거대한 설명 문서 대신 도메인별 문서로 쪼갭니다.
-- 작업 계획은 가능한 한 `docs/plans/active/` 아래 버전 관리합니다.
+- 작업 계획은 가능한 한 `docs/exec-plans/active/` 아래 버전 관리합니다.
 
 ## Domain Map
 
@@ -35,7 +35,6 @@
 
 ## When You Change Code
 
-- 도메인 구조가 바뀌면 대응하는 `docs/domains/*.md`를 업데이트합니다.
 - 도메인 구조가 바뀌면 대응하는 `docs/design-docs/*.md`를 업데이트합니다.
 - 공통 레이어 규칙이 바뀌면 `ARCHITECTURE.md`를 업데이트합니다.
 - 진행 중 리팩터링이면 `docs/exec-plans/active/`에 기록합니다.
