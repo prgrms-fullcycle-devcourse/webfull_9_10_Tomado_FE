@@ -4,6 +4,7 @@ import { useRef, useState } from 'react';
 import HeatMapComponent from 'react-calendar-heatmap';
 import 'react-calendar-heatmap/dist/styles.css';
 
+import type { DailyFocusStat } from '@/api/generated/model/dailyFocusStat';
 import { StatsTooltip } from '@/components/ui/Tooltip';
 import { DATE_FORMAT, formatDate } from '@/utils';
 import '@/styles/heatmap.css';
@@ -22,6 +23,8 @@ interface TooltipPosition {
 export interface HeatMapProps {
     selectedDate?: string;
     onSelectDate?: (date: string) => void;
+    values?: DailyFocusStat[];
+    isLoading?: boolean;
 }
 
 const wrapperClassName = 'relative w-full border border-neutral-lighter rounded-2xl p-5';
@@ -32,18 +35,6 @@ const legendWrapperClassName = 'flex w-full justify-end';
 const legendClassName = 'flex items-center gap-2 text-sm text-neutral-darker';
 const legendScaleClassName = 'flex items-center gap-1';
 const legendCellBaseClassName = 'h-[10px] w-[10px] rounded-[2px]';
-
-// TODO: Replace with actual data from API
-const heatMapData: HeatMapValue[] = [
-    { date: '2025-03-31', count: 5, focusTime: '10시간 20분' },
-    { date: '2025-04-15', count: 8, focusTime: '16시간 40분' },
-    { date: '2025-05-06', count: 2, focusTime: '4시간 15분' },
-    { date: '2025-08-14', count: 6, focusTime: '12시간 30분' },
-    { date: '2025-10-03', count: 8, focusTime: '10시간 20분' },
-    { date: '2025-12-22', count: 4, focusTime: '7시간 45분' },
-    { date: '2026-01-11', count: 3, focusTime: '5시간 10분' },
-    { date: '2026-03-31', count: 7, focusTime: '14시간 00분' },
-];
 
 const getCellClassName = (value?: HeatMapValue) => {
     if (!value || !value.count) return 'color-empty';
@@ -57,7 +48,14 @@ const getTooltipDate = (date: string) => {
     return formatDate(date, DATE_FORMAT.log);
 };
 
-export function HeatMap({ selectedDate, onSelectDate }: HeatMapProps) {
+const formatFocusTime = (focusSeconds = 0) => {
+    const hours = Math.floor(focusSeconds / 3600);
+    const minutes = Math.floor((focusSeconds % 3600) / 60);
+
+    return `${hours}시간 ${String(minutes).padStart(2, '0')}분`;
+};
+
+export function HeatMap({ selectedDate, onSelectDate, values = [], isLoading = false }: HeatMapProps) {
     const endDate = new Date();
     const startDate = new Date();
     startDate.setFullYear(endDate.getFullYear() - 1);
@@ -65,6 +63,11 @@ export function HeatMap({ selectedDate, onSelectDate }: HeatMapProps) {
     const wrapperRef = useRef<HTMLDivElement | null>(null);
     const [hoveredValue, setHoveredValue] = useState<HeatMapValue | null>(null);
     const [tooltipPosition, setTooltipPosition] = useState<TooltipPosition>({ left: 0, top: 0 });
+    const heatMapData: HeatMapValue[] = values.map((value) => ({
+        date: value.focus_date ?? '',
+        count: value.completed_sessions ?? 0,
+        focusTime: formatFocusTime(value.total_focus_sec ?? 0),
+    }));
 
     const handleMouseOver = (value?: HeatMapValue) => (event: ReactMouseEvent<SVGRectElement>) => {
         if (!value?.count) {
@@ -92,32 +95,57 @@ export function HeatMap({ selectedDate, onSelectDate }: HeatMapProps) {
 
     return (
         <div className={wrapperClassName} onMouseLeave={handleMouseLeave} ref={wrapperRef}>
-            <div className={scrollAreaClassName}>
-                <div className={contentClassName}>
-                    <HeatMapComponent
-                        classForValue={(value) => {
-                            const baseClassName = getCellClassName(value as HeatMapValue | undefined);
-                            const isSelected = value?.date === selectedDate;
-
-                            return isSelected ? `${baseClassName} selected-cell` : baseClassName;
-                        }}
-                        endDate={endDate}
-                        gutterSize={1}
-                        onClick={(value) => {
-                            if (typeof value?.date === 'string') {
-                                onSelectDate?.(value.date);
-                            }
-                        }}
-                        onMouseLeave={handleMouseLeave}
-                        onMouseOver={(event, value) => {
-                            handleMouseOver(value as HeatMapValue | undefined)(event);
-                        }}
-                        showWeekdayLabels={true}
-                        startDate={startDate}
-                        values={heatMapData}
-                    />
+            {isLoading ? (
+                <div className='flex flex-col gap-4 animate-pulse'>
+                    <div className='grid grid-cols-12 gap-1'>
+                        {Array.from({ length: 84 }, (_, index) => (
+                            <div
+                                className='h-[12px] rounded-[2px] bg-neutral-subtle'
+                                key={`heatmap-skeleton-${index}`}
+                            />
+                        ))}
+                    </div>
+                    <div className='flex justify-end gap-2 items-center'>
+                        <div className='h-3 w-6 rounded-full bg-neutral-subtle' />
+                        <div className='flex gap-1'>
+                            {Array.from({ length: 5 }, (_, index) => (
+                                <div
+                                    className='h-[10px] w-[10px] rounded-[2px] bg-neutral-subtle'
+                                    key={`heatmap-legend-skeleton-${index}`}
+                                />
+                            ))}
+                        </div>
+                        <div className='h-3 w-6 rounded-full bg-neutral-subtle' />
+                    </div>
                 </div>
-            </div>
+            ) : (
+                <div className={scrollAreaClassName}>
+                    <div className={contentClassName}>
+                        <HeatMapComponent
+                            classForValue={(value) => {
+                                const baseClassName = getCellClassName(value as HeatMapValue | undefined);
+                                const isSelected = value?.date === selectedDate;
+
+                                return isSelected ? `${baseClassName} selected-cell` : baseClassName;
+                            }}
+                            endDate={endDate}
+                            gutterSize={1}
+                            onClick={(value) => {
+                                if (typeof value?.date === 'string') {
+                                    onSelectDate?.(value.date);
+                                }
+                            }}
+                            onMouseLeave={handleMouseLeave}
+                            onMouseOver={(event, value) => {
+                                handleMouseOver(value as HeatMapValue | undefined)(event);
+                            }}
+                            showWeekdayLabels={true}
+                            startDate={startDate}
+                            values={heatMapData}
+                        />
+                    </div>
+                </div>
+            )}
 
             <div className={legendWrapperClassName}>
                 <div className={legendClassName}>

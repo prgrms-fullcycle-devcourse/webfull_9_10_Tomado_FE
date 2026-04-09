@@ -1,5 +1,14 @@
 import { useState } from 'react';
 
+import { useGetDailyLog } from '@/api/generated/daily-logs/daily-logs';
+import { useGetRetroLog } from '@/api/generated/retro-logs/retro-logs';
+import {
+    useGetStatsCalendar,
+    useGetStatsHeatmap,
+    useGetStatsHeatmapSummary,
+    useGetStatsOverview,
+} from '@/api/generated/stats/stats';
+import type { DailyFocusStat, RetroLogTemplateType } from '@/api/generated/model';
 import { DATE_FORMAT, formatDate, getTodayDate, parseDate } from '@/utils';
 import { Container, SectionHeader, DoubleColumnLayout } from '@@/layout';
 import { SegmentedControl } from '@@/form';
@@ -25,135 +34,13 @@ const detailCardHeaderClassName = 'mb-3 flex items-start justify-between gap-3';
 const detailLogTitleClassName = 'mb-2 text-sm font-semibold text-neutral-darker';
 const detailLogDescriptionClassName = 'text-xs text-neutral-darker line-clamp-3';
 const retroTagListClassName = 'flex flex-wrap gap-1.5';
-
-interface DashboardSummaryResponse {
-    dateRange: {
-        startDate: string | null;
-        endDate: string | null;
-    };
-    stats: {
-        streakDays: number;
-        pomodoroSessions: number;
-        focusHours: number;
-        dailyLogCount: number;
-        retroCount: number;
-    };
-}
-
-const dashboardSummaryMock: DashboardSummaryResponse = {
-    dateRange: {
-        startDate: '2024-03-02',
-        endDate: getTodayDate(),
-    },
-    stats: {
-        streakDays: 12,
-        pomodoroSessions: 342,
-        focusHours: 171,
-        dailyLogCount: 28,
-        retroCount: 12,
-    },
-};
-
-const summaryMetrics = (summary: DashboardSummaryResponse['stats']) => [
-    { label: '연속스트릭', value: `${summary.streakDays}일`, accent: true },
-    { label: '포모도로', value: `${summary.pomodoroSessions}세션` },
-    { label: '집중 시간', value: `${summary.focusHours}시간` },
-    { label: '데일리로그', value: `${summary.dailyLogCount}건` },
-    { label: '회고', value: `${summary.retroCount}건` },
-];
-
-// TODO: useDailyLogByDate 훅 분리
-const testDailyLogArr = [
-    {
-        id: 'f6a7b8c9-d0e1-2345-f014-456789012345',
-        user_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-        log_date: '2026-03-31',
-        title: '제목을 뭐로할까?',
-        content:
-            '## 오늘 한 일\n- UI 작업\n- API 연동## 오늘 한 일\n- UI 작업\n- API 연동## 오늘 한 일\n- UI 작업\n- API 연동## 오늘 한 일\n- UI 작업\n- API 연동## 오늘 한 일\n- UI 작업\n- API 연동## 오늘 한 일\n- UI 작업\n- API 연동## 오늘 한 일\n- UI 작업\n- API 연동## 오늘 한 일\n- UI 작업\n- API 연동## 오늘 한 일\n- UI 작업\n- API 연동## 오늘 한 일\n- UI 작업\n- API 연동## 오늘 한 일\n- UI 작업\n- API 연동## 오늘 한 일\n- UI 작업\n- API 연동## 오늘 한 일\n- UI 작업\n- API 연동## 오늘 한 일\n- UI 작업\n- API 연동## 오늘 한 일\n- UI 작업\n- API 연동## 오늘 한 일\n- UI 작업\n- API 연동',
-        tags: ['frontend', 'docs'],
-        is_dirty: false,
-        draft_content: null,
-        created_at: '2026-03-31T09:00:00Z',
-        updated_at: '2026-03-31T18:00:00Z',
-    },
-    {
-        id: 'f6a7b8c9-d0e1-2345-f015-456789012345',
-        user_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-        log_date: '2026-04-01',
-        title: '제목을 뭐로할까?',
-        content: '## 오늘 한 일\n- UI 작업\n- API 연동',
-        tags: ['frontend', 'docs'],
-        is_dirty: false,
-        draft_content: null,
-        created_at: '2026-04-01T09:00:00Z',
-        updated_at: '2026-04-01T18:00:00Z',
-    },
-];
-
-// TODO: useRetroByDate 훅 분리
 const retroTagMap = [
     { label: '기술', iconName: 'tech', className: '!border-danger !text-danger' },
     { label: '결정', iconName: 'decision', className: 'border-yellow-400 text-yellow-400' },
     { label: '소통', iconName: 'communication', className: '!border-info !text-info' },
     { label: '감정', iconName: 'emotion', className: 'border-success-darker text-success-darker' },
 ] as const;
-
-const testRetroArr = [
-    {
-        id: 'b8c9d0e1-f2a3-4567-0123-678901234567',
-        user_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-        daily_log_id: 'f6a7b8c9-d0e1-2345-f014-456789012345',
-        retro_date: '2026-03-31',
-        template_type: 'Tech',
-        content: {
-            learned_today: '히트맵 셀 hover 이벤트 처리 방식',
-            applied_technology: 'react-calendar-heatmap + 커스텀 tooltip 상태 관리',
-            technical_difficulty: '스크롤 영역 안에서 tooltip이 찌그러지는 문제',
-            next_to_try: '좌표 clamp와 선택 상태 동기화 개선',
-        },
-        is_dirty: false,
-        draft_content: null,
-        created_at: '2026-03-31T19:00:00Z',
-        updated_at: '2026-03-31T19:30:00Z',
-    },
-    {
-        id: 'c9d0e1f2-a345-4567-0123-678901234567',
-        user_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-        daily_log_id: 'f6a7b8c9-d0e1-2345-f014-456789012345',
-        retro_date: '2026-03-31',
-        template_type: 'Communication',
-        content: {
-            communication_highlights: '캘린더 담당자와 selectedDate 계약을 명확히 정리함',
-            communication_friction: '히트맵 응답 구조와 summary 역할이 잠시 혼재됨',
-            feedback_received: '평균값은 백엔드에서 계산하는 게 낫다는 합의',
-            improvements: 'API 책임 범위를 먼저 확정하고 붙이기',
-        },
-        is_dirty: false,
-        draft_content: null,
-        created_at: '2026-03-31T20:00:00Z',
-        updated_at: '2026-03-31T20:30:00Z',
-    },
-    {
-        id: 'd0e1f2a3-b456-4567-0123-678901234567',
-        user_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-        daily_log_id: 'f6a7b8c9-d0e1-2345-f015-456789012345',
-        retro_date: '2026-04-01',
-        template_type: 'Decision',
-        content: {
-            decision_made: '상세 패널은 selectedDate 기준으로만 연동하기',
-            decision_reason: '캘린더 구현 전에도 대시보드 기본 동작을 보장하기 위해',
-            outcome_impact: '날짜 선택 흐름이 단순해지고 연결 포인트가 명확해짐',
-            alternatives_considered: 'None',
-        },
-        is_dirty: false,
-        draft_content: null,
-        created_at: '2026-04-01T19:00:00Z',
-        updated_at: '2026-04-01T19:30:00Z',
-    },
-] as const;
-
-const retroTemplateLabelMap = {
+const retroTemplateLabelMap: Record<RetroLogTemplateType, (typeof retroTagMap)[number]> = {
     Tech: retroTagMap[0],
     Decision: retroTagMap[1],
     Communication: retroTagMap[2],
@@ -168,19 +55,79 @@ const getDailyLogPreview = (content: string) => {
         .trim();
 };
 
-export default function Dashboard() {
-    const summary = dashboardSummaryMock;
-    const formattedDateRange =
-        summary.dateRange.startDate && summary.dateRange.endDate
-            ? `${formatDate(parseDate(summary.dateRange.startDate), DATE_FORMAT.display)} ~ ${formatDate(summary.dateRange.endDate, DATE_FORMAT.display)}`
-            : '-';
+const getFormattedHours = (totalFocusSeconds = 0) => {
+    const hours = totalFocusSeconds / 3600;
 
+    if (Number.isInteger(hours)) {
+        return `${hours}시간`;
+    }
+
+    return `${hours.toFixed(1)}시간`;
+};
+
+const getFormattedAverageSessions = (dailyAverageSessions = 0) => {
+    if (Number.isInteger(dailyAverageSessions)) {
+        return `${dailyAverageSessions}세션`;
+    }
+
+    return `${dailyAverageSessions.toFixed(1)}세션`;
+};
+
+const isNotFoundError = (error: unknown) => {
+    if (!(error instanceof Error)) {
+        return false;
+    }
+
+    return error.message.includes('404') || error.message.includes('없');
+};
+
+const hasFocusDate = (value: DailyFocusStat): value is DailyFocusStat & { focus_date: string } => {
+    return typeof value.focus_date === 'string' && value.focus_date.length > 0;
+};
+
+const isRetroTag = (tag: (typeof retroTagMap)[number] | null): tag is (typeof retroTagMap)[number] => {
+    return Boolean(tag);
+};
+
+export default function Dashboard() {
     const [view, setView] = useState<'calendar' | 'history'>('calendar');
     const [selectedDate, setSelectedDate] = useState(getTodayDate());
-    const selectedDailyLog = testDailyLogArr.find((log) => log.log_date === selectedDate);
-    const selectedDailyLogPreview = selectedDailyLog ? getDailyLogPreview(selectedDailyLog.content) : null;
-    const selectedRetros = testRetroArr.filter((retro) => retro.retro_date === selectedDate);
-    const selectedRetroTags = selectedRetros.map((retro) => retroTemplateLabelMap[retro.template_type]);
+    const selectedDateObject = parseDate(selectedDate);
+    const { data: statsOverview } = useGetStatsOverview();
+    const { data: heatmapSummary, isLoading: isHeatmapSummaryLoading } = useGetStatsHeatmapSummary();
+    const { data: heatmapData = [], isLoading: isHeatmapLoading } = useGetStatsHeatmap();
+    const { data: calendarTileContentResponse = [], isLoading: isCalendarLoading } = useGetStatsCalendar({
+        year: selectedDateObject.getFullYear(),
+        month: selectedDateObject.getMonth() + 1,
+    });
+    const {
+        data: selectedDailyLog,
+        error: dailyLogError,
+        isLoading: isDailyLogLoading,
+    } = useGetDailyLog({ date: selectedDate }, { query: { retry: false } });
+    const { data: selectedRetros = [], isLoading: isRetroLoading } = useGetRetroLog(
+        { date: selectedDate },
+        { query: { retry: false } }
+    );
+    const calendarTileContent = calendarTileContentResponse.filter(hasFocusDate);
+
+    const selectedDailyLogPreview = selectedDailyLog?.content ? getDailyLogPreview(selectedDailyLog.content) : null;
+    const selectedRetroTags = selectedRetros
+        .map((retro) => (retro.template_type ? retroTemplateLabelMap[retro.template_type] : null))
+        .filter(isRetroTag);
+    const dailyLogStatusMessage = dailyLogError
+        ? isNotFoundError(dailyLogError)
+            ? '작성된 데일리로그가 없습니다.'
+            : '데일리로그를 불러오지 못했어요.'
+        : '작성된 데일리로그가 없습니다.';
+    const formattedDateRange = `가입일부터 ${formatDate(getTodayDate(), DATE_FORMAT.display)}까지`;
+    const summaryMetrics = [
+        { label: '연속스트릭', value: `${statsOverview?.streak ?? 0}일`, accent: true },
+        { label: '포모도로', value: `${statsOverview?.total_sessions ?? 0}세션` },
+        { label: '집중 시간', value: getFormattedHours(statsOverview?.total_focus_sec ?? 0) },
+        { label: '데일리로그', value: `${statsOverview?.total_daily_logs ?? 0}건` },
+        { label: '회고', value: `${statsOverview?.total_retro_logs ?? 0}건` },
+    ];
 
     return (
         <main>
@@ -196,7 +143,7 @@ export default function Dashboard() {
                             </div>
 
                             <div className={metricsGridClassName}>
-                                {summaryMetrics(summary.stats).map((metric) => (
+                                {summaryMetrics.map((metric) => (
                                     <div className={metricClassName} key={metric.label}>
                                         <strong
                                             className={`${metricValueClassName} ${metric.accent ? 'text-primary' : ''}`}
@@ -220,24 +167,48 @@ export default function Dashboard() {
                                 onValueChange={(value) => setView(value as 'calendar' | 'history')}
                             />
                             {view === 'calendar' ? (
-                                <Calendar selectedDate={selectedDate} onSelectDate={setSelectedDate} />
+                                <Calendar
+                                    isLoading={isCalendarLoading}
+                                    selectedDate={selectedDate}
+                                    onSelectDate={setSelectedDate}
+                                    tileContent={calendarTileContent}
+                                />
                             ) : (
                                 <>
                                     <div className={'flex justify-center gap-2.5 my-5'}>
                                         <div className={historyMetricsClassName}>
-                                            <strong className={historyMetricValueClassName}>289세션</strong>
+                                            <strong className={historyMetricValueClassName}>
+                                                {isHeatmapSummaryLoading
+                                                    ? '-'
+                                                    : `${heatmapSummary?.total_sessions ?? 0}세션`}
+                                            </strong>
                                             <span className={metricLabelClassName}>연간 포모도로</span>
                                         </div>
                                         <div className={historyMetricsClassName}>
-                                            <strong className={historyMetricValueClassName}>144.5시간</strong>
+                                            <strong className={historyMetricValueClassName}>
+                                                {isHeatmapSummaryLoading
+                                                    ? '-'
+                                                    : getFormattedHours(heatmapSummary?.total_focus_sec ?? 0)}
+                                            </strong>
                                             <span className={metricLabelClassName}>연간 집중 시간</span>
                                         </div>
                                         <div className={historyMetricsClassName}>
-                                            <strong className={historyMetricValueClassName}>3.9세션</strong>
+                                            <strong className={historyMetricValueClassName}>
+                                                {isHeatmapSummaryLoading
+                                                    ? '-'
+                                                    : getFormattedAverageSessions(
+                                                          heatmapSummary?.daily_avg_sessions ?? 0
+                                                      )}
+                                            </strong>
                                             <span className={metricLabelClassName}>일 평균 포모도로</span>
                                         </div>
                                     </div>
-                                    <HeatMap onSelectDate={setSelectedDate} selectedDate={selectedDate} />
+                                    <HeatMap
+                                        isLoading={isHeatmapLoading}
+                                        onSelectDate={setSelectedDate}
+                                        selectedDate={selectedDate}
+                                        values={heatmapData}
+                                    />
                                 </>
                             )}
                         </section>
@@ -250,11 +221,18 @@ export default function Dashboard() {
                                         <h3 className='font-bold'>데일리로그</h3>
                                         <Icon name='arrow_right' size={16} />
                                     </div>
-                                    <p className={detailLogTitleClassName}></p>
-                                    {selectedDailyLogPreview ? (
-                                        <p className={detailLogDescriptionClassName}>{selectedDailyLogPreview}</p>
+                                    {isDailyLogLoading ? (
+                                        <DetailSkeleton lines={3} />
+                                    ) : selectedDailyLogPreview ? (
+                                        <>
+                                            <p className={detailLogTitleClassName}>{selectedDailyLog?.title ?? ''}</p>
+                                            <p className={detailLogDescriptionClassName}>{selectedDailyLogPreview}</p>
+                                        </>
                                     ) : (
-                                        <p className={detailLogDescriptionClassName}>작성된 데일리로그가 없습니다.</p>
+                                        <>
+                                            <p className={detailLogTitleClassName}>{selectedDailyLog?.title ?? ''}</p>
+                                            <p className={detailLogDescriptionClassName}>{dailyLogStatusMessage}</p>
+                                        </>
                                     )}
                                 </article>
 
@@ -263,7 +241,9 @@ export default function Dashboard() {
                                         <h3 className='font-bold'>회고</h3>
                                         <Icon name='arrow_right' size={16} />
                                     </div>
-                                    {selectedRetroTags.length > 0 ? (
+                                    {isRetroLoading ? (
+                                        <TagSkeleton />
+                                    ) : selectedRetroTags.length > 0 ? (
                                         <div className={retroTagListClassName}>
                                             {selectedRetroTags.map((tag) => (
                                                 <Tag
@@ -291,3 +271,27 @@ export default function Dashboard() {
         </main>
     );
 }
+
+const DetailSkeleton = ({ lines = 2 }: { lines?: number }) => {
+    return (
+        <div className='flex flex-col gap-2 animate-pulse'>
+            <div className='h-4 w-1/3 rounded-full bg-neutral-subtle' />
+            {Array.from({ length: lines }, (_, index) => (
+                <div
+                    className={`h-3 rounded-full bg-neutral-subtle ${index === lines - 1 ? 'w-2/3' : 'w-full'}`}
+                    key={`detail-skeleton-${index}`}
+                />
+            ))}
+        </div>
+    );
+};
+
+const TagSkeleton = () => {
+    return (
+        <div className='flex flex-wrap gap-2 animate-pulse'>
+            {Array.from({ length: 3 }, (_, index) => (
+                <div className='h-7 w-16 rounded-full bg-neutral-subtle' key={`tag-skeleton-${index}`} />
+            ))}
+        </div>
+    );
+};
