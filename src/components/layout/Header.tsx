@@ -48,7 +48,7 @@ const navClassName = 'flex items-center gap-1';
 const utilityActionsClassName = 'flex items-center gap-2.5';
 const profileBadgeClassName =
     'inline-flex size-8 items-center justify-center rounded-full text-white shadow-sm hover:cursor-pointer';
-const profileImageClassName = 'block size-8 bg-primary object-contain';
+const profileImageClassName = 'block size-8 rounded-full bg-primary object-cover';
 const profileMenuWrapperClassName = 'relative flex items-center';
 const profileMenuLayerClassName = 'absolute top-[calc(100%+8px)] right-0 z-50 w-[200px]';
 
