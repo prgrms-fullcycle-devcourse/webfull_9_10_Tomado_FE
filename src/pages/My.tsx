@@ -3,6 +3,7 @@ import { CenteredLayout, Container, SectionHeader } from '@/components/layout';
 import { Button, Icon } from '@/components/ui';
 import { useModal, useToast } from '@/hooks';
 import { useEffect, useState } from 'react';
+import { useGetMyProfile, useGetMySettings } from '@/api/generated/users/users';
 
 export default function My() {
     const panelClassName =
@@ -14,27 +15,11 @@ export default function My() {
     const [longBreakTime, setLongBreakTime] = useState(0);
     const [todoToggle, setTodoToggle] = useState(true);
 
+    const { data: profile } = useGetMyProfile();
+    const { data: settings } = useGetMySettings();
+
     const { showToast } = useToast();
     const { showModal } = useModal();
-
-    const dummyUser = {
-        id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-        login_id: 'devjohn',
-        nickname: '재빠른 개발자',
-        avatar_url: 'https://cdn.tomado.io/avatars/devjohn.png',
-        created_at: '2026-01-15T09:00:00Z',
-        updated_at: '2026-06-01T12:00:00Z',
-    };
-    const dummySettings = {
-        id: 'b2c3d4e5-f6a7-8901-bcde-f12345678901',
-        user_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-        focus_min: 25,
-        short_break_min: 5,
-        long_break_min: 30,
-        sessions_per_set: 4,
-        auto_carry_todo: true,
-        updated_at: '2026-06-01T12:00:00Z',
-    };
 
     const initialTime = {
         focusTime: 25,
@@ -43,15 +28,23 @@ export default function My() {
     };
 
     useEffect(() => {
-        setName(dummyUser.nickname);
-        setFocusTime(dummySettings.focus_min | initialTime.focusTime);
-        setShortBreakTime(dummySettings.short_break_min | initialTime.shortBreakTime);
-        setLongBreakTime(dummySettings.long_break_min | initialTime.longBreakTime);
-        setTodoToggle(dummySettings.auto_carry_todo);
-    }, []);
+        if (profile) {
+            setName(profile.nickname ?? '');
+        }
+    }, [profile]);
+
+    useEffect(() => {
+        if (settings) {
+            setFocusTime(settings.focus_min || initialTime.focusTime);
+            setShortBreakTime(settings.short_break_min || initialTime.shortBreakTime);
+            setLongBreakTime(settings.long_break_min || initialTime.longBreakTime);
+            setTodoToggle(settings.auto_carry_todo ?? true);
+        }
+    }, [settings]);
 
     const isActiveNameSaveBtn = (): boolean => {
-        if (name.length >= 2 && name.length <= 20 && name !== dummyUser.nickname) {
+        const currentNickname = profile?.nickname ?? '';
+        if (name.length >= 2 && name.length <= 20 && name !== currentNickname) {
             return false;
         }
 
@@ -76,10 +69,12 @@ export default function My() {
     };
 
     const isActiveSettingSaveBtn = (): boolean => {
+        if (!settings) return true;
+
         if (
-            focusTime === dummySettings.focus_min &&
-            shortBreakTime === dummySettings.short_break_min &&
-            longBreakTime === dummySettings.long_break_min
+            focusTime === settings.focus_min &&
+            shortBreakTime === settings.short_break_min &&
+            longBreakTime === settings.long_break_min
         ) {
             return true;
         }
