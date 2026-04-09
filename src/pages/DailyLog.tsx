@@ -22,24 +22,6 @@ export default function DailyLog() {
     const { showModal } = useModal();
     const { showToast } = useToast();
 
-    // const testdata = [
-    //     {
-    //         focus_date: '2026-03-26',
-    //         total_focus_sec: 5200,
-    //         completed_sessions: 3,
-    //     },
-    //     {
-    //         focus_date: '2026-03-27',
-    //         total_focus_sec: 7200,
-    //         completed_sessions: 4,
-    //     },
-    //     {
-    //         focus_date: '2026-03-28',
-    //         total_focus_sec: 4200,
-    //         completed_sessions: 2,
-    //     },
-    // ];
-
     type Log = {
         id: string;
         user_id: string;
