@@ -42,7 +42,6 @@ export default function My() {
         longBreakTime: 30,
     };
 
-    const profileNickname = user?.nickname ?? '';
     const profileAvatarSrc = user?.avatarSrc ?? null;
     const hasAvatar = Boolean(profileAvatarSrc);
 
