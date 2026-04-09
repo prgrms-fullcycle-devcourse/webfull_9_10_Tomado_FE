@@ -3,7 +3,7 @@ import { cn } from '@/utils';
 import { Button, Icon, PlayerButton } from '@@/ui';
 
 import { TodoPanel } from '@@@/todo';
-import { focusModeBackgrounds, FocusModeBackgroundLayer, SessionIndicator, useFocusModeController } from '@@@/timer';
+import { FocusModeBackgroundLayer, SessionIndicator, useFocusModeController } from '@@@/timer';
 import type { IFocusModeProps } from '@@@/timer';
 
 const backgroundNavButtonWrapperClassName = 'bottom-0 group absolute inset-y-40 z-30 w-28 hover:cursor-pointer';
@@ -32,11 +32,10 @@ export const FocusMode = ({
         <div {...props} className={cn('fixed inset-0 z-50 overflow-hidden', className)}>
             <FocusModeBackgroundLayer
                 backgroundSlideClassNames={controller.backgroundSlideClassNames}
-                backgroundSources={focusModeBackgrounds}
+                backgroundSources={controller.focusModeBackgrounds}
             />
             <div className='min-h-screen w-full p-8'>
                 <div className='relative z-20 h-[calc(100vh-4rem)] w-full'>
-                    {/* Timer + Todo */}
                     <section className='absolute top-0 left-0 z-100 flex w-[360px] flex-col gap-2'>
                         <div className='glass-effect-base px-5 py-4 text-white'>
                             <div className='flex flex-col items-center gap-2.5'>
@@ -87,7 +86,6 @@ export const FocusMode = ({
                         </div>
                     </section>
 
-                    {/* Main button group */}
                     <div className='absolute top-0 right-0 flex items-center gap-2.5'>
                         <Button
                             className={mainButtonClassName}
@@ -109,7 +107,6 @@ export const FocusMode = ({
                         </Button>
                     </div>
 
-                    {/* Background navigation */}
                     <button
                         aria-label='이전 배경'
                         className={cn(backgroundNavButtonWrapperClassName, 'left-0')}
