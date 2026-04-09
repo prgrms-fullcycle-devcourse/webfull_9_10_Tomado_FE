@@ -8,8 +8,7 @@ import {
     useGetStatsHeatmapSummary,
     useGetStatsOverview,
 } from '@/api/generated/stats/stats';
-import type { DailyLog } from '@/api/generated/model/dailyLog';
-import type { RetroLog, RetroLogTemplateType } from '@/api/generated/model';
+import type { DailyFocusStat, RetroLogTemplateType } from '@/api/generated/model';
 import { DATE_FORMAT, formatDate, getTodayDate, parseDate } from '@/utils';
 import { Container, SectionHeader, DoubleColumnLayout } from '@@/layout';
 import { SegmentedControl } from '@@/form';
@@ -82,6 +81,14 @@ const isNotFoundError = (error: unknown) => {
     return error.message.includes('404') || error.message.includes('없');
 };
 
+const hasFocusDate = (value: DailyFocusStat): value is DailyFocusStat & { focus_date: string } => {
+    return typeof value.focus_date === 'string' && value.focus_date.length > 0;
+};
+
+const isRetroTag = (tag: (typeof retroTagMap)[number] | null): tag is (typeof retroTagMap)[number] => {
+    return Boolean(tag);
+};
+
 export default function Dashboard() {
     const [view, setView] = useState<'calendar' | 'history'>('calendar');
     const [selectedDate, setSelectedDate] = useState(getTodayDate());
@@ -89,7 +96,7 @@ export default function Dashboard() {
     const { data: statsOverview } = useGetStatsOverview();
     const { data: heatmapSummary, isLoading: isHeatmapSummaryLoading } = useGetStatsHeatmapSummary();
     const { data: heatmapData = [], isLoading: isHeatmapLoading } = useGetStatsHeatmap();
-    const { data: calendarTileContent = [], isLoading: isCalendarLoading } = useGetStatsCalendar({
+    const { data: calendarTileContentResponse = [], isLoading: isCalendarLoading } = useGetStatsCalendar({
         year: selectedDateObject.getFullYear(),
         month: selectedDateObject.getMonth() + 1,
     });
@@ -102,11 +109,12 @@ export default function Dashboard() {
         { date: selectedDate },
         { query: { retry: false } }
     );
+    const calendarTileContent = calendarTileContentResponse.filter(hasFocusDate);
 
     const selectedDailyLogPreview = selectedDailyLog?.content ? getDailyLogPreview(selectedDailyLog.content) : null;
     const selectedRetroTags = selectedRetros
         .map((retro) => (retro.template_type ? retroTemplateLabelMap[retro.template_type] : null))
-        .filter(Boolean);
+        .filter(isRetroTag);
     const dailyLogStatusMessage = dailyLogError
         ? isNotFoundError(dailyLogError)
             ? '작성된 데일리로그가 없습니다.'
