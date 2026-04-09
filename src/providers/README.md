@@ -1,4 +1,0 @@
-- QueryProvider
-- ThemeProvider
-- AudioProvider
-- RouterProvider

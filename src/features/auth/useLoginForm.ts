@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 
+import { useLogin } from '@/api/generated/auth/auth';
 import { useAuthStore } from './useAuthStore';
+import { mapLoginResponseToAuthUser } from './api';
 import { DEMO_AUTH_USER, DEMO_LOGIN_CREDENTIALS } from './types';
 import type { LoginFormValues, LoginRequest } from './types';
 
@@ -17,6 +19,7 @@ export const useLoginForm = () => {
     const isUserIdFilled = useMemo(() => validateLoginField(values.userId), [values.userId]);
     const isPasswordFilled = useMemo(() => validateLoginField(values.password), [values.password]);
     const isFormValid = isUserIdFilled && isPasswordFilled;
+    const loginMutation = useLogin();
 
     const setFieldValue = (field: keyof LoginFormValues, value: string) => {
         setValues((prev) => ({ ...prev, [field]: value }));
@@ -31,7 +34,7 @@ export const useLoginForm = () => {
         password: values.password,
     });
 
-    const submit = () => {
+    const submit = async () => {
         if (!isFormValid) {
             return false;
         }
@@ -42,8 +45,19 @@ export const useLoginForm = () => {
             return true;
         }
 
-        setShowAuthError(true);
-        return false;
+        try {
+            const response = await loginMutation.mutateAsync({
+                data: getSubmitPayload(),
+            });
+
+            login(mapLoginResponseToAuthUser(response));
+            setShowAuthError(false);
+
+            return true;
+        } catch {
+            setShowAuthError(true);
+            return false;
+        }
     };
 
     const loginAsDemo = () => {
@@ -59,6 +73,7 @@ export const useLoginForm = () => {
     return {
         values,
         isFormValid,
+        isPending: loginMutation.isPending,
         showAuthError,
         setFieldValue,
         getSubmitPayload,

@@ -1,4 +1,6 @@
-type BgmCategory = 'lofi' | 'rain' | 'cafe';
+import { getSupabaseAudioUrl, listSupabaseAudioFiles, listSupabaseAudioFolders } from '@/lib/storage';
+
+type BgmCategory = 'lofi' | 'rain' | 'cafe' | (string & {});
 
 export interface BgmTrack {
     id: string;
@@ -16,7 +18,7 @@ export interface BgmPlayerItem {
     imageSrc: string;
 }
 
-const categoryMeta: Record<BgmCategory, Omit<BgmPlayerItem, 'id'>> = {
+const categoryMeta: Partial<Record<BgmCategory, Omit<BgmPlayerItem, 'id'>>> = {
     lofi: {
         title: 'Lo-fi',
         description: '아날로그 감성',
@@ -34,29 +36,65 @@ const categoryMeta: Record<BgmCategory, Omit<BgmPlayerItem, 'id'>> = {
     },
 };
 
-const trackModules = import.meta.glob('../../assets/audio/bgm/*/*.{mp3,wav,ogg,m4a,aac}', {
-    eager: true,
-    import: 'default',
-}) as Record<string, string>;
+const defaultCategoryImage = '/img_player_01.png';
 
-export const bgmPlayerItems: BgmPlayerItem[] = (Object.keys(categoryMeta) as BgmCategory[]).map((category) => ({
-    id: category,
-    ...categoryMeta[category],
-}));
+const toTitleCase = (value: string) => {
+    return value
+        .split(/[-_\s]+/)
+        .filter(Boolean)
+        .map((segment) => segment[0]?.toUpperCase() + segment.slice(1))
+        .join(' ');
+};
 
-export const bgmTracks: BgmTrack[] = Object.entries(trackModules)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([path, src]) => {
-        const match = path.match(/\/bgm\/([^/]+)\/([^/]+)\.[^.]+$/);
-        const category = (match?.[1] ?? 'lofi') as BgmCategory;
-        const fileName = match?.[2] ?? category;
+const getCategoryMetadata = (category: string): Omit<BgmPlayerItem, 'id'> => {
+    return (
+        categoryMeta[category] ?? {
+            title: toTitleCase(category),
+            description: `${category} 사운드`,
+            imageSrc: defaultCategoryImage,
+        }
+    );
+};
 
-        return {
-            id: `${category}/${fileName}`,
-            category,
-            title: categoryMeta[category].title,
-            description: categoryMeta[category].description,
-            imageSrc: categoryMeta[category].imageSrc,
-            src,
-        };
-    });
+let bgmTracksPromise: Promise<BgmTrack[]> | null = null;
+
+export const loadBgmTracks = async () => {
+    if (!bgmTracksPromise) {
+        bgmTracksPromise = (async () => {
+            const categoryEntries = await listSupabaseAudioFolders('bgm');
+
+            const trackGroups = await Promise.all(
+                categoryEntries.map(async ({ name }) => {
+                    const files = await listSupabaseAudioFiles(`bgm/${name}`);
+                    const metadata = getCategoryMetadata(name);
+
+                    return files.map(({ name: fileName }) => {
+                        const trackName = fileName.replace(/\.[^.]+$/, '');
+
+                        return {
+                            id: `${name}/${trackName}`,
+                            category: name,
+                            title: metadata.title,
+                            description: metadata.description,
+                            imageSrc: metadata.imageSrc,
+                            src: getSupabaseAudioUrl(`bgm/${name}/${fileName}`),
+                        } satisfies BgmTrack;
+                    });
+                })
+            );
+
+            return trackGroups.flat();
+        })();
+    }
+
+    return bgmTracksPromise;
+};
+
+export const buildBgmPlayerItems = (tracks: BgmTrack[]): BgmPlayerItem[] => {
+    const categorySet = new Set(tracks.map((track) => track.category));
+
+    return Array.from(categorySet).map((category) => ({
+        id: category,
+        ...getCategoryMetadata(category),
+    }));
+};

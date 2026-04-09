@@ -1,13 +1,13 @@
 import { useEffect, useId, useState } from 'react';
 
 import type { HTMLAttributes } from 'react';
-import type { TimerSessionType } from '@@@/timer/useTimerStore';
+import type { TTimerSessionType } from '@@@/timer/types';
 
 export interface TomatoVisualProps extends HTMLAttributes<HTMLDivElement> {
     size?: number;
     animate?: boolean;
     progress?: number;
-    sessionType?: TimerSessionType;
+    sessionType?: TTimerSessionType;
 }
 
 interface RgbColor {

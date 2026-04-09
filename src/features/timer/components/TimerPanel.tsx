@@ -1,44 +1,34 @@
 import { memo } from 'react';
 
 import { Icon, PlayerButton } from '@@/ui';
-import { SessionIndicator, TomatoVisual } from '@@@/timer';
-
-interface TimerPanelProps {
-    hasStarted: boolean;
-    isRunning: boolean;
-    sessionType?: 'focus' | 'shortBreak' | 'longBreak';
-    sessionIndicatorFilledCount?: number;
-    timerMinutes: string;
-    timerSeconds: string;
-    tomatoProgress: number;
-    onRequestStop: () => void;
-    onToggleTimer: () => void;
-}
+import { SessionIndicator, TomatoVisual, type ITimerPanelProps } from '@@@/timer';
 
 export const TimerPanel = memo(
     ({
         hasStarted,
         isRunning,
         sessionType = 'focus',
-        sessionIndicatorFilledCount = 1,
+        focusSessionInSet = 1,
         timerMinutes,
         timerSeconds,
         tomatoProgress,
         onRequestStop,
         onToggleTimer,
-    }: TimerPanelProps) => {
+    }: ITimerPanelProps) => {
         return (
             <div>
                 <div className='flex flex-col gap-5 mt-18 mb-8 items-center'>
-                    <SessionIndicator filledCount={sessionIndicatorFilledCount} />
+                    <SessionIndicator filledCount={focusSessionInSet} />
                     <div className='flex gap-5 text-xl mb-8 font-bold'>
                         <span className={sessionType === 'focus' ? 'text-neutral-darker' : 'text-neutral-lighter'}>
                             집중
                         </span>
-                        <span className={sessionType === 'shortBreak' ? 'text-neutral-darker' : 'text-neutral-lighter'}>
+                        <span
+                            className={sessionType === 'short_break' ? 'text-neutral-darker' : 'text-neutral-lighter'}
+                        >
                             휴식
                         </span>
-                        <span className={sessionType === 'longBreak' ? 'text-neutral-darker' : 'text-neutral-lighter'}>
+                        <span className={sessionType === 'long_break' ? 'text-neutral-darker' : 'text-neutral-lighter'}>
                             장휴식
                         </span>
                     </div>

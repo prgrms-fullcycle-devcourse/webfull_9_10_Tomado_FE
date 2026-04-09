@@ -7,7 +7,6 @@ import { Button, Icon, Menu } from '@@/ui';
 export interface HeaderNavItem {
     label: string;
     href?: string;
-    active?: boolean;
 }
 
 export interface HeaderProps extends HTMLAttributes<HTMLElement> {
@@ -77,7 +76,7 @@ export const Header = ({ leftSlot, centerSlot, rightSlot, className, ...props }:
     );
 };
 
-export const DefaultHeader = ({
+export const AuthHeader = ({
     navItems = defaultNavItems,
     utilitySlot,
     profileSlot,
@@ -122,17 +121,21 @@ export const DefaultHeader = ({
             {...props}
             centerSlot={
                 <nav aria-label='Primary navigation' className={navClassName}>
-                    {navItems.map((item) => (
-                        <Button
-                            key={`${item.href ?? item.label}-${item.label}`}
-                            className={getNavItemClassName(item.active)}
-                            onClick={() => item.href && navigate(item.href)}
-                            size='md'
-                            variant='ghost'
-                        >
-                            {item.label}
-                        </Button>
-                    ))}
+                    {navItems.map((item) => {
+                        const isActive = item.href ? location.pathname === item.href : false;
+
+                        return (
+                            <Button
+                                key={`${item.href ?? item.label}-${item.label}`}
+                                className={getNavItemClassName(isActive)}
+                                onClick={() => item.href && navigate(item.href)}
+                                size='md'
+                                variant='ghost'
+                            >
+                                {item.label}
+                            </Button>
+                        );
+                    })}
                 </nav>
             }
             leftSlot={
@@ -229,7 +232,12 @@ export const GuestHeader = ({
             }
             centerSlot={
                 <div>
-                    <Button onClick={() => navigate(brandHref)} size='md' variant='ghost'>
+                    <Button
+                        className={getNavItemClassName(location.pathname === brandHref)}
+                        onClick={() => navigate(brandHref)}
+                        size='md'
+                        variant='ghost'
+                    >
                         브랜드센터
                     </Button>
                 </div>

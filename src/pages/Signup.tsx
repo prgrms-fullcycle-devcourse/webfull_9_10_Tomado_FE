@@ -1,4 +1,15 @@
-import { useSignupForm, getSignupFieldState } from '@@@/auth';
+import type { FormEvent } from 'react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+import {
+    getSignupFieldState,
+    mapRegisterResponseToAuthUser,
+    type SignupFormValues,
+    useAuthStore,
+    useSignupForm,
+} from '@@@/auth';
+import { useRegister } from '@/api/generated/auth/auth';
 import { Input } from '@@/form';
 import { Container } from '@@/layout';
 import { Button } from '@@/ui';
@@ -16,6 +27,8 @@ const cardClassName = 'w-full max-w-[600px] rounded-[32px] bg-white px-20 py-24 
 const cardInnerClassName = 'mx-auto flex w-full max-w-[380px] flex-col gap-10';
 const titleClassName = 'text-center text-3xl font-bold text-black';
 const fieldsClassName = 'flex flex-col gap-6';
+const errorMessageClassName = 'text-center text-sm text-danger';
+const signupFormId = 'signup-form';
 
 const signupFieldMetaMap: Record<SignupFieldKey, SignupFieldMeta> = {
     userId: {
@@ -41,7 +54,33 @@ const signupFieldMetaMap: Record<SignupFieldKey, SignupFieldMeta> = {
 };
 
 export default function Signup() {
-    const { values, validations, isFormValid, setFieldValue } = useSignupForm();
+    const navigate = useNavigate();
+    const login = useAuthStore((state) => state.login);
+    const registerMutation = useRegister();
+    const { values, validations, isFormValid, setFieldValue: setSignupFieldValue, getSubmitPayload } = useSignupForm();
+    const [submitError, setSubmitError] = useState<string | null>(null);
+
+    const setFieldValue = (field: keyof SignupFormValues, value: string) => {
+        setSubmitError(null);
+        setSignupFieldValue(field, value);
+    };
+
+    const handleSubmit = async (event?: FormEvent<HTMLFormElement>) => {
+        event?.preventDefault();
+
+        try {
+            const response = await registerMutation.mutateAsync({
+                data: getSubmitPayload(),
+            });
+
+            login(mapRegisterResponseToAuthUser(response));
+            navigate('/main', { replace: true });
+        } catch (error) {
+            setSubmitError(error instanceof Error ? error.message : '회원가입에 실패했습니다.');
+        }
+    };
+
+    const isPending = registerMutation.isPending;
 
     return (
         <main>
@@ -51,13 +90,15 @@ export default function Signup() {
                         <div className={cardInnerClassName}>
                             <h1 className={titleClassName}>회원가입</h1>
 
-                            <div className={fieldsClassName}>
+                            <form className={fieldsClassName} id={signupFormId} onSubmit={handleSubmit}>
                                 <Input
+                                    autoComplete='username'
                                     helperText={validations.userId.helperText}
                                     iconName={
                                         values.userId ? (validations.userId.isValid ? 'check' : 'error') : undefined
                                     }
                                     label={signupFieldMetaMap.userId.label}
+                                    name='userId'
                                     onChange={(event) => setFieldValue('userId', event.target.value)}
                                     placeholder={signupFieldMetaMap.userId.placeholder}
                                     state={getSignupFieldState(validations.userId.isValid, Boolean(values.userId))}
@@ -66,11 +107,13 @@ export default function Signup() {
                                 />
 
                                 <Input
+                                    autoComplete='nickname'
                                     helperText={validations.nickname.helperText}
                                     iconName={
                                         values.nickname ? (validations.nickname.isValid ? 'check' : 'error') : undefined
                                     }
                                     label={signupFieldMetaMap.nickname.label}
+                                    name='nickname'
                                     onChange={(event) => setFieldValue('nickname', event.target.value)}
                                     placeholder={signupFieldMetaMap.nickname.placeholder}
                                     state={getSignupFieldState(validations.nickname.isValid, Boolean(values.nickname))}
@@ -79,11 +122,13 @@ export default function Signup() {
                                 />
 
                                 <Input
+                                    autoComplete='new-password'
                                     helperText={validations.password.helperText}
                                     iconName={
                                         values.password ? (validations.password.isValid ? 'check' : 'error') : undefined
                                     }
                                     label={signupFieldMetaMap.password.label}
+                                    name='password'
                                     onChange={(event) => setFieldValue('password', event.target.value)}
                                     placeholder={signupFieldMetaMap.password.placeholder}
                                     state={getSignupFieldState(validations.password.isValid, Boolean(values.password))}
@@ -92,6 +137,7 @@ export default function Signup() {
                                 />
 
                                 <Input
+                                    autoComplete='new-password'
                                     helperText={validations.passwordConfirm.helperText}
                                     iconName={
                                         values.passwordConfirm
@@ -101,6 +147,7 @@ export default function Signup() {
                                             : undefined
                                     }
                                     label={signupFieldMetaMap.passwordConfirm.label}
+                                    name='passwordConfirm'
                                     onChange={(event) => setFieldValue('passwordConfirm', event.target.value)}
                                     placeholder={signupFieldMetaMap.passwordConfirm.placeholder}
                                     state={getSignupFieldState(
@@ -110,10 +157,18 @@ export default function Signup() {
                                     type={signupFieldMetaMap.passwordConfirm.type}
                                     value={values.passwordConfirm}
                                 />
-                            </div>
+                            </form>
 
-                            <Button disabled={!isFormValid} fullWidth size='lg'>
-                                회원가입
+                            {submitError ? <p className={errorMessageClassName}>{submitError}</p> : null}
+
+                            <Button
+                                disabled={!isFormValid || isPending}
+                                form={signupFormId}
+                                fullWidth
+                                size='lg'
+                                type='submit'
+                            >
+                                {isPending ? '가입 중...' : '회원가입'}
                             </Button>
                         </div>
                     </section>

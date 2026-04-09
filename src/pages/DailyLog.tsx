@@ -4,11 +4,13 @@ import { Container, SectionHeader, SidebarContentLayout } from '@/components/lay
 import { Badge, Button, DailyLogCard, Icon } from '@/components/ui';
 import { useEffect, useRef, useState } from 'react';
 import { Calendar } from '@@/ui';
+import { useModal, useToast } from '@/hooks';
 
 export default function DailyLog() {
     const today = new Date();
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
+    const [search, setSearch] = useState('');
     const [content, setContent] = useState('');
     const [title, setTitle] = useState('');
     const [autoSaveText, setAutoSaveText] = useState('');
@@ -16,6 +18,9 @@ export default function DailyLog() {
     const [isAutoSaveProgresing, setIsAutoSaveProgresing] = useState(false);
     const [isOpenCalendar, setIsOpenCalendar] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+
+    const { showModal } = useModal();
+    const { showToast } = useToast();
 
     // const testdata = [
     //     {
@@ -223,12 +228,39 @@ export default function DailyLog() {
         return `마지막 저장 ${yy}. ${mm}. ${dd} ${formatKoreanTime(target)}`;
     };
 
+    const handleChangeSearchInput = (val: string) => {
+        setSearch(val);
+
+        if (!val) {
+            getLogList();
+        }
+    };
+
     const handleLogClick = (log: Log): void => {
         setContent(log.content);
         setTitle(log.title);
         setSelectedDate(new Date(`${log.log_date}T00:00:00`));
         const lastSaved = formatLastSaved(log.updated_at);
         setAutoSaveText(lastSaved);
+    };
+
+    const handleDeleteConfirm = (log: Log): void => {
+        showModal({
+            title: `${log.log_date} 로그 삭제`,
+            description: `지금 삭제하시면 복구할 수 없어요.\n그래도 삭제하시겠어요?`,
+            tone: 'danger',
+            confirmLabel: '삭제하기',
+            onConfirm: () => deleteLog(log),
+        });
+    };
+
+    const deleteLog = (log: Log) => {
+        // TODO: 로그 삭제 api
+
+        showToast({
+            message: `${log.log_date} 로그가 성공적으로 삭제되었습니다.`,
+            duration: 3000,
+        });
     };
 
     const formatSectionHeaderDate = (date: Date): string => {
@@ -262,6 +294,16 @@ export default function DailyLog() {
         });
     };
 
+    const getLogList = () => {
+        // TODO: 정해진 기간의 로그 목록을 가져오는 api 호출
+    };
+
+    const searchLogList = () => {
+        console.log(search);
+
+        // TODO: 키워드에 해당하는 로그 목록을 가져오는 api 호출
+    };
+
     return (
         <Container className='overflow-hidden'>
             <div className='flex h-[calc(100dvh-140px)] min-h-0 flex-col overflow-hidden'>
@@ -273,7 +315,19 @@ export default function DailyLog() {
                 >
                     <aside className='h-full min-h-0'>
                         <section className={panelClassName}>
-                            <SearchInput placeholder='제목 또는 내용으로 검색하세요' />
+                            <div className='flex w-full gap-2'>
+                                <SearchInput
+                                    className='flex-1 min-w-0'
+                                    placeholder='제목 또는 내용으로 검색하세요'
+                                    value={search}
+                                    onChange={(e) => handleChangeSearchInput(e.target.value)}
+                                />
+                                {search && (
+                                    <Button className='!px-2' variant='outline' onClick={searchLogList}>
+                                        <Icon name='search' size={20} />
+                                    </Button>
+                                )}
+                            </div>
                             <div className='mt-4 mb-2 flex w-full justify-between'>
                                 <p className='text-neutral-darker'>전체</p>
                                 <Badge label='총 0건' />
@@ -286,6 +340,7 @@ export default function DailyLog() {
                                         dateLabel={relativeDate(log.created_at)}
                                         title={log.title}
                                         onClick={() => handleLogClick(log)}
+                                        onDeleteClick={() => handleDeleteConfirm(log)}
                                     />
                                 ))}
                             </div>

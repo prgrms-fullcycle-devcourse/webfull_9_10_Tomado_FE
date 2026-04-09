@@ -1,106 +1,33 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Tooltip } from '@@/ui';
-import { useTimerStore } from '../useTimerStore';
+import { useState } from 'react';
 
-const cx = (...classes: Array<string | false | null | undefined>) => classes.filter(Boolean).join(' ');
+import { cn } from '@/utils';
+import { Tooltip } from '@@/ui';
+import type { TTimerSessionType, ITimerProgressBarProps } from '@@@/timer';
 
 const rootClassName = 'relative z-40 h-1 w-full bg-neutral-lighter';
 const fillClassName = 'h-full rounded-r-full will-change-[width]';
 const tooltipWrapperClassName = 'pointer-events-none absolute top-full left-1/2 mt-2 -translate-x-1/2 shadow-shadow-1';
 
-const formatTimeParts = (totalSeconds: number) => {
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-
-    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-};
-
-const getProgressBarToneClassName = (sessionType: 'focus' | 'shortBreak' | 'longBreak') => {
-    if (sessionType === 'shortBreak') {
-        return 'bg-green-300';
-    }
-
-    if (sessionType === 'longBreak') {
-        return 'bg-green-600';
-    }
-
+const getProgressBarToneClassName = (sessionType: TTimerSessionType) => {
+    if (sessionType === 'short_break') return 'bg-green-300';
+    if (sessionType === 'long_break') return 'bg-green-600';
     return 'bg-primary';
 };
 
-export const TimerProgressBar = () => {
-    const focusSeconds = useTimerStore((state) => state.focusSeconds);
-    const shortBreakSeconds = useTimerStore((state) => state.shortBreakSeconds);
-    const longBreakSeconds = useTimerStore((state) => state.longBreakSeconds);
-    const sessionType = useTimerStore((state) => state.sessionType);
-    const remainingSeconds = useTimerStore((state) => state.remainingSeconds);
-    const isRunning = useTimerStore((state) => state.isRunning);
-    const lastTickAt = useTimerStore((state) => state.lastTickAt);
+export const TimerProgressBar = ({ timerSession }: ITimerProgressBarProps) => {
     const [hovered, setHovered] = useState(false);
-    const [now, setNow] = useState(() => Date.now());
 
-    const totalSeconds = useMemo(() => {
-        if (sessionType === 'shortBreak') {
-            return shortBreakSeconds;
-        }
-
-        if (sessionType === 'longBreak') {
-            return longBreakSeconds;
-        }
-
-        return focusSeconds;
-    }, [focusSeconds, longBreakSeconds, sessionType, shortBreakSeconds]);
-
-    useEffect(() => {
-        if (!isRunning) {
-            return;
-        }
-
-        let frameId = 0;
-
-        const update = () => {
-            setNow(Date.now());
-            frameId = window.requestAnimationFrame(update);
-        };
-
-        frameId = window.requestAnimationFrame(update);
-
-        return () => window.cancelAnimationFrame(frameId);
-    }, [isRunning]);
-
-    const visualRemainingSeconds = useMemo(() => {
-        if (!isRunning || lastTickAt === null) {
-            return remainingSeconds;
-        }
-
-        const elapsedSeconds = Math.max(0, (now - lastTickAt) / 1000);
-
-        return Math.max(0, remainingSeconds - elapsedSeconds);
-    }, [isRunning, lastTickAt, now, remainingSeconds]);
-
-    const progress = useMemo(() => {
-        if (totalSeconds <= 0) {
-            return 0;
-        }
-
-        return Math.min(1, Math.max(0, (totalSeconds - visualRemainingSeconds) / totalSeconds));
-    }, [totalSeconds, visualRemainingSeconds]);
-
-    if (!isRunning) {
-        return null;
-    }
+    if (!timerSession.isRunning) return null;
 
     return (
         <div className={rootClassName} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}>
             <div
-                className={cx(fillClassName, getProgressBarToneClassName(sessionType))}
-                style={{ width: `${progress * 100}%` }}
+                className={cn(fillClassName, getProgressBarToneClassName(timerSession.sessionType))}
+                style={{ width: `${timerSession.progress * 100}%` }}
             />
 
             {hovered ? (
-                <Tooltip
-                    className={tooltipWrapperClassName}
-                    label={`남은 시간 ${formatTimeParts(Math.ceil(visualRemainingSeconds))}`}
-                />
+                <Tooltip className={tooltipWrapperClassName} label={`남은 시간 ${timerSession.timeLabel}`} />
             ) : null}
         </div>
     );

@@ -1,11 +1,5 @@
 import { useEffect, useRef } from 'react';
-
-type TimerMetadataOptions = {
-    isRunning: boolean;
-    sessionType: 'focus' | 'shortBreak' | 'longBreak';
-    minutes: string;
-    seconds: string;
-};
+import type { ITimerMetadataOptions } from '@@@/timer';
 
 const DEFAULT_FAVICON_HREF = '/favicon.svg';
 
@@ -38,7 +32,7 @@ const getOrCreateFaviconLink = () => {
     return faviconLink;
 };
 
-export const useTimerMetadata = ({ isRunning, sessionType, minutes, seconds }: TimerMetadataOptions) => {
+export const useTimerMetadata = ({ isRunning, sessionType, minutes, seconds }: ITimerMetadataOptions) => {
     const initialTitleRef = useRef<string | null>(null);
     const initialFaviconRef = useRef<string | null>(null);
 

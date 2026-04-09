@@ -1,5 +1,5 @@
 import type { InputHTMLAttributes } from 'react';
-import { forwardRef } from 'react';
+import { forwardRef, useState } from 'react';
 
 import { Icon, Shortcut } from '@@/ui';
 
@@ -36,6 +36,8 @@ const getLeadingIconClassName = ({ disabled = false }: { disabled?: boolean }) =
 
 export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
     ({ className, fieldClassName, inputClassName, disabled = false, ...props }, ref) => {
+        const [isFocus, setIsFocus] = useState(false);
+
         return (
             <div className={cx('w-full', className)}>
                 <div className={cx(getSearchInputWrapperClassName({ disabled }), fieldClassName)}>
@@ -47,8 +49,10 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
                         disabled={disabled}
                         placeholder='제목 또는 내용으로 검색하세요'
                         type='search'
+                        onFocus={() => setIsFocus(true)}
+                        onBlur={() => setIsFocus(false)}
                     />
-                    <Shortcut keys={['F']} />
+                    {!isFocus && <Shortcut keys={['F']} />}
                 </div>
             </div>
         );
