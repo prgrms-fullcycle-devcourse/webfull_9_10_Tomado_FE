@@ -1,12 +1,17 @@
 import { queryClient } from '@/api/queryClient';
-import { getGetMyProfileQueryKey } from '@/api/generated/users/users';
+import { getGetMyProfileQueryKey, getGetMySettingsQueryKey } from '@/api/generated/users/users';
 import { deleteUserAvatar, mapUserDtoToAuthUser, uploadUserAvatar, useAuthStore } from '@/features/auth';
 import { Input, Toggle } from '@/components/form';
 import { CenteredLayout, Container, SectionHeader } from '@/components/layout';
 import { Button, Icon } from '@/components/ui';
 import { useModal, useToast } from '@/hooks';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useGetMyProfile, useGetMySettings } from '@/api/generated/users/users';
+import {
+    useGetMyProfile,
+    useGetMySettings,
+    useUpdateMyProfile,
+    useUpdateMySettings,
+} from '@/api/generated/users/users';
 
 export default function My() {
     const panelClassName =
@@ -25,6 +30,8 @@ export default function My() {
 
     const { data: profile } = useGetMyProfile();
     const { data: settings } = useGetMySettings();
+    const { mutateAsync: updateProfile } = useUpdateMyProfile();
+    const { mutateAsync: updateSettings } = useUpdateMySettings();
 
     const { showToast } = useToast();
     const { showModal } = useModal();
@@ -59,8 +66,14 @@ export default function My() {
         return !(name.length >= 2 && name.length <= 20 && name !== currentNickname);
     }, [name, profile]);
 
-    const handleNameSave = () => {
-        // TODO: 닉네임 저장 로직
+    const handleNameSave = async () => {
+        try {
+            await updateProfile({ data: { nickname: name } });
+            void queryClient.invalidateQueries({ queryKey: getGetMyProfileQueryKey() });
+            showToast({ message: '닉네임이 저장되었어요', iconName: 'check', duration: 3000 });
+        } catch {
+            showToast({ message: '닉네임 저장에 실패했습니다', iconName: 'error', duration: 3000 });
+        }
     };
 
     const handleDeleteAcount = () => {
@@ -98,14 +111,37 @@ export default function My() {
         handleSaveSettings();
     };
 
-    const handleSaveSettings = () => {
-        // TODO: 설정 저장 api 호출
+    const handleSaveSettings = async () => {
+        try {
+            await updateSettings({
+                data: {
+                    focus_min: focusTime,
+                    short_break_min: shortBreakTime,
+                    long_break_min: longBreakTime,
+                },
+            });
+            void queryClient.invalidateQueries({ queryKey: getGetMySettingsQueryKey() });
+            showToast({ message: '설정이 저장되었어요', iconName: 'check', duration: 3000 });
+        } catch {
+            showToast({ message: '설정 저장에 실패했습니다', iconName: 'error', duration: 3000 });
+        }
     };
 
-    const handleAutoCarryTodo = () => {
-        setTodoToggle(!todoToggle);
+    const handleAutoCarryTodo = async () => {
+        const newValue = !todoToggle;
+        setTodoToggle(newValue);
 
-        // TODO: 투두 자동 이월 변경 api
+        try {
+            await updateSettings({
+                data: {
+                    auto_carry_todo: newValue,
+                },
+            });
+            void queryClient.invalidateQueries({ queryKey: getGetMySettingsQueryKey() });
+        } catch {
+            setTodoToggle(!newValue);
+            showToast({ message: '투두 설정 변경에 실패했습니다', iconName: 'error', duration: 3000 });
+        }
     };
 
     const handleDeleteConfirm = () => {
