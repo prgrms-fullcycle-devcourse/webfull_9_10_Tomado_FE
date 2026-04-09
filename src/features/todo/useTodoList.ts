@@ -291,20 +291,20 @@ export const useTodoList = ({ assignedDate = getTodayDate() }: UseTodoListOption
             const todoMap = new Map(previousTodos.map((todo) => [todo.id, todo]));
 
             queryClient.setQueryData<TodoDto[]>(todosQueryKey, () => {
-                return orderedIds
-                    .map((id, index) => {
-                        const todo = todoMap.get(id);
+                return orderedIds.reduce<TodoDto[]>((nextTodos, id, index) => {
+                    const todo = todoMap.get(id);
 
-                        if (!todo) {
-                            return null;
-                        }
+                    if (!todo) {
+                        return nextTodos;
+                    }
 
-                        return {
-                            ...todo,
-                            sort_order: index + 1,
-                        };
-                    })
-                    .filter((todo): todo is TodoDto => Boolean(todo));
+                    nextTodos.push({
+                        ...todo,
+                        sort_order: index + 1,
+                    });
+
+                    return nextTodos;
+                }, []);
             });
 
             try {
