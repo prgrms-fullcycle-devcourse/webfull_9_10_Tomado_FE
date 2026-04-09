@@ -15,7 +15,7 @@ import {
     type ITimerDurations,
 } from '@@@/timer';
 import { AuthHeader } from '@@/layout';
-import { DEMO_AUTH_USER, mapUserDtoToAuthUser, useAuthStore } from '@@@/auth';
+import { mapUserDtoToAuthUser, useAuthStore } from '@@@/auth';
 
 const LazyBgmPlayerLayer = lazy(() =>
     import('@/features/settings/components/BgmPlayerLayer').then((module) => ({
@@ -37,13 +37,12 @@ export function AuthLayout() {
     const isAuth = useAuthStore((state) => state.isAuth);
     const logout = useAuthStore((state) => state.logout);
     const updateUser = useAuthStore((state) => state.updateUser);
-    const isDemoSession = authUser?.id === DEMO_AUTH_USER.id;
 
     const { mutateAsync: logoutFromServer } = useLogout();
-    const settingsQuery = useGetMySettings({ query: { enabled: !isDemoSession && isAuth } });
+    const settingsQuery = useGetMySettings({ query: { enabled: isAuth } });
     const profileQuery = useGetMyProfile({
         query: {
-            enabled: !isDemoSession && isAuth,
+            enabled: isAuth,
         },
     });
 
