@@ -4,7 +4,7 @@ import { closestCenter, DndContext, PointerSensor, useSensor, useSensors, type D
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
-import { useTodoList, TODO_MAX_CHARS, TodoInput, TodoItem, useTodoStore, type Todo } from '@@@/todo';
+import { useTodoList, TODO_MAX_CHARS, TodoInput, TodoItem, type Todo } from '@@@/todo';
 import { useInputFocus, useSubmitOnEnter } from '@/hooks';
 import { getTodayDate, formatDate, parseDate } from '@/utils';
 import { TodoMoveModal } from './TodoMoveModal';
@@ -24,8 +24,6 @@ const cx = (...classes: Array<string | false | null | undefined>) => {
 export const TodoPanel = memo(({ assignedDate = getTodayDate(), className, tone = 'default' }: TodoPanelProps) => {
     const todoInputRef = useRef<HTMLInputElement>(null);
     const showMoreButton = tone === 'default';
-    const moveTodoDate = useTodoStore((state) => state.moveTodoDate);
-    const reorderTodos = useTodoStore((state) => state.reorderTodos);
     const [moveTargetTodo, setMoveTargetTodo] = useState<Todo | null>(null);
     const [selectedMoveDate, setSelectedMoveDate] = useState<Date>(() => parseDate(assignedDate));
 
@@ -33,6 +31,7 @@ export const TodoPanel = memo(({ assignedDate = getTodayDate(), className, tone 
 
     const {
         todos,
+        isLoading,
         todoInputValue,
         todoInputError,
         handleTodoInputChange,
@@ -40,6 +39,8 @@ export const TodoPanel = memo(({ assignedDate = getTodayDate(), className, tone 
         updateTodoLabel,
         updateTodoChecked,
         removeTodo,
+        moveTodoDate,
+        reorderTodos,
     } = useTodoList({ assignedDate });
 
     const sensors = useSensors(
@@ -64,7 +65,7 @@ export const TodoPanel = memo(({ assignedDate = getTodayDate(), className, tone 
             return;
         }
 
-        moveTodoDate(moveTargetTodo.id, formatDate(selectedMoveDate));
+        void moveTodoDate(moveTargetTodo.id, formatDate(selectedMoveDate));
         setMoveTargetTodo(null);
     }, [moveTargetTodo, moveTodoDate, selectedMoveDate]);
     const handleDragEnd = useCallback(
@@ -81,12 +82,12 @@ export const TodoPanel = memo(({ assignedDate = getTodayDate(), className, tone 
             }
 
             const nextTodos = arrayMove(todos, oldIndex, newIndex);
-            reorderTodos(
-                assignedDate,
+            void reorderTodos(
+                String(active.id),
                 nextTodos.map((todo) => todo.id)
             );
         },
-        [assignedDate, reorderTodos, todos]
+        [reorderTodos, todos]
     );
 
     return (
@@ -103,17 +104,21 @@ export const TodoPanel = memo(({ assignedDate = getTodayDate(), className, tone 
                 />
                 <DndContext collisionDetection={closestCenter} onDragEnd={handleDragEnd} sensors={sensors}>
                     <SortableContext items={sortableIds} strategy={verticalListSortingStrategy}>
-                        {todos.map((todo) => (
-                            <SortableTodoItemRow
-                                key={todo.id}
-                                todo={todo}
-                                showMoreButton={showMoreButton}
-                                onCheckedChange={updateTodoChecked}
-                                onDelete={removeTodo}
-                                onLabelChange={updateTodoLabel}
-                                onMoveDate={handleOpenMoveModal}
-                            />
-                        ))}
+                        {isLoading && todos.length === 0
+                            ? Array.from({ length: 3 }, (_, index) => (
+                                  <TodoSkeletonRow key={`todo-skeleton-${index}`} />
+                              ))
+                            : todos.map((todo) => (
+                                  <SortableTodoItemRow
+                                      key={todo.id}
+                                      todo={todo}
+                                      showMoreButton={showMoreButton}
+                                      onCheckedChange={updateTodoChecked}
+                                      onDelete={removeTodo}
+                                      onLabelChange={updateTodoLabel}
+                                      onMoveDate={handleOpenMoveModal}
+                                  />
+                              ))}
                     </SortableContext>
                 </DndContext>
             </div>
@@ -131,9 +136,9 @@ export const TodoPanel = memo(({ assignedDate = getTodayDate(), className, tone 
 interface TodoItemRowProps {
     todo: Todo;
     showMoreButton: boolean;
-    onCheckedChange: (id: number, checked: boolean) => void;
-    onDelete: (id: number) => void;
-    onLabelChange: (id: number, label: string) => void;
+    onCheckedChange: (id: string, checked: boolean) => void;
+    onDelete: (id: string) => void;
+    onLabelChange: (id: string, label: string) => void;
     onMoveDate: (todo: Todo) => void;
 }
 
@@ -151,20 +156,30 @@ const SortableTodoItemRow = memo((props: TodoItemRowProps) => {
             }}
         >
             <TodoItem
-                checked={props.todo.checked}
+                checked={Boolean(props.todo.completedAt)}
                 className='touch-none'
                 dragHandleAttributes={attributes}
                 dragHandleListeners={listeners}
                 dragHandleRef={setActivatorNodeRef}
                 isDragging={isDragging}
-                label={props.todo.label}
+                label={props.todo.title}
                 maxChars={TODO_MAX_CHARS}
                 moreButton={props.showMoreButton}
                 onCheckedChange={(checked) => props.onCheckedChange(props.todo.id, checked)}
                 onDelete={() => props.onDelete(props.todo.id)}
-                onLabelChange={(nextLabel) => props.onLabelChange(props.todo.id, nextLabel)}
+                onLabelChange={(nextLabel) => void props.onLabelChange(props.todo.id, nextLabel)}
                 onMoveDate={() => props.onMoveDate(props.todo)}
             />
         </div>
     );
 });
+
+const TodoSkeletonRow = () => {
+    return (
+        <div className='flex h-10 w-full items-center gap-3 rounded-xl border border-neutral-subtle bg-white px-3 animate-pulse'>
+            <div className='h-6 w-6 shrink-0 rounded-full bg-gray-100' />
+            <div className='h-4 flex-1 rounded-full bg-gray-100' />
+            <div className='h-5 w-5 shrink-0 rounded bg-gray-100' />
+        </div>
+    );
+};

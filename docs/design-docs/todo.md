@@ -5,24 +5,21 @@
 ## Summary
 
 - 날짜별 투두 목록 관리, 입력, 체크, 삭제, 이동, 정렬을 담당합니다.
-- 현재는 local zustand store 기반으로 동작합니다.
-- UI 조합은 `TodoPanel`이 중심이고, 날짜별 order 규칙은 store 액션에서 관리합니다.
+- 현재는 Todo API와 React Query invalidate 기반으로 동작합니다.
+- UI 조합은 `TodoPanel`이 중심이고, 날짜별 `sort_order` 규칙은 서버 계약을 기준으로 관리합니다.
 
 ## Current Structure
 
-### State
-
-- `useTodoStore.ts`
-    - Todo 원본 상태를 zustand로 관리
-    - `todos` 배열과 `addTodo`, `updateTodoLabel`, `updateTodoChecked`, `moveTodoDate`, `reorderTodos`, `removeTodo`, `restoreTodo` 액션 제공
-    - 날짜별 order 규칙 normalization을 내부 helper로 유지
-
-### View / Interaction
+### Data / Interaction
 
 - `useTodoList.ts`
-    - 특정 날짜 기준으로 보일 Todo 목록을 계산
-    - 입력 제한, 입력값 상태, 추가/삭제/복구 흐름을 묶음
-    - 삭제 후 undo toast까지 포함한 UI 친화적 액션을 제공
+    - 특정 날짜 기준 Todo 목록 조회
+    - 입력 제한, 생성, 수정, 체크, 삭제, 날짜 이동, reorder mutation 흐름을 묶음
+    - mutation 성공 후 Todo query를 invalidate 해 화면을 다시 동기화
+
+- `types.ts`
+    - 서버 Todo DTO를 프론트 Todo view model로 정규화
+    - `assigned_date`, `sort_order`, `completed_at`를 프론트 표현으로 매핑
 
 ### UI
 
@@ -42,24 +39,26 @@
 
 ## Current Flow
 
-1. `TodoPanel`이 `useTodoList`와 `useTodoStore`를 함께 사용한다.
-2. `useTodoList`가 현재 날짜 기준 목록과 입력/삭제 관련 액션을 제공한다.
+1. `TodoPanel`이 `useTodoList`를 사용한다.
+2. `useTodoList`가 현재 날짜 기준 목록과 입력/변형 액션을 제공한다.
 3. `TodoPanel`은 DnD reorder와 날짜 이동 모달 상태를 직접 관리한다.
-4. 실제 Todo 원본 상태 변경은 `useTodoStore` 액션으로 처리한다.
-5. 삭제 시에는 store에서 제거한 뒤 toast undo를 통해 `restoreTodo`를 호출할 수 있다.
+4. 실제 Todo 변경은 Todo API mutation으로 반영한다.
+5. mutation 성공 이후 Todo query를 invalidate 해서 목록을 다시 동기화한다.
 
 ## Data Rules
 
 - Todo는 `assignedDate`별로 그룹화된다.
-- 각 날짜 그룹 안에서 `order`로 정렬된다.
-- `moveTodoDate`, `reorderTodos`, `restoreTodo`, `removeTodo`는 모두 날짜별 order 규칙과 연결된다.
-- 현재 날짜별 order normalization은 `normalizeOrdersForDate` helper가 담당한다.
+- 각 날짜 그룹 안에서는 `sortOrder`로 정렬된다.
+- 서버 원본 필드는 `assigned_date`, `sort_order`, `completed_at`이다.
+- reorder는 index가 아니라 `prev_order`, `next_order` 기준 midpoint 계산을 전제로 한다.
+- 완료된 Todo는 삭제할 수 없다.
+- 미완료 Todo 삭제는 toast 노출 시간 동안 지연 처리된다.
 
 ## Current Concerns
 
 - `TodoPanel`의 입력, 정렬, 날짜 이동 모달 책임이 비교적 크다.
-- 날짜별 order 규칙이 store 내부 여러 액션에 분산되어 있다.
-- 생성된 Todo API 코드는 존재하지만 현재 feature는 local 상태 중심이다.
+- 날짜 이동과 reorder 계산 로직을 더 분리할 여지가 있다.
+- soft delete나 archive 정책이 없어서 delete undo가 프론트 지연 삭제에 의존한다.
 
 ## Active Plans
 
@@ -69,4 +68,5 @@
 
 - TodoPanel 책임 분리
 - 날짜별 order 규칙 helper 정리
-- Todo API 연동 및 optimistic update 기준 확정
+- Todo API 연동 및 optimistic update 기준 정리
+- soft delete 지원 여부에 따라 delete UX 단순화 검토
