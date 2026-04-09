@@ -14,22 +14,7 @@ Access Token 만료 시 `/auth/refresh`로 재발급하세요.
  * OpenAPI spec version: 1.0.0
  */
 
-export interface RegisterRequest {
-    /**
-     * 로그인 ID (영문+숫자, 4~20자)
-     * @minLength 4
-     * @maxLength 20
-     */
-    login_id: string;
-    /**
-     * 비밀번호 (8자 이상, 영문+숫자+특수문자)
-     * @minLength 8
-     */
-    password: string;
-    /**
-     * 서비스 내 닉네임 (2~20자)
-     * @minLength 2
-     * @maxLength 20
-     */
-    nickname: string;
-}
+export type UploadMyAvatarBody = {
+    /** 업로드할 프로필 이미지 파일 */
+    avatar: Blob;
+};

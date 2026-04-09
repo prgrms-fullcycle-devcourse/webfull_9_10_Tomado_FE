@@ -1,34 +1,23 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
-import { getSupabaseImageUrl } from '@/lib/storage';
+import { getSupabaseImageUrl, listSupabaseImageFiles } from '@/lib/storage';
 
 import { useFocusModeBackgroundStore } from './useFocusModeStore';
+import type { IBackgroundTransitionState, TDirectionShortcut } from './types';
 
-type SlideDirection = 'next' | 'prev';
+let focusModeBackgroundsPromise: Promise<string[]> | null = null;
 
-interface BackgroundTransitionState {
-    previousIndex: number;
-    currentIndex: number;
-    direction: SlideDirection;
-    phase: 'prepare' | 'animate';
-}
+const loadFocusModeBackgrounds = async () => {
+    if (!focusModeBackgroundsPromise) {
+        focusModeBackgroundsPromise = listSupabaseImageFiles('focus-mode/backgrounds').then((files) =>
+            files.map(({ name }) => getSupabaseImageUrl(`focus-mode/backgrounds/${name}`))
+        );
+    }
 
-const backgroundFileNames = [
-    'focusModeBG_01.png',
-    'focusModeBG_02.png',
-    'focusModeBG_03.png',
-    'focusModeBG_04.png',
-    'focusModeBG_05.png',
-    'focusModeBG_06.png',
-    'focusModeBG_07.png',
-    'focusModeBG_08.png',
-] as const;
+    return focusModeBackgroundsPromise;
+};
 
-export const focusModeBackgrounds = backgroundFileNames.map((fileName) =>
-    getSupabaseImageUrl(`focus-mode/backgrounds/${fileName}`)
-);
-
-const getSlideClassName = (index: number, currentIndex: number, transition: BackgroundTransitionState | null) => {
+const getSlideClassName = (index: number, currentIndex: number, transition: IBackgroundTransitionState | null) => {
     if (!transition) {
         if (index === currentIndex) {
             return 'translate-x-0 opacity-100 z-10';
@@ -44,18 +33,18 @@ const getSlideClassName = (index: number, currentIndex: number, transition: Back
             return 'translate-x-0 opacity-100 z-10';
         }
 
-        return direction === 'next' ? '-translate-x-full opacity-100 z-10' : 'translate-x-full opacity-100 z-10';
+        return direction === 'right' ? '-translate-x-full opacity-100 z-10' : 'translate-x-full opacity-100 z-10';
     }
 
     if (index === nextIndex) {
         if (phase === 'prepare') {
-            return direction === 'next' ? 'translate-x-full opacity-100 z-20' : '-translate-x-full opacity-100 z-20';
+            return direction === 'right' ? 'translate-x-full opacity-100 z-20' : '-translate-x-full opacity-100 z-20';
         }
 
         return 'translate-x-0 opacity-100 z-20';
     }
 
-    return direction === 'next' ? 'translate-x-full opacity-0 z-0' : '-translate-x-full opacity-0 z-0';
+    return direction === 'right' ? 'translate-x-full opacity-0 z-0' : '-translate-x-full opacity-0 z-0';
 };
 
 interface UseFocusModeBackgroundOptions {
@@ -63,6 +52,7 @@ interface UseFocusModeBackgroundOptions {
 }
 
 export const useFocusModeBackground = ({ backgroundIndex }: UseFocusModeBackgroundOptions = {}) => {
+    const [focusModeBackgrounds, setFocusModeBackgrounds] = useState<string[]>([]);
     const persistedBackgroundIndex = useFocusModeBackgroundStore((state) => state.backgroundIndex);
     const setPersistedBackgroundIndex = useFocusModeBackgroundStore((state) => state.setBackgroundIndex);
     const [currentBackgroundIndex, setCurrentBackgroundIndex] = useState(() => {
@@ -72,7 +62,29 @@ export const useFocusModeBackground = ({ backgroundIndex }: UseFocusModeBackgrou
 
         return Math.min(backgroundIndex ?? persistedBackgroundIndex, focusModeBackgrounds.length - 1);
     });
-    const [backgroundTransition, setBackgroundTransition] = useState<BackgroundTransitionState | null>(null);
+    const [backgroundTransition, setBackgroundTransition] = useState<IBackgroundTransitionState | null>(null);
+
+    useEffect(() => {
+        let cancelled = false;
+
+        const loadBackgrounds = async () => {
+            try {
+                const backgrounds = await loadFocusModeBackgrounds();
+
+                if (!cancelled) {
+                    setFocusModeBackgrounds(backgrounds);
+                }
+            } catch (error) {
+                console.error('집중모드 배경 목록을 불러오지 못했습니다.', error);
+            }
+        };
+
+        void loadBackgrounds();
+
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
     useEffect(() => {
         if (focusModeBackgrounds.length === 0) {
@@ -83,14 +95,14 @@ export const useFocusModeBackground = ({ backgroundIndex }: UseFocusModeBackgrou
         setCurrentBackgroundIndex(
             Math.min(backgroundIndex ?? persistedBackgroundIndex, focusModeBackgrounds.length - 1)
         );
-    }, [backgroundIndex, persistedBackgroundIndex]);
+    }, [backgroundIndex, focusModeBackgrounds.length, persistedBackgroundIndex]);
 
     useEffect(() => {
         focusModeBackgrounds.forEach((src) => {
             const image = new Image();
             image.src = src;
         });
-    }, []);
+    }, [focusModeBackgrounds]);
 
     useEffect(() => {
         if (backgroundTransition?.phase !== 'prepare') {
@@ -117,13 +129,13 @@ export const useFocusModeBackground = ({ backgroundIndex }: UseFocusModeBackgrou
     }, [backgroundTransition]);
 
     const startBackgroundTransition = useCallback(
-        (direction: SlideDirection) => {
+        (direction: TDirectionShortcut) => {
             if (focusModeBackgrounds.length <= 1 || backgroundTransition) {
                 return;
             }
 
             const nextIndex =
-                direction === 'next'
+                direction === 'right'
                     ? currentBackgroundIndex === focusModeBackgrounds.length - 1
                         ? 0
                         : currentBackgroundIndex + 1
@@ -140,21 +152,21 @@ export const useFocusModeBackground = ({ backgroundIndex }: UseFocusModeBackgrou
             setCurrentBackgroundIndex(nextIndex);
             setPersistedBackgroundIndex(nextIndex);
         },
-        [backgroundTransition, currentBackgroundIndex, setPersistedBackgroundIndex]
+        [backgroundTransition, currentBackgroundIndex, focusModeBackgrounds.length, setPersistedBackgroundIndex]
     );
 
     const backgroundSlideClassNames = useMemo(() => {
         return focusModeBackgrounds.map((_, index) =>
             getSlideClassName(index, currentBackgroundIndex, backgroundTransition)
         );
-    }, [backgroundTransition, currentBackgroundIndex]);
+    }, [backgroundTransition, currentBackgroundIndex, focusModeBackgrounds]);
 
     return {
         focusModeBackgrounds,
         backgroundSlideClassNames,
         currentBackgroundIndex,
-        handlePrevBackground: useCallback(() => startBackgroundTransition('prev'), [startBackgroundTransition]),
-        handleNextBackground: useCallback(() => startBackgroundTransition('next'), [startBackgroundTransition]),
+        handlePrevBackground: useCallback(() => startBackgroundTransition('left'), [startBackgroundTransition]),
+        handleNextBackground: useCallback(() => startBackgroundTransition('right'), [startBackgroundTransition]),
         getBackgroundSlideClassName: (index: number) =>
             getSlideClassName(index, currentBackgroundIndex, backgroundTransition),
     };
