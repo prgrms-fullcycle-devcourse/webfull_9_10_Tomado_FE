@@ -1,5 +1,14 @@
-import { useEffect, useState } from 'react';
-import type { ChangeEventHandler, FocusEventHandler, HTMLAttributes, MouseEvent, MouseEventHandler, Ref } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type {
+    ChangeEventHandler,
+    CompositionEventHandler,
+    FocusEventHandler,
+    HTMLAttributes,
+    KeyboardEventHandler,
+    MouseEvent,
+    MouseEventHandler,
+    Ref,
+} from 'react';
 
 import { CheckBox } from '@@/form';
 import { Icon, Menu } from '@@/ui';
@@ -80,6 +89,8 @@ export const TodoItem = ({
     const [localChecked, setLocalChecked] = useState(checked ?? defaultChecked);
     const [isFocused, setIsFocused] = useState(false);
     const [menuOpen, setMenuOpen] = useState(false);
+    const isComposingRef = useRef(false);
+    const pendingCommitLabelRef = useRef<string | null>(null);
     const {
         value: draftLabel,
         hasError: hasLengthError,
@@ -118,9 +129,19 @@ export const TodoItem = ({
     };
 
     const handleInputChange: ChangeEventHandler<HTMLInputElement> = (event) => {
-        const nextLabel = setLimitedValue(event.target.value);
+        setLimitedValue(event.target.value);
+    };
 
-        if (!nextLabel.trim()) {
+    const commitLabelChange = (nextRawLabel: string) => {
+        const nextLabel = nextRawLabel.trim();
+        const currentLabel = label.trim();
+
+        if (!nextLabel) {
+            setLimitedValue(label);
+            return;
+        }
+
+        if (nextLabel === currentLabel) {
             return;
         }
 
@@ -136,9 +157,46 @@ export const TodoItem = ({
         setIsFocused(false);
         onBlur?.(event);
 
+        if (isComposingRef.current) {
+            pendingCommitLabelRef.current = event.target.value;
+            return;
+        }
+
         if (!event.target.value.trim()) {
             setLimitedValue(label);
+            return;
         }
+
+        commitLabelChange(event.target.value);
+    };
+
+    const handleInputKeyDown: KeyboardEventHandler<HTMLInputElement> = (event) => {
+        if (isComposingRef.current) {
+            return;
+        }
+
+        if (event.key !== 'Enter') {
+            return;
+        }
+
+        event.currentTarget.blur();
+    };
+
+    const handleInputCompositionStart: CompositionEventHandler<HTMLInputElement> = () => {
+        isComposingRef.current = true;
+    };
+
+    const handleInputCompositionEnd: CompositionEventHandler<HTMLInputElement> = (event) => {
+        isComposingRef.current = false;
+        setLimitedValue(event.currentTarget.value);
+
+        if (!pendingCommitLabelRef.current) {
+            return;
+        }
+
+        const nextLabel = pendingCommitLabelRef.current;
+        pendingCommitLabelRef.current = null;
+        commitLabelChange(nextLabel);
     };
 
     return (
@@ -176,7 +234,10 @@ export const TodoItem = ({
                     disabled={disabled}
                     onBlur={handleInputBlur}
                     onChange={handleInputChange}
+                    onCompositionEnd={handleInputCompositionEnd}
+                    onCompositionStart={handleInputCompositionStart}
                     onFocus={handleInputFocus}
+                    onKeyDown={handleInputKeyDown}
                     placeholder={placeholder}
                     type='text'
                     value={draftLabel}

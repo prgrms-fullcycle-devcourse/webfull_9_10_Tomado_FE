@@ -1,13 +1,14 @@
 import { useMemo } from 'react';
 import { useOutletContext } from 'react-router-dom';
 
+import { useGetTodos } from '@/api/generated/todos/todos';
 import { formatDate, getTodayDate, DATE_FORMAT } from '@/utils';
 
 import { Container, DoubleColumnLayout, SectionHeader } from '@@/layout';
 import { Badge } from '@@/ui';
 
 import { TimerPanel, type ITimerControllerContext } from '@@@/timer';
-import { TodoPanel, useTodoStore } from '@@@/todo';
+import { TodoPanel, isTodoCompleted, mapTodoDto } from '@@@/todo';
 
 const panelClassName = 'flex flex-col items-center  h-full w-full rounded-2xl bg-white px-6 py-5 shadow-shadow-1';
 const panelHeadingRowClassName = 'flex items-start w-full justify-between';
@@ -18,9 +19,9 @@ export default function Main() {
 
     const todayDate = getTodayDate();
     const today = formatDate(todayDate, DATE_FORMAT.display);
-    const todos = useTodoStore((state) => state.todos);
-    const todayTodos = useMemo(() => todos.filter((todo) => todo.assignedDate === todayDate), [todayDate, todos]);
-    const completedTodoCount = todayTodos.filter((todo) => todo.checked).length;
+    const { data: todoResponse = [] } = useGetTodos({ date: todayDate });
+    const todayTodos = useMemo(() => todoResponse.map(mapTodoDto), [todoResponse]);
+    const completedTodoCount = todayTodos.filter(isTodoCompleted).length;
     const totalTodoCount = todayTodos.length;
 
     return (

@@ -13,6 +13,7 @@ interface CalendarProps {
     selectedDate?: string;
     onSelectDate?: (date: string) => void;
     tileContent?: CalendarTileData[];
+    isLoading?: boolean;
 }
 
 const rootClassName = 'mt-5 flex flex-col gap-5';
@@ -70,7 +71,12 @@ const formatMonthTitle = (date: Date) => {
     return `${date.getFullYear()}년 ${String(date.getMonth() + 1).padStart(2, '0')}월`;
 };
 
-export function Calendar({ selectedDate = getTodayDate(), onSelectDate, tileContent = [] }: CalendarProps) {
+export function Calendar({
+    selectedDate = getTodayDate(),
+    onSelectDate,
+    tileContent = [],
+    isLoading = false,
+}: CalendarProps) {
     const selected = useMemo(() => parseDate(selectedDate), [selectedDate]);
     const today = useMemo(() => parseDate(getTodayDate()), []);
     const [visibleMonth, setVisibleMonth] = useState(() => getMonthStart(selected));
@@ -145,19 +151,26 @@ export function Calendar({ selectedDate = getTodayDate(), onSelectDate, tileCont
             </div>
 
             <div className={monthGridClassName}>
-                {days.map(({ apiDate, date, isCurrentMonth, isSelected, isToday, summary }) => (
-                    <button
-                        className={getDayButtonClassName({ isCurrentMonth, isSelected, isToday })}
-                        key={apiDate}
-                        onClick={() => onSelectDate?.(apiDate)}
-                        type='button'
-                    >
-                        <span className={dayNumberClassName}>{date.getDate()}</span>
-                        {summary?.completed_sessions ? (
-                            <span className={tileMetaClassName}>{summary.completed_sessions}세션</span>
-                        ) : null}
-                    </button>
-                ))}
+                {isLoading
+                    ? Array.from({ length: 42 }, (_, index) => (
+                          <div
+                              className='min-h-[92px] rounded-xl border border-neutral-lighter bg-neutral-subtle animate-pulse'
+                              key={`calendar-skeleton-${index}`}
+                          />
+                      ))
+                    : days.map(({ apiDate, date, isCurrentMonth, isSelected, isToday, summary }) => (
+                          <button
+                              className={getDayButtonClassName({ isCurrentMonth, isSelected, isToday })}
+                              key={apiDate}
+                              onClick={() => onSelectDate?.(apiDate)}
+                              type='button'
+                          >
+                              <span className={dayNumberClassName}>{date.getDate()}</span>
+                              {summary?.completed_sessions ? (
+                                  <span className={tileMetaClassName}>{summary.completed_sessions}세션</span>
+                              ) : null}
+                          </button>
+                      ))}
             </div>
         </section>
     );
