@@ -11,6 +11,7 @@ export interface ITimerControllerContext {
     timerSession: ReturnType<typeof useTimerSessionView>;
     handleToggleTimer: () => void;
     handleRequestStopTimer: () => void;
+    handleSkipBreak: () => void;
 }
 
 export interface ITimerDurations {
@@ -45,6 +46,7 @@ export interface ITimerActions {
     toggle: () => void;
     tick: (now?: number) => void;
     advanceSession: () => void;
+    skipBreak: () => void;
     openStopConfirm: () => void;
     closeStopConfirm: () => void;
     setActiveSessionId: (sessionId: string | null) => void;
@@ -62,6 +64,7 @@ export interface ITimerPanelProps {
     tomatoProgress: number;
     onRequestStop: () => void;
     onToggleTimer: () => void;
+    onSkipBreak: () => void;
 }
 export interface ITimerProgressBarProps {
     timerSession: ReturnType<typeof useTimerSessionView>;
@@ -74,6 +77,7 @@ export interface IFocusModeProps extends Omit<HTMLAttributes<HTMLDivElement>, 'c
     onMusicClick?: () => void;
     handleToggleTimer: () => void;
     handleRequestStopTimer: () => void;
+    handleSkipBreak: () => void;
     children?: ReactNode;
     timerSession: ReturnType<typeof useTimerSessionView>;
 }

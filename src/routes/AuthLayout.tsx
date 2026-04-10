@@ -48,7 +48,7 @@ export function AuthLayout() {
 
     const setDurations = useTimerStore((state) => state.setDurations);
     const timerSession = useTimerSessionView();
-    const { handleToggleTimer, handleRequestStopTimer } = useTimerSessionController();
+    const { handleToggleTimer, handleRequestStopTimer, handleSkipBreak } = useTimerSessionController();
 
     const shouldShowTimerProgressBar = location.pathname !== '/main' && !isFocusMode;
 
@@ -128,7 +128,7 @@ export function AuthLayout() {
                 onMusicClick={handleMusicClick}
             />
             {shouldShowTimerProgressBar ? <TimerProgressBar timerSession={timerSession} /> : null}
-            <Outlet context={{ timerSession, handleToggleTimer, handleRequestStopTimer }} />
+            <Outlet context={{ timerSession, handleToggleTimer, handleRequestStopTimer, handleSkipBreak }} />
             <FocusMode
                 open={isFocusMode}
                 onMusicClick={handleMusicClick}
@@ -136,6 +136,7 @@ export function AuthLayout() {
                 timerSession={timerSession}
                 handleToggleTimer={handleToggleTimer}
                 handleRequestStopTimer={handleRequestStopTimer}
+                handleSkipBreak={handleSkipBreak}
             />
             {shouldLoadBgmPlayer ? (
                 <Suspense fallback={null}>
