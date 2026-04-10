@@ -20,4 +20,5 @@ export type EndPomodoroSessionRequestStatus =
 export const EndPomodoroSessionRequestStatus = {
     completed: 'completed',
     cancelled: 'cancelled',
+    skipped: 'skipped',
 } as const;
