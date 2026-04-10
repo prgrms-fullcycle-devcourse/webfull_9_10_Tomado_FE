@@ -5,6 +5,10 @@ import { Badge, Button, DailyLogCard, Icon } from '@/components/ui';
 import { useEffect, useRef, useState } from 'react';
 import { Calendar } from '@@/ui';
 import { useModal, useToast } from '@/hooks';
+import { useCreateDailyLog, useUpdateDailyLog, useDeleteDailyLog } from '@/api/generated/daily-logs/daily-logs';
+import { DATE_FORMAT, formatDate } from '@/utils';
+import type { DailyLog } from '@/api/generated/model';
+import { isSameDate } from '@/utils/dateUtils';
 
 export default function DailyLog() {
     const today = new Date();
@@ -14,49 +18,77 @@ export default function DailyLog() {
     const [content, setContent] = useState('');
     const [title, setTitle] = useState('');
     const [autoSaveText, setAutoSaveText] = useState('');
-    const [autoSaveSate, setAutoSaveSate] = useState<'' | 'writing' | 'saving' | 'saved' | 'error'>('');
-    const [isAutoSaveProgresing, setIsAutoSaveProgresing] = useState(false);
+    const [autoSaveState, setAutoSaveState] = useState<'' | 'writing' | 'saving' | 'saved' | 'error'>('');
+    const [isSaveProgresing, setIsSaveProgresing] = useState(false);
     const [isOpenCalendar, setIsOpenCalendar] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+    const [selectedLog, setSelectedLog] = useState<DailyLog>();
+    const [pendingDeleteIds, setPendingDeleteIds] = useState<string[]>([]);
+
+    const { mutateAsync: createDailyLog } = useCreateDailyLog();
+    const { mutateAsync: updateDailyLog } = useUpdateDailyLog();
+    const { mutateAsync: deleteDailyLog } = useDeleteDailyLog();
 
     const { showModal } = useModal();
     const { showToast } = useToast();
 
-    // const testdata = [
-    //     {
-    //         focus_date: '2026-03-26',
-    //         total_focus_sec: 5200,
-    //         completed_sessions: 3,
-    //     },
-    //     {
-    //         focus_date: '2026-03-27',
-    //         total_focus_sec: 7200,
-    //         completed_sessions: 4,
-    //     },
-    //     {
-    //         focus_date: '2026-03-28',
-    //         total_focus_sec: 4200,
-    //         completed_sessions: 2,
-    //     },
-    // ];
+    const contentChangeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const calendarWrapperRef = useRef<HTMLDivElement | null>(null);
+    const contentRef = useRef(content);
+    const deleteTimerMapRef = useRef<Record<string, number>>({});
 
-    type Log = {
-        id: string;
-        user_id: string;
-        log_date: string;
-        content: string;
-        title: string;
-        tags: string[];
-        is_dirty: boolean;
-        draft_content: null;
-        created_at: string;
-        updated_at: string;
-    };
+    useEffect(() => {
+        if (!isOpenCalendar) {
+            return;
+        }
+
+        const handlePointerDownOutside = (event: MouseEvent) => {
+            if (!calendarWrapperRef.current?.contains(event.target as Node)) {
+                setIsOpenCalendar(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handlePointerDownOutside);
+
+        return () => {
+            document.removeEventListener('mousedown', handlePointerDownOutside);
+        };
+    }, [isOpenCalendar]);
+
+    useEffect(() => {
+        contentRef.current = content;
+    }, [content]);
+
+    const DAILY_LOG_DELETE_UNDO_DURATION = 3000;
 
     const panelClassName =
         'flex h-full min-h-0 w-full flex-col items-center rounded-2xl bg-white px-6 py-5 shadow-shadow-1';
 
     const testLogArr = [
+        {
+            id: 'c9791d6c-d7a9-4c85-971d-cf937a98029b',
+            user_id: '18d23066-e476-49de-851e-fa8aef41241d',
+            log_date: '2026-04-04',
+            title: '',
+            content: '',
+            tags: [],
+            is_dirty: false,
+            draft_content: null,
+            created_at: '2026-04-09T15:14:22.142Z',
+            updated_at: '2026-04-09T15:14:22.142Z',
+        },
+        {
+            id: '6d0e08fb-df26-4314-adf5-57a6a668252c',
+            user_id: '18d23066-e476-49de-851e-fa8aef41241d',
+            log_date: '2026-04-01',
+            title: '만우절 기념 로그',
+            content: '만우절 기념 로그의 컨텐츠 입니다.',
+            tags: [],
+            is_dirty: false,
+            draft_content: null,
+            created_at: '2026-04-09T15:07:20.903Z',
+            updated_at: '2026-04-10T06:20:14.343Z',
+        },
         {
             id: 'f6a7b8c9-d0e1-2345-f014-456789012345',
             user_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
@@ -107,33 +139,14 @@ export default function DailyLog() {
         },
     ];
 
-    const contentChangeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const calendarWrapperRef = useRef<HTMLDivElement | null>(null);
+    const visibleLogs = testLogArr.filter((log) => !log.id || !pendingDeleteIds.includes(log.id));
 
-    useEffect(() => {
-        if (!isOpenCalendar) {
-            return;
-        }
+    const handleContentChange = (value: string | undefined) => {
+        setContent(value ?? '');
 
-        const handlePointerDownOutside = (event: MouseEvent) => {
-            if (!calendarWrapperRef.current?.contains(event.target as Node)) {
-                setIsOpenCalendar(false);
-            }
-        };
+        if (isSaveProgresing) return;
 
-        document.addEventListener('mousedown', handlePointerDownOutside);
-
-        return () => {
-            document.removeEventListener('mousedown', handlePointerDownOutside);
-        };
-    }, [isOpenCalendar]);
-
-    const handleContentChange = (value: string) => {
-        setContent(value);
-
-        if (isAutoSaveProgresing) return;
-
-        setAutoSaveSate('writing');
+        setAutoSaveState('writing');
         setAutoSaveText('작성중...');
 
         if (contentChangeTimerRef.current) {
@@ -145,18 +158,53 @@ export default function DailyLog() {
         }, 2000);
     };
 
-    const saveContent = (): void => {
-        setAutoSaveSate('saving');
+    const saveContent = async () => {
+        if (contentChangeTimerRef.current) {
+            clearTimeout(contentChangeTimerRef.current);
+        }
+        setAutoSaveState('saving');
         setAutoSaveText('저장중...');
 
-        setIsAutoSaveProgresing(true);
-        // TODO: 저장 API 다녀온 후
-        setTimeout(() => {
-            setAutoSaveSate('saved');
+        setIsSaveProgresing(true);
+
+        const nextTitle = title == '' ? `${formatDate(selectedDate, DATE_FORMAT.display)} 로그` : title;
+
+        if (selectedLog?.id) {
+            await updateDailyLog({
+                id: selectedLog.id,
+                data: {
+                    title: nextTitle,
+                    content: contentRef.current,
+                    is_dirty: false,
+                },
+            }).then((res) => {
+                console.log('res', res);
+                setSelectedLog(res);
+
+                setAutoSaveState('saved');
+                setAutoSaveText('마지막 저장 방금 전');
+
+                setIsSaveProgresing(false);
+            });
+
+            return;
+        }
+
+        await createDailyLog({
+            data: {
+                log_date: formatDate(selectedDate, DATE_FORMAT.api),
+                title: nextTitle,
+                content: contentRef.current,
+            },
+        }).then((res) => {
+            console.log('res', res);
+            setSelectedLog(res);
+
+            setAutoSaveState('saved');
             setAutoSaveText('마지막 저장 방금 전');
 
-            setIsAutoSaveProgresing(false);
-        }, 2000);
+            setIsSaveProgresing(false);
+        });
     };
 
     const relativeDate = (targetDate: string): string => {
@@ -236,32 +284,108 @@ export default function DailyLog() {
         }
     };
 
-    const handleLogClick = (log: Log): void => {
-        setContent(log.content);
-        setTitle(log.title);
+    const handleLogClick = (log: DailyLog): void => {
+        setSelectedLog(log);
+        setContent(log.content ?? '');
+        setTitle(log.title ?? '');
         setSelectedDate(new Date(`${log.log_date}T00:00:00`));
-        const lastSaved = formatLastSaved(log.updated_at);
+        const lastSaved = formatLastSaved(log.updated_at ?? '');
         setAutoSaveText(lastSaved);
     };
 
-    const handleDeleteConfirm = (log: Log): void => {
+    const handleDeleteConfirm = (log: DailyLog): void => {
         showModal({
             title: `${log.log_date} 로그 삭제`,
             description: `지금 삭제하시면 복구할 수 없어요.\n그래도 삭제하시겠어요?`,
             tone: 'danger',
             confirmLabel: '삭제하기',
-            onConfirm: () => deleteLog(log),
+            onConfirm: () => handleDeleteWithUndo(log),
         });
     };
 
-    const deleteLog = (log: Log) => {
-        // TODO: 로그 삭제 api
+    const clearPendingDelete = (id: string) => {
+        const timerId = deleteTimerMapRef.current[id];
+
+        if (timerId) {
+            window.clearTimeout(timerId);
+            delete deleteTimerMapRef.current[id];
+        }
+
+        setPendingDeleteIds((prev) => prev.filter((logId) => logId !== id));
+    };
+
+    const handleDeleteWithUndo = (log: DailyLog) => {
+        if (!log.id) return;
+        if (deleteTimerMapRef.current[log.id]) return;
+
+        const id = log.id;
+
+        if (contentChangeTimerRef.current) {
+            window.clearTimeout(contentChangeTimerRef.current);
+            contentChangeTimerRef.current = null;
+        }
+
+        setPendingDeleteIds((prev) => [...prev, id]);
+
+        setSelectedLog(undefined);
+        setTitle('');
+        setContent('');
+        setAutoSaveText('');
+
+        deleteTimerMapRef.current[id] = window.setTimeout(async () => {
+            try {
+                await deleteDailyLog({ id });
+
+                // 둘 중 하나 선택
+                await getLogList();
+                // 또는
+                // await queryClient.invalidateQueries({
+                //   queryKey: getGetDailyLogsListQueryKey(params),
+                // });
+            } catch {
+                showToast({
+                    message: '로그 삭제에 실패했어요',
+                    iconName: 'error',
+                    duration: 3000,
+                });
+            } finally {
+                clearPendingDelete(id);
+            }
+        }, DAILY_LOG_DELETE_UNDO_DURATION);
 
         showToast({
-            message: `${log.log_date} 로그가 성공적으로 삭제되었습니다.`,
-            duration: 3000,
+            message: '로그를 삭제했어요',
+            iconName: 'delete',
+            textButton: true,
+            textButtonLabel: '취소',
+            onTextButtonClick: () => clearPendingDelete(id),
+            duration: DAILY_LOG_DELETE_UNDO_DURATION,
         });
     };
+
+    // const deleteLog = async (log: DailyLog) => {
+    //     if (!log.id) {
+    //         showToast({
+    //             message: '삭제할 로그 id가 없습니다.',
+    //             duration: 3000,
+    //         });
+    //         return;
+    //     }
+
+    //     await deleteDailyLog({
+    //         id: log.id,
+    //     }).then(() => {
+    //         setSelectedLog(undefined);
+    //         setTitle('');
+    //         setContent('');
+    //         setAutoSaveText('');
+
+    //         showToast({
+    //             message: `${log.log_date} 로그가 성공적으로 삭제되었습니다.`,
+    //             duration: 3000,
+    //         });
+    //     });
+    // };
 
     const formatSectionHeaderDate = (date: Date): string => {
         return date.toLocaleDateString('ko-KR', {
@@ -277,21 +401,33 @@ export default function DailyLog() {
             return;
         }
 
+        let log = testLogArr.find((log) => isSameDate(new Date(log.log_date), date));
+        console.log(log);
+
+        if (log) {
+            setSelectedLog(log);
+            setTitle(log.title);
+            setContent(log.content);
+
+            const lastSaved = formatLastSaved(log.updated_at ?? '');
+            setAutoSaveText(lastSaved);
+        } else {
+            setSelectedLog(undefined);
+            setTitle('');
+            setContent('');
+
+            setAutoSaveText('');
+        }
+
         setSelectedDate(date);
         setIsOpenCalendar(false);
     };
 
     const moveSelectedDate = (days: number) => {
-        setSelectedDate((currentDate) => {
-            const nextDate = new Date(currentDate);
-            nextDate.setDate(currentDate.getDate() + days);
+        const nextDate = new Date(selectedDate);
+        nextDate.setDate(selectedDate.getDate() + days);
 
-            if (nextDate.getTime() > todayStart.getTime()) {
-                return currentDate;
-            }
-
-            return nextDate;
-        });
+        handleCalendarDateSelect(nextDate);
     };
 
     const getLogList = () => {
@@ -334,10 +470,10 @@ export default function DailyLog() {
                             </div>
 
                             <div className='flex min-h-0 w-full flex-1 flex-col gap-3 overflow-y-auto mask-b-from-97% pb-10'>
-                                {testLogArr.map((log) => (
+                                {visibleLogs.map((log) => (
                                     <DailyLogCard
                                         key={log.id}
-                                        dateLabel={relativeDate(log.created_at)}
+                                        dateLabel={relativeDate(log.log_date)}
                                         title={log.title}
                                         onClick={() => handleLogClick(log)}
                                         onDeleteClick={() => handleDeleteConfirm(log)}
@@ -387,7 +523,7 @@ export default function DailyLog() {
                                     </button>
                                 </div>
                                 <div className='flex items-center text-neutral text-sm whitespace-nowrap'>
-                                    {autoSaveSate === 'saving' ? (
+                                    {autoSaveState === 'saving' ? (
                                         <div className='animate-spin h-4 w-4 border-3 border-gray-300 border-t-primary rounded-full mr-1' />
                                     ) : (
                                         ''
@@ -412,10 +548,7 @@ export default function DailyLog() {
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                             />
-                            <MdEditor
-                                content={content}
-                                contentChange={(value) => handleContentChange(value || '')}
-                            ></MdEditor>
+                            <MdEditor content={content} contentChange={handleContentChange}></MdEditor>
                             <Button
                                 className='mt-3 px-10'
                                 variant='filled'
