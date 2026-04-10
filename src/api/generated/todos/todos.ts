@@ -49,6 +49,7 @@ type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
 /**
  * 특정 날짜의 투두 목록 조회. `sort_order` 기준 오름차순 정렬.
 과거 날짜 조회 시 완료 투두(`completed_at IS NOT NULL`)가 자연스럽게 포함됨.
+조회 날짜가 오늘이고 사용자의 `auto_carry_todo = true`이면, 전날의 미완료 투두를 오늘 날짜로 자동 이월한 뒤 목록을 반환합니다.
 
  * @summary 날짜별 투두 목록 조회
  */
