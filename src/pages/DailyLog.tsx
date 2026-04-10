@@ -5,7 +5,7 @@ import { Badge, Button, DailyLogCard, Icon } from '@/components/ui';
 import { useEffect, useRef, useState } from 'react';
 import { Calendar } from '@@/ui';
 import { useModal, useToast } from '@/hooks';
-import { useCreateDailyLog, useUpdateDailyLog } from '@/api/generated/daily-logs/daily-logs';
+import { useCreateDailyLog, useUpdateDailyLog, useDeleteDailyLog } from '@/api/generated/daily-logs/daily-logs';
 import { DATE_FORMAT, formatDate } from '@/utils';
 import type { DailyLog } from '@/api/generated/model';
 import { isSameDate } from '@/utils/dateUtils';
@@ -23,9 +23,11 @@ export default function DailyLog() {
     const [isOpenCalendar, setIsOpenCalendar] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
     const [selectedLog, setSelectedLog] = useState<DailyLog>();
+    const [pendingDeleteIds, setPendingDeleteIds] = useState<string[]>([]);
 
     const { mutateAsync: createDailyLog } = useCreateDailyLog();
     const { mutateAsync: updateDailyLog } = useUpdateDailyLog();
+    const { mutateAsync: deleteDailyLog } = useDeleteDailyLog();
 
     const { showModal } = useModal();
     const { showToast } = useToast();
@@ -33,6 +35,7 @@ export default function DailyLog() {
     const contentChangeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const calendarWrapperRef = useRef<HTMLDivElement | null>(null);
     const contentRef = useRef(content);
+    const deleteTimerMapRef = useRef<Record<string, number>>({});
 
     useEffect(() => {
         if (!isOpenCalendar) {
@@ -56,10 +59,24 @@ export default function DailyLog() {
         contentRef.current = content;
     }, [content]);
 
+    const DAILY_LOG_DELETE_UNDO_DURATION = 3000;
+
     const panelClassName =
         'flex h-full min-h-0 w-full flex-col items-center rounded-2xl bg-white px-6 py-5 shadow-shadow-1';
 
     const testLogArr = [
+        {
+            id: 'c9791d6c-d7a9-4c85-971d-cf937a98029b',
+            user_id: '18d23066-e476-49de-851e-fa8aef41241d',
+            log_date: '2026-04-04',
+            title: '',
+            content: '',
+            tags: [],
+            is_dirty: false,
+            draft_content: null,
+            created_at: '2026-04-09T15:14:22.142Z',
+            updated_at: '2026-04-09T15:14:22.142Z',
+        },
         {
             id: '6d0e08fb-df26-4314-adf5-57a6a668252c',
             user_id: '18d23066-e476-49de-851e-fa8aef41241d',
@@ -122,6 +139,8 @@ export default function DailyLog() {
         },
     ];
 
+    const visibleLogs = testLogArr.filter((log) => !log.id || !pendingDeleteIds.includes(log.id));
+
     const handleContentChange = (value: string | undefined) => {
         setContent(value ?? '');
 
@@ -136,7 +155,7 @@ export default function DailyLog() {
 
         contentChangeTimerRef.current = setTimeout(() => {
             saveContent();
-        }, 5000);
+        }, 2000);
     };
 
     const saveContent = async () => {
@@ -232,10 +251,6 @@ export default function DailyLog() {
         const diffMinutes = Math.floor(diffMs / (1000 * 60));
         const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
 
-        console.log(diffSeconds);
-        console.log(diffMinutes);
-        console.log(diffHours);
-
         const relative = relativeDate(targetDate);
 
         if (diffSeconds < 60) return '마지막 저장 방금 전';
@@ -284,18 +299,93 @@ export default function DailyLog() {
             description: `지금 삭제하시면 복구할 수 없어요.\n그래도 삭제하시겠어요?`,
             tone: 'danger',
             confirmLabel: '삭제하기',
-            onConfirm: () => deleteLog(log),
+            onConfirm: () => handleDeleteWithUndo(log),
         });
     };
 
-    const deleteLog = (log: DailyLog) => {
-        // TODO: 로그 삭제 api
+    const clearPendingDelete = (id: string) => {
+        const timerId = deleteTimerMapRef.current[id];
+
+        if (timerId) {
+            window.clearTimeout(timerId);
+            delete deleteTimerMapRef.current[id];
+        }
+
+        setPendingDeleteIds((prev) => prev.filter((logId) => logId !== id));
+    };
+
+    const handleDeleteWithUndo = (log: DailyLog) => {
+        if (!log.id) return;
+        if (deleteTimerMapRef.current[log.id]) return;
+
+        const id = log.id;
+
+        if (contentChangeTimerRef.current) {
+            window.clearTimeout(contentChangeTimerRef.current);
+            contentChangeTimerRef.current = null;
+        }
+
+        setPendingDeleteIds((prev) => [...prev, id]);
+
+        setSelectedLog(undefined);
+        setTitle('');
+        setContent('');
+        setAutoSaveText('');
+
+        deleteTimerMapRef.current[id] = window.setTimeout(async () => {
+            try {
+                await deleteDailyLog({ id });
+
+                // 둘 중 하나 선택
+                await getLogList();
+                // 또는
+                // await queryClient.invalidateQueries({
+                //   queryKey: getGetDailyLogsListQueryKey(params),
+                // });
+            } catch {
+                showToast({
+                    message: '로그 삭제에 실패했어요',
+                    iconName: 'error',
+                    duration: 3000,
+                });
+            } finally {
+                clearPendingDelete(id);
+            }
+        }, DAILY_LOG_DELETE_UNDO_DURATION);
 
         showToast({
-            message: `${log.log_date} 로그가 성공적으로 삭제되었습니다.`,
-            duration: 3000,
+            message: '로그를 삭제했어요',
+            iconName: 'delete',
+            textButton: true,
+            textButtonLabel: '취소',
+            onTextButtonClick: () => clearPendingDelete(id),
+            duration: DAILY_LOG_DELETE_UNDO_DURATION,
         });
     };
+
+    // const deleteLog = async (log: DailyLog) => {
+    //     if (!log.id) {
+    //         showToast({
+    //             message: '삭제할 로그 id가 없습니다.',
+    //             duration: 3000,
+    //         });
+    //         return;
+    //     }
+
+    //     await deleteDailyLog({
+    //         id: log.id,
+    //     }).then(() => {
+    //         setSelectedLog(undefined);
+    //         setTitle('');
+    //         setContent('');
+    //         setAutoSaveText('');
+
+    //         showToast({
+    //             message: `${log.log_date} 로그가 성공적으로 삭제되었습니다.`,
+    //             duration: 3000,
+    //         });
+    //     });
+    // };
 
     const formatSectionHeaderDate = (date: Date): string => {
         return date.toLocaleDateString('ko-KR', {
@@ -380,10 +470,10 @@ export default function DailyLog() {
                             </div>
 
                             <div className='flex min-h-0 w-full flex-1 flex-col gap-3 overflow-y-auto mask-b-from-97% pb-10'>
-                                {testLogArr.map((log) => (
+                                {visibleLogs.map((log) => (
                                     <DailyLogCard
                                         key={log.id}
-                                        dateLabel={relativeDate(log.created_at)}
+                                        dateLabel={relativeDate(log.log_date)}
                                         title={log.title}
                                         onClick={() => handleLogClick(log)}
                                         onDeleteClick={() => handleDeleteConfirm(log)}
