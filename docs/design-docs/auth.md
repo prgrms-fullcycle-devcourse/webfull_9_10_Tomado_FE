@@ -54,4 +54,5 @@
 - `VITE_DEMO_LOGIN_ID`, `VITE_DEMO_LOGIN_PASSWORD`가 설정되면 해당 계정으로 실제 로그인 API를 호출합니다.
 - 프로필 최신화는 `AuthLayout`에서 `useGetMyProfile` 결과를 받아 `updateUser`로 반영합니다.
 - `My` 페이지에서는 `useGetMyProfile`, `useUpdateMyProfile`을 통해 닉네임 수정 흐름을 처리합니다.
+- `My` 페이지에서는 `useDeleteMe`로 회원 탈퇴를 처리하고, 성공 시 로그아웃 후 랜딩 페이지로 이동합니다.
 - 아바타 업로드/삭제 성공 시 auth store와 프로필 조회 캐시를 함께 갱신합니다.

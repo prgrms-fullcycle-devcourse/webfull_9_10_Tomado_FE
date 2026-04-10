@@ -6,7 +6,9 @@ import { CenteredLayout, Container, SectionHeader } from '@/components/layout';
 import { Button, Icon } from '@/components/ui';
 import { useModal, useToast } from '@/hooks';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
+    useDeleteMe,
     useGetMyProfile,
     useGetMySettings,
     useUpdateMyProfile,
@@ -17,9 +19,11 @@ export default function My() {
     const panelClassName =
         'flex h-full min-h-0 w-full flex-col items-center rounded-2xl bg-white px-6 py-5 shadow-shadow-1';
     const profileImageClassName = 'block size-full rounded-full object-cover bg-primary';
+    const navigate = useNavigate();
 
     const user = useAuthStore((state) => state.user);
     const updateUser = useAuthStore((state) => state.updateUser);
+    const logout = useAuthStore((state) => state.logout);
     const [name, setName] = useState('');
     const [focusTime, setFocusTime] = useState(0);
     const [shortBreakTime, setShortBreakTime] = useState(0);
@@ -32,6 +36,7 @@ export default function My() {
     const { data: settings } = useGetMySettings();
     const { mutateAsync: updateProfile } = useUpdateMyProfile();
     const { mutateAsync: updateSettings } = useUpdateMySettings();
+    const { mutateAsync: deleteMe } = useDeleteMe();
 
     const { showToast } = useToast();
     const { showModal } = useModal();
@@ -75,17 +80,24 @@ export default function My() {
         }
     };
 
-    const handleDeleteAcount = () => {
-        // TODO: 계정 삭제 로직
-        showToast({
-            message: '계정이 삭제되었어요',
-            iconName: 'check',
-            duration: 3000,
-        });
-
-        setTimeout(() => {
-            // TODO: 랜딩 이동
-        }, 3000);
+    const handleDeleteAcount = async () => {
+        try {
+            await deleteMe();
+            logout();
+            await queryClient.clear();
+            showToast({
+                message: '계정이 삭제되었어요',
+                iconName: 'check',
+                duration: 3000,
+            });
+            navigate('/', { replace: true });
+        } catch {
+            showToast({
+                message: '계정 삭제에 실패했어요',
+                iconName: 'error',
+                duration: 3000,
+            });
+        }
     };
 
     const isActiveSettingSaveBtn = (): boolean => {
