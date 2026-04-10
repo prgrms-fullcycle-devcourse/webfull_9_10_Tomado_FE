@@ -50,7 +50,7 @@ pages -> features -> components/ui, components/layout, hooks, utils
     - 예: toast, modal
 
 - 도메인 원본 상태는 각 feature store에서 관리합니다.
-    - 예: `useTimerStore`, `useTodoStore`, `useAuthStore`
+    - 예: `useTimerStore`, `useAuthStore`
 
 - 파생 상태는 가능하면 selector 또는 view 훅에서 계산합니다.
     - 같은 계산이 여러 파일에 반복되면 공통 selector/helper로 통일합니다.

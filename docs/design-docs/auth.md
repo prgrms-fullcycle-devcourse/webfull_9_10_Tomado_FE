@@ -20,6 +20,7 @@
 - `useLoginForm.ts`
     - 로그인 입력 상태, 유효성, 제출 동작 담당
     - 일반 로그인과 데모 로그인 흐름 포함
+    - 데모 로그인도 환경변수에 저장된 계정으로 실제 로그인 API를 호출
 
 - `useSignupForm.ts`
     - 회원가입 입력 상태와 필드 검증 담당
@@ -49,5 +50,8 @@
 
 ## Current Notes
 
-- 데모 로그인 계정 흐름이 별도로 존재합니다.
+- 데모 로그인은 프론트에서 별도 user를 주입하지 않습니다.
+- `VITE_DEMO_LOGIN_ID`, `VITE_DEMO_LOGIN_PASSWORD`가 설정되면 해당 계정으로 실제 로그인 API를 호출합니다.
 - 프로필 최신화는 `AuthLayout`에서 `useGetMyProfile` 결과를 받아 `updateUser`로 반영합니다.
+- `My` 페이지에서는 `useGetMyProfile`, `useUpdateMyProfile`을 통해 닉네임 수정 흐름을 처리합니다.
+- 아바타 업로드/삭제 성공 시 auth store와 프로필 조회 캐시를 함께 갱신합니다.

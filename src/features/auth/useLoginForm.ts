@@ -3,10 +3,11 @@ import { useMemo, useState } from 'react';
 import { useLogin } from '@/api/generated/auth/auth';
 import { useAuthStore } from './useAuthStore';
 import { mapLoginResponseToAuthUser } from './api';
-import { DEMO_AUTH_USER, DEMO_LOGIN_CREDENTIALS } from './types';
 import type { LoginFormValues, LoginRequest } from './types';
 
 const validateLoginField = (value: string) => value.trim().length > 0;
+const demoLoginId = import.meta.env.VITE_DEMO_I?.trim() ?? '';
+const demoLoginPassword = import.meta.env.VITE_DEMO_P?.trim() ?? '';
 
 export const useLoginForm = () => {
     const login = useAuthStore((state) => state.login);
@@ -19,6 +20,7 @@ export const useLoginForm = () => {
     const isUserIdFilled = useMemo(() => validateLoginField(values.userId), [values.userId]);
     const isPasswordFilled = useMemo(() => validateLoginField(values.password), [values.password]);
     const isFormValid = isUserIdFilled && isPasswordFilled;
+    const canLoginAsDemo = demoLoginId.length > 0 && demoLoginPassword.length > 0;
     const loginMutation = useLogin();
 
     const setFieldValue = (field: keyof LoginFormValues, value: string) => {
@@ -39,12 +41,6 @@ export const useLoginForm = () => {
             return false;
         }
 
-        if (values.userId === DEMO_LOGIN_CREDENTIALS.userId && values.password === DEMO_LOGIN_CREDENTIALS.password) {
-            login(DEMO_AUTH_USER);
-            setShowAuthError(false);
-            return true;
-        }
-
         try {
             const response = await loginMutation.mutateAsync({
                 data: getSubmitPayload(),
@@ -60,19 +56,39 @@ export const useLoginForm = () => {
         }
     };
 
-    const loginAsDemo = () => {
+    const loginAsDemo = async () => {
+        if (!canLoginAsDemo) {
+            setShowAuthError(true);
+            return false;
+        }
+
         setValues({
-            userId: DEMO_LOGIN_CREDENTIALS.userId,
-            password: DEMO_LOGIN_CREDENTIALS.password,
+            userId: demoLoginId,
+            password: demoLoginPassword,
         });
-        setShowAuthError(false);
-        login(DEMO_AUTH_USER);
-        return true;
+
+        try {
+            const response = await loginMutation.mutateAsync({
+                data: {
+                    login_id: demoLoginId,
+                    password: demoLoginPassword,
+                },
+            });
+
+            login(mapLoginResponseToAuthUser(response));
+            setShowAuthError(false);
+
+            return true;
+        } catch {
+            setShowAuthError(true);
+            return false;
+        }
     };
 
     return {
         values,
         isFormValid,
+        canLoginAsDemo,
         isPending: loginMutation.isPending,
         showAuthError,
         setFieldValue,

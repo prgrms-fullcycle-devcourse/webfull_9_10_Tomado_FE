@@ -31,6 +31,7 @@ import type {
 
 import type {
     Error,
+    NotFoundResponse,
     UnauthorizedResponse,
     UpdateProfileRequest,
     UpdateSettingsRequest,
@@ -235,6 +236,60 @@ export const useUpdateMyProfile = <TError = Error | UnauthorizedResponse, TConte
     queryClient?: QueryClient
 ): UseMutationResult<Awaited<ReturnType<typeof updateMyProfile>>, TError, { data: UpdateProfileRequest }, TContext> => {
     return useMutation(getUpdateMyProfileMutationOptions(options), queryClient);
+};
+/**
+ * 현재 로그인한 사용자의 계정을 삭제합니다.
+Supabase Auth 계정과 앱 DB의 사용자 데이터가 함께 삭제됩니다.
+
+ * @summary 회원 탈퇴
+ */
+export const getDeleteMeUrl = () => {
+    return `/api/v1/users/me`;
+};
+
+export const deleteMe = async (options?: RequestInit): Promise<void> => {
+    return customInstance<void>(getDeleteMeUrl(), {
+        ...options,
+        method: 'DELETE',
+    });
+};
+
+export const getDeleteMeMutationOptions = <
+    TError = UnauthorizedResponse | NotFoundResponse | Error,
+    TContext = unknown,
+>(options?: {
+    mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteMe>>, TError, void, TContext>;
+    request?: SecondParameter<typeof customInstance>;
+}): UseMutationOptions<Awaited<ReturnType<typeof deleteMe>>, TError, void, TContext> => {
+    const mutationKey = ['deleteMe'];
+    const { mutation: mutationOptions, request: requestOptions } = options
+        ? options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey
+            ? options
+            : { ...options, mutation: { ...options.mutation, mutationKey } }
+        : { mutation: { mutationKey }, request: undefined };
+
+    const mutationFn: MutationFunction<Awaited<ReturnType<typeof deleteMe>>, void> = () => {
+        return deleteMe(requestOptions);
+    };
+
+    return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteMeMutationResult = NonNullable<Awaited<ReturnType<typeof deleteMe>>>;
+
+export type DeleteMeMutationError = UnauthorizedResponse | NotFoundResponse | Error;
+
+/**
+ * @summary 회원 탈퇴
+ */
+export const useDeleteMe = <TError = UnauthorizedResponse | NotFoundResponse | Error, TContext = unknown>(
+    options?: {
+        mutation?: UseMutationOptions<Awaited<ReturnType<typeof deleteMe>>, TError, void, TContext>;
+        request?: SecondParameter<typeof customInstance>;
+    },
+    queryClient?: QueryClient
+): UseMutationResult<Awaited<ReturnType<typeof deleteMe>>, TError, void, TContext> => {
+    return useMutation(getDeleteMeMutationOptions(options), queryClient);
 };
 /**
  * 현재 로그인한 사용자의 프로필 이미지를 업로드하거나 교체합니다.
