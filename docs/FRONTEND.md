@@ -72,6 +72,8 @@ pages -> features -> components/ui, components/layout, hooks, utils
 
 - 렌더링만 담당하는 컴포넌트는 props 중심으로 유지합니다.
 - 외부 상태 구독, 키보드 처리, 토스트, 모달, 배경 전환 같은 상호작용은 controller 훅으로 분리합니다.
+- 페이지나 feature 컴포넌트 안에서 비동기 액션, 토스트, 모달, 캐시 갱신, 라우팅 후처리가 길어지기 시작하면 controller 훅으로 분리하는 것을 기본 선택으로 봅니다.
+- controller 훅은 "화면 액션을 오케스트레이션하는 영역"이고, view 훅은 "표시용 파생 상태를 만드는 영역"으로 구분합니다.
 
 예:
 
