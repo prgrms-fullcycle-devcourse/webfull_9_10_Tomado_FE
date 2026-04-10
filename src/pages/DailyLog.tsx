@@ -5,8 +5,10 @@ import { Badge, Button, DailyLogCard, Icon } from '@/components/ui';
 import { useEffect, useRef, useState } from 'react';
 import { Calendar } from '@@/ui';
 import { useModal, useToast } from '@/hooks';
-import { useCreateDailyLog } from '@/api/generated/daily-logs/daily-logs';
+import { useCreateDailyLog, useUpdateDailyLog } from '@/api/generated/daily-logs/daily-logs';
 import { DATE_FORMAT, formatDate } from '@/utils';
+import type { DailyLog } from '@/api/generated/model';
+import { isSameDate } from '@/utils/dateUtils';
 
 export default function DailyLog() {
     const today = new Date();
@@ -16,12 +18,14 @@ export default function DailyLog() {
     const [content, setContent] = useState('');
     const [title, setTitle] = useState('');
     const [autoSaveText, setAutoSaveText] = useState('');
-    const [autoSaveSate, setAutoSaveSate] = useState<'' | 'writing' | 'saving' | 'saved' | 'error'>('');
-    const [isAutoSaveProgresing, setIsAutoSaveProgresing] = useState(false);
+    const [autoSaveState, setAutoSaveState] = useState<'' | 'writing' | 'saving' | 'saved' | 'error'>('');
+    const [isSaveProgresing, setIsSaveProgresing] = useState(false);
     const [isOpenCalendar, setIsOpenCalendar] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+    const [selectedLog, setSelectedLog] = useState<DailyLog>();
 
     const { mutateAsync: createDailyLog } = useCreateDailyLog();
+    const { mutateAsync: updateDailyLog } = useUpdateDailyLog();
 
     const { showModal } = useModal();
     const { showToast } = useToast();
@@ -52,23 +56,22 @@ export default function DailyLog() {
         contentRef.current = content;
     }, [content]);
 
-    type Log = {
-        id: string;
-        user_id: string;
-        log_date: string;
-        content: string;
-        title: string;
-        tags: string[];
-        is_dirty: boolean;
-        draft_content: null;
-        created_at: string;
-        updated_at: string;
-    };
-
     const panelClassName =
         'flex h-full min-h-0 w-full flex-col items-center rounded-2xl bg-white px-6 py-5 shadow-shadow-1';
 
     const testLogArr = [
+        {
+            id: '6d0e08fb-df26-4314-adf5-57a6a668252c',
+            user_id: '18d23066-e476-49de-851e-fa8aef41241d',
+            log_date: '2026-04-01',
+            title: '만우절 기념 로그',
+            content: '만우절 기념 로그의 컨텐츠 입니다.',
+            tags: [],
+            is_dirty: false,
+            draft_content: null,
+            created_at: '2026-04-09T15:07:20.903Z',
+            updated_at: '2026-04-10T06:20:14.343Z',
+        },
         {
             id: 'f6a7b8c9-d0e1-2345-f014-456789012345',
             user_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
@@ -120,13 +123,11 @@ export default function DailyLog() {
     ];
 
     const handleContentChange = (value: string | undefined) => {
-        console.log('handleContentChange -> value', value);
-
         setContent(value ?? '');
 
-        if (isAutoSaveProgresing) return;
+        if (isSaveProgresing) return;
 
-        setAutoSaveSate('writing');
+        setAutoSaveState('writing');
         setAutoSaveText('작성중...');
 
         if (contentChangeTimerRef.current) {
@@ -135,29 +136,55 @@ export default function DailyLog() {
 
         contentChangeTimerRef.current = setTimeout(() => {
             saveContent();
-        }, 2000);
+        }, 5000);
     };
 
     const saveContent = async () => {
-        setAutoSaveSate('saving');
+        if (contentChangeTimerRef.current) {
+            clearTimeout(contentChangeTimerRef.current);
+        }
+        setAutoSaveState('saving');
         setAutoSaveText('저장중...');
 
-        setIsAutoSaveProgresing(true);
+        setIsSaveProgresing(true);
+
+        const nextTitle = title == '' ? `${formatDate(selectedDate, DATE_FORMAT.display)} 로그` : title;
+
+        if (selectedLog?.id) {
+            await updateDailyLog({
+                id: selectedLog.id,
+                data: {
+                    title: nextTitle,
+                    content: contentRef.current,
+                    is_dirty: false,
+                },
+            }).then((res) => {
+                console.log('res', res);
+                setSelectedLog(res);
+
+                setAutoSaveState('saved');
+                setAutoSaveText('마지막 저장 방금 전');
+
+                setIsSaveProgresing(false);
+            });
+
+            return;
+        }
 
         await createDailyLog({
             data: {
                 log_date: formatDate(selectedDate, DATE_FORMAT.api),
-                title: title == '' ? `${formatDate(selectedDate, DATE_FORMAT.display)} 로그` : title,
+                title: nextTitle,
                 content: contentRef.current,
             },
         }).then((res) => {
             console.log('res', res);
+            setSelectedLog(res);
 
-            // TODO: res 값으로 생성한 log 가 넘어오는데, 넘겨주는 이유? 이것으로 갱신을 해야하는것인지? 아니면 다시 리스트 불러오는 api 를 호출할 것인지?
-            setAutoSaveSate('saved');
+            setAutoSaveState('saved');
             setAutoSaveText('마지막 저장 방금 전');
 
-            setIsAutoSaveProgresing(false);
+            setIsSaveProgresing(false);
         });
     };
 
@@ -205,6 +232,10 @@ export default function DailyLog() {
         const diffMinutes = Math.floor(diffMs / (1000 * 60));
         const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
 
+        console.log(diffSeconds);
+        console.log(diffMinutes);
+        console.log(diffHours);
+
         const relative = relativeDate(targetDate);
 
         if (diffSeconds < 60) return '마지막 저장 방금 전';
@@ -238,15 +269,16 @@ export default function DailyLog() {
         }
     };
 
-    const handleLogClick = (log: Log): void => {
-        setContent(log.content);
-        setTitle(log.title);
+    const handleLogClick = (log: DailyLog): void => {
+        setSelectedLog(log);
+        setContent(log.content ?? '');
+        setTitle(log.title ?? '');
         setSelectedDate(new Date(`${log.log_date}T00:00:00`));
-        const lastSaved = formatLastSaved(log.updated_at);
+        const lastSaved = formatLastSaved(log.updated_at ?? '');
         setAutoSaveText(lastSaved);
     };
 
-    const handleDeleteConfirm = (log: Log): void => {
+    const handleDeleteConfirm = (log: DailyLog): void => {
         showModal({
             title: `${log.log_date} 로그 삭제`,
             description: `지금 삭제하시면 복구할 수 없어요.\n그래도 삭제하시겠어요?`,
@@ -256,7 +288,7 @@ export default function DailyLog() {
         });
     };
 
-    const deleteLog = (log: Log) => {
+    const deleteLog = (log: DailyLog) => {
         // TODO: 로그 삭제 api
 
         showToast({
@@ -279,23 +311,33 @@ export default function DailyLog() {
             return;
         }
 
-        setTitle('');
-        setContent('');
+        let log = testLogArr.find((log) => isSameDate(new Date(log.log_date), date));
+        console.log(log);
+
+        if (log) {
+            setSelectedLog(log);
+            setTitle(log.title);
+            setContent(log.content);
+
+            const lastSaved = formatLastSaved(log.updated_at ?? '');
+            setAutoSaveText(lastSaved);
+        } else {
+            setSelectedLog(undefined);
+            setTitle('');
+            setContent('');
+
+            setAutoSaveText('');
+        }
+
         setSelectedDate(date);
         setIsOpenCalendar(false);
     };
 
     const moveSelectedDate = (days: number) => {
-        setSelectedDate((currentDate) => {
-            const nextDate = new Date(currentDate);
-            nextDate.setDate(currentDate.getDate() + days);
+        const nextDate = new Date(selectedDate);
+        nextDate.setDate(selectedDate.getDate() + days);
 
-            if (nextDate.getTime() > todayStart.getTime()) {
-                return currentDate;
-            }
-
-            return nextDate;
-        });
+        handleCalendarDateSelect(nextDate);
     };
 
     const getLogList = () => {
@@ -391,7 +433,7 @@ export default function DailyLog() {
                                     </button>
                                 </div>
                                 <div className='flex items-center text-neutral text-sm whitespace-nowrap'>
-                                    {autoSaveSate === 'saving' ? (
+                                    {autoSaveState === 'saving' ? (
                                         <div className='animate-spin h-4 w-4 border-3 border-gray-300 border-t-primary rounded-full mr-1' />
                                     ) : (
                                         ''
