@@ -25,6 +25,7 @@
 
 - 집중 시간 / 단기 휴식 / 장기 휴식 설정 저장
 - 미완료 Todo 자동 이월 토글 저장
+- 설정 저장과 초기화는 settings query cache를 먼저 갱신하는 낙관적 업데이트 기준으로 동작
 
 ## Main Parts
 
@@ -60,10 +61,16 @@
 - 재생/일시정지/이전/다음 핸들러
 - 카테고리 카드 선택 핸들러
 
+### `useMySettings.ts`
+
+- `My` 페이지 설정 섹션이 사용하는 settings 전용 훅
+- 설정 조회 결과를 로컬 입력 상태로 풀어내고, 저장/초기화/자동 이월 토글 흐름을 담당
+- settings query cache를 먼저 갱신하는 낙관적 업데이트와 버튼 block 규칙을 함께 관리
+
 ### `index.ts`
 
 - settings 도메인 public export 파일
-- 외부에서는 `useBgmPlayer`, `bgmTracks`, `bgmPlayerItems`를 이 파일을 통해 가져온다
+- 외부에서는 `useBgmPlayer`, `useMySettings`, `bgmTracks`, `bgmPlayerItems`를 이 파일을 통해 가져온다
 
 ## Current Flow
 
@@ -71,6 +78,7 @@
 2. `bgmStorage.ts`가 복원할 초기 상태를 읽는다.
 3. `bgmAudioRuntime.ts`가 실제 `Audio` 엘리먼트를 제어한다.
 4. `useBgmPlayer.ts`가 store와 runtime을 조합해서 UI용 API를 노출한다.
+5. `My` 페이지의 설정 섹션은 `useMySettings.ts`를 통해 사용자 설정 mutation을 조합한다.
 
 ## File Rules
 
