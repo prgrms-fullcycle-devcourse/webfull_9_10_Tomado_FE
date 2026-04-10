@@ -5,6 +5,8 @@ import { Badge, Button, DailyLogCard, Icon } from '@/components/ui';
 import { useEffect, useRef, useState } from 'react';
 import { Calendar } from '@@/ui';
 import { useModal, useToast } from '@/hooks';
+import { useCreateDailyLog } from '@/api/generated/daily-logs/daily-logs';
+import { DATE_FORMAT, formatDate } from '@/utils';
 
 export default function DailyLog() {
     const today = new Date();
@@ -19,8 +21,36 @@ export default function DailyLog() {
     const [isOpenCalendar, setIsOpenCalendar] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
+    const { mutateAsync: createDailyLog } = useCreateDailyLog();
+
     const { showModal } = useModal();
     const { showToast } = useToast();
+
+    const contentChangeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const calendarWrapperRef = useRef<HTMLDivElement | null>(null);
+    const contentRef = useRef(content);
+
+    useEffect(() => {
+        if (!isOpenCalendar) {
+            return;
+        }
+
+        const handlePointerDownOutside = (event: MouseEvent) => {
+            if (!calendarWrapperRef.current?.contains(event.target as Node)) {
+                setIsOpenCalendar(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handlePointerDownOutside);
+
+        return () => {
+            document.removeEventListener('mousedown', handlePointerDownOutside);
+        };
+    }, [isOpenCalendar]);
+
+    useEffect(() => {
+        contentRef.current = content;
+    }, [content]);
 
     type Log = {
         id: string;
@@ -89,29 +119,10 @@ export default function DailyLog() {
         },
     ];
 
-    const contentChangeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const calendarWrapperRef = useRef<HTMLDivElement | null>(null);
+    const handleContentChange = (value: string | undefined) => {
+        console.log('handleContentChange -> value', value);
 
-    useEffect(() => {
-        if (!isOpenCalendar) {
-            return;
-        }
-
-        const handlePointerDownOutside = (event: MouseEvent) => {
-            if (!calendarWrapperRef.current?.contains(event.target as Node)) {
-                setIsOpenCalendar(false);
-            }
-        };
-
-        document.addEventListener('mousedown', handlePointerDownOutside);
-
-        return () => {
-            document.removeEventListener('mousedown', handlePointerDownOutside);
-        };
-    }, [isOpenCalendar]);
-
-    const handleContentChange = (value: string) => {
-        setContent(value);
+        setContent(value ?? '');
 
         if (isAutoSaveProgresing) return;
 
@@ -127,18 +138,27 @@ export default function DailyLog() {
         }, 2000);
     };
 
-    const saveContent = (): void => {
+    const saveContent = async () => {
         setAutoSaveSate('saving');
         setAutoSaveText('저장중...');
 
         setIsAutoSaveProgresing(true);
-        // TODO: 저장 API 다녀온 후
-        setTimeout(() => {
+
+        await createDailyLog({
+            data: {
+                log_date: formatDate(selectedDate, DATE_FORMAT.api),
+                title: title == '' ? `${formatDate(selectedDate, DATE_FORMAT.display)} 로그` : title,
+                content: contentRef.current,
+            },
+        }).then((res) => {
+            console.log('res', res);
+
+            // TODO: res 값으로 생성한 log 가 넘어오는데, 넘겨주는 이유? 이것으로 갱신을 해야하는것인지? 아니면 다시 리스트 불러오는 api 를 호출할 것인지?
             setAutoSaveSate('saved');
             setAutoSaveText('마지막 저장 방금 전');
 
             setIsAutoSaveProgresing(false);
-        }, 2000);
+        });
     };
 
     const relativeDate = (targetDate: string): string => {
@@ -259,6 +279,8 @@ export default function DailyLog() {
             return;
         }
 
+        setTitle('');
+        setContent('');
         setSelectedDate(date);
         setIsOpenCalendar(false);
     };
@@ -394,10 +416,7 @@ export default function DailyLog() {
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                             />
-                            <MdEditor
-                                content={content}
-                                contentChange={(value) => handleContentChange(value || '')}
-                            ></MdEditor>
+                            <MdEditor content={content} contentChange={handleContentChange}></MdEditor>
                             <Button
                                 className='mt-3 px-10'
                                 variant='filled'
