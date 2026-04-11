@@ -401,7 +401,7 @@ export default function DailyLog() {
             return;
         }
 
-        let log = testLogArr.find((log) => isSameDate(new Date(log.log_date), date));
+        let log = visibleLogs.find((log) => isSameDate(new Date(log.log_date), date));
         console.log(log);
 
         if (log) {
