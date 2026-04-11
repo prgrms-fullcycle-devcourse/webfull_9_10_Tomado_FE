@@ -2,8 +2,8 @@ import { useState } from 'react';
 import type { ButtonHTMLAttributes, HTMLAttributes, MouseEvent, MouseEventHandler } from 'react';
 
 import { Icon, Tag } from '.';
-import type { Retro } from '@/pages/Retro';
 import { RETRO_CATEGORY_NAME } from '@/features/log/retroConstants';
+import type { RetroLogListItem, RetroLogListItemTemplateTypesItem } from '@/api/generated/model';
 
 export type DailyLogCardState = 'default' | 'selected' | 'hover';
 export type RetroCardState = DailyLogCardState | 'empty';
@@ -29,7 +29,7 @@ export interface RetroCategoryItem {
 }
 
 export interface RetroCardProps extends HTMLAttributes<HTMLDivElement>, CardActionProps {
-    retro?: Retro;
+    retro?: RetroLogListItem;
     categories?: RetroCategoryItem[];
     state?: RetroCardState;
     emptyText?: string;
@@ -264,7 +264,7 @@ export const RetroCard = ({
 
             <div className={retroCategoryListClassName}>
                 {categories.map((category) => {
-                    if (!retro?.template_types.includes(category.type)) return;
+                    if (!retro?.template_types?.includes(category.type as RetroLogListItemTemplateTypesItem)) return;
 
                     return (
                         <Tag
