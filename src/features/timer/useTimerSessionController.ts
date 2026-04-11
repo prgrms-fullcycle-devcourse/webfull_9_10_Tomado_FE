@@ -17,6 +17,7 @@ export const useTimerSessionController = () => {
 
     const setActiveSessionId = useTimerStore((state) => state.setActiveSessionId);
     const clearActiveSessionId = useTimerStore((state) => state.clearActiveSessionId);
+    const skipBreak = useTimerStore((state) => state.skipBreak);
     const startPomodoroSessionMutation = useStartPomodoroSession();
     const endPomodoroSessionMutation = useEndPomodoroSession();
     const toggle = useTimerStore((state) => state.toggle);
@@ -100,6 +101,45 @@ export const useTimerSessionController = () => {
         });
     }, [closeStopConfirm, handleStopTimer, showModal]);
 
+    const handleSkipBreak = useCallback(async () => {
+        if (sessionType === 'focus') {
+            return;
+        }
+
+        if (activeSessionId) {
+            try {
+                await endPomodoroSessionMutation.mutateAsync({
+                    id: activeSessionId,
+                    data: {
+                        actual_sec: Math.max(0, Math.round(initialSeconds - remainingSeconds)),
+                        // INFO: OpenAPI enum 반영 전이라 skipped는 로컬에서만 보정해 보냅니다.
+                        status: 'skipped',
+                        ended_at: new Date().toISOString(),
+                    },
+                });
+            } catch {
+                showToast({
+                    iconName: 'error',
+                    message: '휴식을 건너뛰지 못했습니다. 잠시 후 다시 시도해주세요.',
+                    duration: 3000,
+                });
+                return;
+            }
+        }
+
+        clearActiveSessionId();
+        skipBreak();
+    }, [
+        activeSessionId,
+        clearActiveSessionId,
+        endPomodoroSessionMutation,
+        initialSeconds,
+        remainingSeconds,
+        sessionType,
+        showToast,
+        skipBreak,
+    ]);
+
     // INFO: 세션 완료 시 종료 API 호출 후 activeSessionId 정리
     useEffect(() => {
         if (!activeSessionId || !lastCompletedAt) {
@@ -157,5 +197,6 @@ export const useTimerSessionController = () => {
     return {
         handleToggleTimer,
         handleRequestStopTimer,
+        handleSkipBreak,
     };
 };

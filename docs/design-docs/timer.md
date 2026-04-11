@@ -21,7 +21,9 @@
     - 타이머의 전역 원본 상태를 저장하는 zustand store
     - `sessionType`, `remainingSeconds`, `isRunning`, `lastTickAt`, `activeSessionId` 등을 관리
     - 집중/휴식/장휴식 세션 전환 규칙과 세트 진행 규칙을 관리
-    - `toggle`, `tick`, `confirmStop`, `setDurations` 같은 액션을 제공
+    - `toggle`, `tick`, `confirmStop`, `skipBreak`, `setDurations` 같은 액션을 제공
+    - 세션 문맥은 `localStorage`에 persist하지만, 저장 날짜가 오늘과 다르면 복구하지 않는다
+    - 새로고침 후에는 세션 타입/세트/세션 순서만 복구하고, 남은 시간은 현재 세션 기본값으로 다시 시작한다
 
 - `useFocusModeStore.ts`
     - 집중 모드 배경 index를 persist하는 store
@@ -44,6 +46,7 @@
     - 타이머 재생/중단 관련 행동 담당
     - 세션 시작/종료 API 호출과 active session id 동기화
     - 중단 확인 모달 노출
+    - break 세션 건너뛰기와 `status='skipped'` 기록 처리 담당
 
 - `useFocusModeController.ts`
     - 집중 모드 전용 상호작용 담당
@@ -125,3 +128,16 @@
 
 - 현재 세션 타입 기준 duration 계산 로직을 store selector로 통일
 - view/controller/store 사이의 중복 계산을 줄임
+
+### Session context recovery
+
+- 세션 문맥은 `localStorage`에 저장하지만 하루 단위로만 유효하다
+- 새로고침 후에도 현재 세션 타입과 세트 진행 문맥은 유지한다
+- 정확한 남은 시간까지 이어서 복구하지는 않고, 복구된 세션 타입의 기본 시간으로 초기화한다
+- `activeSessionId`를 함께 유지해 같은 날 재진입 시 중복 세션 생성 가능성을 줄인다
+
+### Break skip
+
+- `short_break`, `long_break`에서만 휴식 건너뛰기 액션을 노출한다
+- 스킵은 새로운 세션 타입을 만들지 않고, 기존 세션 전환 규칙을 그대로 사용한다
+- 서버 세션 종료 시 `status='skipped'`를 기록한다

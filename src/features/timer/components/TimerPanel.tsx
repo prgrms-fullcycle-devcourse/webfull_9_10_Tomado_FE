@@ -1,6 +1,6 @@
 import { memo } from 'react';
 
-import { Icon, PlayerButton } from '@@/ui';
+import { Button, Icon, PlayerButton } from '@@/ui';
 import { SessionIndicator, TomatoVisual, type ITimerPanelProps } from '@@@/timer';
 
 export const TimerPanel = memo(
@@ -14,7 +14,10 @@ export const TimerPanel = memo(
         tomatoProgress,
         onRequestStop,
         onToggleTimer,
+        onSkipBreak,
     }: ITimerPanelProps) => {
+        const showSkipBreak = sessionType !== 'focus';
+
         return (
             <div>
                 <div className='flex flex-col gap-5 mt-18 mb-8 items-center'>
@@ -41,21 +44,28 @@ export const TimerPanel = memo(
                         <span className='mx-1 shrink-0'>:</span>
                         <span className='inline-flex w-[2ch] justify-start'>{timerSeconds}</span>
                     </div>
-                    <div className='flex gap-5'>
-                        <PlayerButton
-                            size='md'
-                            aria-label={isRunning ? '일시정지' : '재생'}
-                            icon={<Icon name={isRunning ? 'pause' : 'play'} />}
-                            onClick={onToggleTimer}
-                        />
-                        <PlayerButton
-                            variant='outline'
-                            size='md'
-                            aria-label='정지'
-                            icon={<Icon name='stop' />}
-                            disabled={!isRunning && !hasStarted}
-                            onClick={onRequestStop}
-                        />
+                    <div className='flex flex-col items-center gap-3'>
+                        <div className='flex gap-5'>
+                            <PlayerButton
+                                size='md'
+                                aria-label={isRunning ? '일시정지' : '재생'}
+                                icon={<Icon name={isRunning ? 'pause' : 'play'} />}
+                                onClick={onToggleTimer}
+                            />
+                            <PlayerButton
+                                variant='outline'
+                                size='md'
+                                aria-label='정지'
+                                icon={<Icon name='stop' />}
+                                disabled={!isRunning && !hasStarted}
+                                onClick={onRequestStop}
+                            />
+                        </div>
+                        {showSkipBreak ? (
+                            <Button icon={<Icon name='next' />} onClick={onSkipBreak} size='md' variant='outline'>
+                                휴식 건너뛰기
+                            </Button>
+                        ) : null}
                     </div>
                 </div>
             </div>
