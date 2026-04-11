@@ -1,5 +1,5 @@
 import type { CreateRetroLogRequestTemplateType, RetroLogListItem } from '@/api/generated/model';
-import { useCreateRetroLog, useUpdateRetroLog } from '@/api/generated/retro-logs/retro-logs';
+import { useCreateRetroLog, useUpdateRetroLog, useDeleteRetroLog } from '@/api/generated/retro-logs/retro-logs';
 import RetroItem from '@/features/log/components/RetroItem';
 import { RETRO_CATEGORY_NAME, RETRO_FORM } from '@/features/log/retroConstants';
 import { useToast } from '@/hooks';
@@ -13,12 +13,13 @@ import { useEffect, useRef, useState } from 'react';
 export default function Retro() {
     const today = new Date();
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    type RetroTemplateType = NonNullable<RetroLogListItem['template_types']>[number];
 
     const testRetroArr: RetroLogListItem[] = [
         {
             retro_date: '2026-04-10',
-            template_types: ['Communication', 'Tech'],
-            count: 2,
+            template_types: ['Communication'],
+            count: 1,
             latest_created_at: '2026-04-11T03:02:42.128Z',
             retros: [
                 {
@@ -38,31 +39,31 @@ export default function Retro() {
                     created_at: '2026-04-11T03:02:42.128Z',
                     updated_at: '2026-04-11T03:02:42.128Z',
                 },
-                {
-                    id: 'c61bf311-e5f0-4fe7-9570-3ca922df65c6',
-                    user_id: '18d23066-e476-49de-851e-fa8aef41241d',
-                    daily_log_id: undefined,
-                    retro_date: '2026-04-10',
-                    template_type: 'Tech',
-                    content: {
-                        next_to_try: '회고 content 검색에 인덱스/쿼리 전략을 실험해본다.',
-                        learned_today: 'Prisma $transaction으로 생성과 통계 갱신을 한 번에 처리하는 패턴을 배웠다.',
-                        applied_technology: 'optional JSON 필드 null 처리에 Prisma.DbNull을 적용했다.',
-                        technical_difficulty: 'PATCH 시 Json 타입과 DbNull 조합에서 타입 에러가 났다!!!!',
-                    },
-                    is_dirty: false,
-                    draft_content: null,
-                    created_at: '2026-04-11T03:01:57.920Z',
-                    updated_at: '2026-04-11T07:10:57.530Z',
-                },
             ],
         },
         {
             retro_date: '2026-04-09',
-            template_types: ['Emotion'],
-            count: 1,
-            latest_created_at: '2026-04-11T03:02:54.756Z',
+            template_types: ['Decision', 'Emotion'],
+            count: 2,
+            latest_created_at: '2026-04-11T13:24:45.374Z',
             retros: [
+                {
+                    id: '8852af54-10b6-4441-b04a-86f221f3fafb',
+                    user_id: '18d23066-e476-49de-851e-fa8aef41241d',
+                    daily_log_id: undefined,
+                    retro_date: '2026-04-09',
+                    template_type: 'Decision',
+                    content: {
+                        decision_made: '이런 결정을 내렸어요',
+                        outcome_impact: '잘 되었어요',
+                        decision_reason: '이게 좋았어요',
+                        alternatives_considered: '없습니다.',
+                    },
+                    is_dirty: false,
+                    draft_content: null,
+                    created_at: '2026-04-11T13:24:45.374Z',
+                    updated_at: '2026-04-11T13:24:45.374Z',
+                },
                 {
                     id: 'c0a5f490-edb8-4a5b-a9a4-0f4617a305ee',
                     user_id: '18d23066-e476-49de-851e-fa8aef41241d',
@@ -70,7 +71,7 @@ export default function Retro() {
                     retro_date: '2026-04-09',
                     template_type: 'Emotion',
                     content: {
-                        mood_today: '병합 해소 후 안도감이 크다. 다소 피곤하다.',
+                        mood_today: '병합 해소 후 안도감이 크다. 다소 피곤하다~!',
                         grateful_for: '리뷰 코멘트가 구체적이어서 수정이 빨랐다!',
                         what_drained: '인증·회고 작업을 번갈아 하며 맥락 전환이 잦았다.',
                         what_energized: '동료와 짝으로 디버깅한 시간.',
@@ -78,7 +79,7 @@ export default function Retro() {
                     is_dirty: false,
                     draft_content: null,
                     created_at: '2026-04-11T03:02:54.756Z',
-                    updated_at: '2026-04-11T03:10:08.083Z',
+                    updated_at: '2026-04-11T11:10:41.113Z',
                 },
             ],
         },
@@ -92,15 +93,21 @@ export default function Retro() {
     const [autoSaveText, setAutoSaveText] = useState('');
     const [autoSaveState, setAutoSaveState] = useState<'' | 'writing' | 'saving' | 'saved' | 'error'>('');
     const [isSaveProgresing, setIsSaveProgresing] = useState(false);
+    const [deleteTargetRetro, setDeleteTargetRetro] = useState<RetroLogListItem>();
+    const [deleteTargetTemplateTypes, setDeleteTargetTemplateTypes] = useState<string[]>([]);
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [pendingDeleteRetroIds, setPendingDeleteRetroIds] = useState<string[]>([]);
 
     const { mutateAsync: createRetroLog } = useCreateRetroLog();
     const { mutateAsync: updateRetroLog } = useUpdateRetroLog();
+    const { mutateAsync: deleteRetroLog } = useDeleteRetroLog();
 
     const { showToast } = useToast();
 
     const calendarWrapperRef = useRef<HTMLDivElement | null>(null);
     const contentChangeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const contentRef = useRef(content);
+    const deleteTimerMapRef = useRef<Record<string, number>>({});
 
     useEffect(() => {
         initContent();
@@ -110,8 +117,33 @@ export default function Retro() {
         contentRef.current = content;
     }, [content]);
 
+    const RETRO_DELETE_UNDO_DURATION = 3000;
     const panelClassName =
         'flex h-full min-h-0 w-full flex-col items-center rounded-2xl bg-white px-6 py-5 shadow-shadow-1';
+
+    const visibleRetroArr: RetroLogListItem[] = testRetroArr
+        .map((retro): RetroLogListItem | null => {
+            const visibleRetros =
+                retro.retros?.filter((item) => !item.id || !pendingDeleteRetroIds.includes(item.id)) ?? [];
+
+            if (visibleRetros.length === 0) return null;
+
+            const templateTypes = visibleRetros.reduce<RetroTemplateType[]>((types, item) => {
+                if (item.template_type) {
+                    types.push(item.template_type as RetroTemplateType);
+                }
+
+                return types;
+            }, []);
+
+            return {
+                ...retro,
+                retros: visibleRetros,
+                count: visibleRetros.length,
+                template_types: templateTypes,
+            };
+        })
+        .filter((retro): retro is RetroLogListItem => retro !== null);
 
     const initContent = () => {
         console.log('INIT CONTENT');
@@ -188,16 +220,10 @@ export default function Retro() {
     };
 
     const moveSelectedDate = (days: number) => {
-        setSelectedDate((currentDate) => {
-            const nextDate = new Date(currentDate);
-            nextDate.setDate(currentDate.getDate() + days);
+        const nextDate = new Date(selectedDate);
+        nextDate.setDate(selectedDate.getDate() + days);
 
-            if (nextDate.getTime() > todayStart.getTime()) {
-                return currentDate;
-            }
-
-            return nextDate;
-        });
+        handleCalendarDateSelect(nextDate);
     };
 
     const formatKoreanTime = (date: Date): string => {
@@ -363,7 +389,6 @@ ${selectedCategoryContent[key] ?? ''}
         setIsSaveProgresing(true);
 
         let currentRetro = selectedRetro?.retros?.find((item) => item.template_type?.toLowerCase() == selectedCategory);
-        console.log('SAVE currentRetro', currentRetro);
 
         // 업데이트
         if (currentRetro?.id) {
@@ -385,10 +410,6 @@ ${selectedCategoryContent[key] ?? ''}
             return;
         }
 
-        console.log('SAVE selectedCategory', selectedCategory);
-        console.log('SAVE contentRef.current', contentRef.current);
-        console.log('SAVE contentRef.current[selectedCategory]', contentRef.current[selectedCategory]);
-
         await createRetroLog({
             data: {
                 retro_date: formatDate(selectedDate, DATE_FORMAT.api),
@@ -396,7 +417,7 @@ ${selectedCategoryContent[key] ?? ''}
                 content: contentRef.current[selectedCategory],
             },
         }).then((res) => {
-            console.log('res', res);
+            console.log('CREATE then res', res);
             // TODO: Retro 목록 조회 코드 필요
             // setSelectedRetro(res);
 
@@ -405,6 +426,157 @@ ${selectedCategoryContent[key] ?? ''}
 
             setIsSaveProgresing(false);
         });
+    };
+
+    const openDeleteModal = (retro: RetroLogListItem) => {
+        if (!retro.retros?.length) {
+            showToast({
+                iconName: 'error',
+                message: '삭제할 회고가 없습니다.',
+                duration: 3000,
+            });
+            return;
+        }
+
+        setDeleteTargetRetro(retro);
+        setDeleteTargetTemplateTypes([]);
+        setIsDeleteModalOpen(true);
+    };
+
+    const toggleDeleteTargetTemplateType = (value: string) => {
+        setDeleteTargetTemplateTypes((prev) => {
+            if (prev.includes(value)) {
+                return prev.filter((type) => type !== value);
+            }
+
+            return [...prev, value];
+        });
+    };
+
+    const removeDeleteTimers = (ids: string[]) => {
+        ids.forEach((id) => {
+            delete deleteTimerMapRef.current[id];
+        });
+    };
+
+    const clearPendingDelete = (ids: string[]) => {
+        const timerIds = new Set(
+            ids.map((id) => deleteTimerMapRef.current[id]).filter((timerId): timerId is number => Boolean(timerId))
+        );
+
+        timerIds.forEach((timerId) => {
+            window.clearTimeout(timerId);
+        });
+
+        removeDeleteTimers(ids);
+
+        setPendingDeleteRetroIds((prev) => prev.filter((id) => !ids.includes(id)));
+    };
+
+    const handleDeleteRetro = async () => {
+        if (!deleteTargetRetro) return;
+
+        if (deleteTargetTemplateTypes.length === 0) {
+            showToast({
+                iconName: 'error',
+                message: '삭제할 회고를 선택해주세요.',
+                duration: 3000,
+            });
+            return;
+        }
+
+        const targetRetros =
+            deleteTargetRetro.retros?.filter((retro) => {
+                const templateType = retro.template_type?.toLowerCase();
+
+                return templateType ? deleteTargetTemplateTypes.includes(templateType) : false;
+            }) ?? [];
+
+        const targetRetroIds = targetRetros.map((retro) => retro.id).filter((id): id is string => Boolean(id));
+
+        if (targetRetroIds.length === 0) {
+            showToast({
+                iconName: 'error',
+                message: '삭제할 회고 id가 없습니다.',
+                duration: 3000,
+            });
+            return;
+        }
+
+        if (targetRetroIds.some((id) => deleteTimerMapRef.current[id])) {
+            return;
+        }
+
+        if (contentChangeTimerRef.current) {
+            window.clearTimeout(contentChangeTimerRef.current);
+            contentChangeTimerRef.current = null;
+        }
+
+        const deletedCurrentCategory = deleteTargetTemplateTypes.includes(selectedCategory);
+        const deletedSelectedDate = selectedRetro?.retro_date === deleteTargetRetro.retro_date;
+
+        setPendingDeleteRetroIds((prev) => [...prev, ...targetRetroIds.filter((id) => !prev.includes(id))]);
+
+        setIsDeleteModalOpen(false);
+        setDeleteTargetRetro(undefined);
+        setDeleteTargetTemplateTypes([]);
+
+        if (deletedSelectedDate && deletedCurrentCategory) {
+            setSelectedRetro(undefined);
+            initContent();
+            setAutoSaveText('');
+        }
+
+        const timerId = window.setTimeout(async () => {
+            try {
+                await Promise.all(targetRetroIds.map((id) => deleteRetroLog({ id })));
+
+                // TODO: 목록 API 붙이면 여기서 재조회
+                // await refetchRetroList();
+            } catch {
+                showToast({
+                    iconName: 'error',
+                    message: '회고 삭제에 실패했어요.',
+                    duration: 3000,
+                });
+            } finally {
+                removeDeleteTimers(targetRetroIds);
+            }
+        }, RETRO_DELETE_UNDO_DURATION);
+
+        targetRetroIds.forEach((id) => {
+            deleteTimerMapRef.current[id] = timerId;
+        });
+
+        showToast({
+            message: '회고를 삭제했어요',
+            iconName: 'delete',
+            textButton: true,
+            textButtonLabel: '취소',
+            onTextButtonClick: () => clearPendingDelete(targetRetroIds),
+            duration: RETRO_DELETE_UNDO_DURATION,
+        });
+    };
+
+    const getRetroCategoryLabel = (type: string) => {
+        switch (type) {
+            case RETRO_CATEGORY_NAME.TECH:
+                return '기술';
+            case RETRO_CATEGORY_NAME.DECISION:
+                return '의사결정';
+            case RETRO_CATEGORY_NAME.COMMUNICATION:
+                return '소통';
+            case RETRO_CATEGORY_NAME.EMOTION:
+                return '감정';
+            default:
+                return type;
+        }
+    };
+
+    const closeDeleteModal = () => {
+        setIsDeleteModalOpen(false);
+        setDeleteTargetRetro(undefined);
+        setDeleteTargetTemplateTypes([]);
     };
 
     const capitalize = (str: string) => {
@@ -429,7 +601,7 @@ ${selectedCategoryContent[key] ?? ''}
                             </div>
 
                             <div className='flex min-h-0 w-full flex-1 flex-col gap-3 overflow-y-auto mask-b-from-97% pb-10'>
-                                {testRetroArr.map((retro: RetroLogListItem) => (
+                                {visibleRetroArr.map((retro: RetroLogListItem) => (
                                     <RetroCard
                                         key={retro.retro_date}
                                         retro={retro}
@@ -439,6 +611,7 @@ ${selectedCategoryContent[key] ?? ''}
                                                 : 'default'
                                         }
                                         onClick={() => handleRetroClick(retro)}
+                                        onDeleteClick={() => openDeleteModal(retro)}
                                     />
                                 ))}
                             </div>
@@ -549,6 +722,83 @@ ${selectedCategoryContent[key] ?? ''}
                     </section>
                 </SidebarContentLayout>
             </div>
+
+            {isDeleteModalOpen && deleteTargetRetro ? (
+                <div className='fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-4 backdrop-blur-[2px]'>
+                    <div
+                        className='w-full max-w-[420px] rounded-[1.75rem] border border-neutral-lighter bg-white p-6 shadow-shadow-1'
+                        role='dialog'
+                        aria-modal='true'
+                        aria-labelledby='delete-retro-title'
+                    >
+                        <div className='flex items-start justify-between gap-4'>
+                            <div>
+                                <h2 id='delete-retro-title' className='text-2xl font-bold text-black'>
+                                    회고 삭제
+                                </h2>
+                                <p className='mt-2 text-base leading-6 text-neutral-darker'>
+                                    {deleteTargetRetro.retro_date} 회고 중 삭제할 항목을 선택하세요.
+                                </p>
+                            </div>
+
+                            <button
+                                aria-label='닫기'
+                                className='inline-flex size-9 shrink-0 items-center justify-center rounded-xl text-neutral transition-colors hover:bg-neutral-subtle hover:text-neutral-darker'
+                                onClick={closeDeleteModal}
+                                type='button'
+                            >
+                                <Icon name='close' size={20} />
+                            </button>
+                        </div>
+
+                        <div className='mt-5 flex flex-col gap-2'>
+                            {deleteTargetRetro.retros?.map((retro) => {
+                                const value = retro.template_type?.toLowerCase();
+
+                                if (!value) return null;
+
+                                const checked = deleteTargetTemplateTypes.includes(value);
+
+                                return (
+                                    <label
+                                        key={retro.id ?? value}
+                                        className={[
+                                            'flex cursor-pointer items-center gap-3 rounded-2xl border p-4 transition-colors',
+                                            checked
+                                                ? 'border-danger bg-danger/5 text-danger'
+                                                : 'border-neutral-subtle bg-white text-neutral-darker hover:border-neutral',
+                                        ].join(' ')}
+                                    >
+                                        <input
+                                            className='size-4 accent-danger'
+                                            type='checkbox'
+                                            value={value}
+                                            checked={checked}
+                                            onChange={() => toggleDeleteTargetTemplateType(value)}
+                                        />
+                                        <span className='text-base font-medium'>{getRetroCategoryLabel(value)}</span>
+                                    </label>
+                                );
+                            })}
+                        </div>
+
+                        <div className='mt-6 grid grid-cols-2 gap-2'>
+                            <Button fullWidth variant='outline' onClick={closeDeleteModal}>
+                                취소
+                            </Button>
+                            <Button
+                                fullWidth
+                                variant='filled'
+                                className='!bg-danger hover:!bg-danger-darker'
+                                disabled={deleteTargetTemplateTypes.length === 0}
+                                onClick={handleDeleteRetro}
+                            >
+                                삭제하기
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            ) : null}
         </Container>
     );
 }
