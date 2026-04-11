@@ -475,6 +475,11 @@ export default function DailyLog() {
                                         key={log.id}
                                         dateLabel={relativeDate(log.log_date)}
                                         title={log.title}
+                                        state={
+                                            log.log_date && isSameDate(log.log_date, selectedDate)
+                                                ? 'selected'
+                                                : 'default'
+                                        }
                                         onClick={() => handleLogClick(log)}
                                         onDeleteClick={() => handleDeleteConfirm(log)}
                                     />

@@ -131,7 +131,7 @@ export const DailyLogCard = ({
     ...props
 }: DailyLogCardProps) => {
     const [isHovered, setIsHovered] = useState(false);
-    const shouldShowDeleteAction = state === 'hover' || (state === 'default' && isHovered);
+    const shouldShowDeleteAction = state === 'hover' || isHovered;
 
     const handleMouseEnter: DailyLogCardProps['onMouseEnter'] = (event) => {
         setIsHovered(true);
@@ -146,6 +146,7 @@ export const DailyLogCard = ({
     const handleDeleteClick = (event: MouseEvent<HTMLButtonElement>) => {
         deleteButtonProps?.onClick?.(event);
         onDeleteClick?.(event);
+        event.stopPropagation();
     };
 
     return (
@@ -199,7 +200,7 @@ export const RetroCard = ({
     }
 
     const [isHovered, setIsHovered] = useState(false);
-    const shouldShowDeleteAction = state === 'hover' || (state === 'default' && isHovered);
+    const shouldShowDeleteAction = state === 'hover' || isHovered;
 
     const handleMouseEnter: RetroCardProps['onMouseEnter'] = (event) => {
         setIsHovered(true);
@@ -214,6 +215,7 @@ export const RetroCard = ({
     const handleDeleteClick = (event: MouseEvent<HTMLButtonElement>) => {
         deleteButtonProps?.onClick?.(event);
         onDeleteClick?.(event);
+        event.stopPropagation();
     };
 
     const relativeDate = (targetDate: string | undefined) => {
