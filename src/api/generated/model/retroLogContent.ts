@@ -16,6 +16,8 @@ Access Token 만료 시 `/auth/refresh`로 재발급하세요.
 
 /**
  * template_type(Tech|Decision|Communication|Emotion)에 따라 아래 oneOf 중 하나의 객체 형태입니다.
+각 필드 값은 문자열이면 빈 문자열("")도 허용합니다(요청 본문 `content`와 동일한 규칙).
+
  */
 export type RetroLogContent =
     | {

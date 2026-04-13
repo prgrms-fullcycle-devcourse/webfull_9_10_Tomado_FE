@@ -16,8 +16,14 @@ Access Token 만료 시 `/auth/refresh`로 재발급하세요.
 import type { UpdateRetroLogRequestContent } from './updateRetroLogRequestContent';
 import type { UpdateRetroLogRequestDraftContent } from './updateRetroLogRequestDraftContent';
 
+/**
+ * `content`, `is_dirty`, `draft_content` 중 최소 하나는 반드시 포함해야 합니다.
+위 세 키가 모두 빠진 빈 본문 `{}`이면 400 `VALIDATION_ERROR`(수정할 필드가 없습니다)가 반환됩니다.
+
+ */
 export interface UpdateRetroLogRequest {
-    /** 기존 template_type에 맞는 content 구조로 수정 */
+    /** 기존 template_type에 맞는 content 구조로 수정. 각 값은 문자열이면 빈 문자열("")도 허용한다.
+     */
     content?: UpdateRetroLogRequestContent;
     is_dirty?: boolean;
     /** @nullable */

@@ -24,6 +24,7 @@ export interface CreateRetroLogRequest {
     daily_log_id?: string | null;
     retro_date: string;
     template_type: CreateRetroLogRequestTemplateType;
-    /** template_type별 content 예시 */
+    /** template_type별 필수 키는 모두 포함하고, 값은 문자열이면 빈 문자열("")도 허용한다.
+     */
     content: CreateRetroLogRequestContent;
 }

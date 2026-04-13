@@ -23,7 +23,9 @@ export interface RetroLog {
     daily_log_id?: string;
     retro_date?: string;
     template_type?: RetroLogTemplateType;
-    /** template_type(Tech|Decision|Communication|Emotion)에 따라 아래 oneOf 중 하나의 객체 형태입니다. */
+    /** template_type(Tech|Decision|Communication|Emotion)에 따라 아래 oneOf 중 하나의 객체 형태입니다.
+  각 필드 값은 문자열이면 빈 문자열("")도 허용합니다(요청 본문 `content`와 동일한 규칙).
+   */
     content?: RetroLogContent;
     is_dirty?: boolean;
     /** @nullable */

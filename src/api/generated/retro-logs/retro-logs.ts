@@ -190,6 +190,8 @@ export const prefetchGetRetroLogQuery = async <
 
 /**
  * 회고 생성. `daily_log_id` 없이도 생성 가능. 성공 시 `daily_focus_stats.has_retro_log = true` UPSERT.
+`content`는 템플릿별 필수 키를 모두 포함하며, 값은 문자열이면 빈 문자열("")도 허용한다. (저장 시점은 클라이언트에서 결정)
+
  * @summary 회고 생성
  */
 export const getCreateRetroLogUrl = () => {
@@ -539,7 +541,10 @@ export const prefetchListRetroLogsQuery = async <
 };
 
 /**
- * 회고 내용 수정. `is_dirty` / `draft_content` 자동저장 패턴은 데일리로그와 동일.
+ * 회고 본문(`content`) 수정. 템플릿별 필수 키는 모두 포함하고, 값은 문자열이면 빈 문자열("")도 허용한다.
+`is_dirty`, `draft_content`는 선택 필드(데일리 로그와 동일한 이름)이며, 클라이언트에서 쓰지 않으면 생략해도 된다.
+요청 본문에는 위 세 필드 중 **최소 하나**가 있어야 한다(전부 생략·빈 객체는 불가).
+
  * @summary 회고 수정
  */
 export const getUpdateRetroLogUrl = (id: string) => {
@@ -560,7 +565,7 @@ export const updateRetroLog = async (
 };
 
 export const getUpdateRetroLogMutationOptions = <
-    TError = ForbiddenResponse | NotFoundResponse,
+    TError = Error | ForbiddenResponse | NotFoundResponse,
     TContext = unknown,
 >(options?: {
     mutation?: UseMutationOptions<
@@ -597,12 +602,12 @@ export const getUpdateRetroLogMutationOptions = <
 
 export type UpdateRetroLogMutationResult = NonNullable<Awaited<ReturnType<typeof updateRetroLog>>>;
 export type UpdateRetroLogMutationBody = UpdateRetroLogRequest;
-export type UpdateRetroLogMutationError = ForbiddenResponse | NotFoundResponse;
+export type UpdateRetroLogMutationError = Error | ForbiddenResponse | NotFoundResponse;
 
 /**
  * @summary 회고 수정
  */
-export const useUpdateRetroLog = <TError = ForbiddenResponse | NotFoundResponse, TContext = unknown>(
+export const useUpdateRetroLog = <TError = Error | ForbiddenResponse | NotFoundResponse, TContext = unknown>(
     options?: {
         mutation?: UseMutationOptions<
             Awaited<ReturnType<typeof updateRetroLog>>,
