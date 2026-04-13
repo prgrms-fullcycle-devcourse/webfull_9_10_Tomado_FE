@@ -8,3 +8,5 @@
 - [focus-mode.md](./focus-mode.md)
 - [bgm-player.md](./bgm-player.md)
 - [todo-flow.md](./todo-flow.md)
+- [daily-log-flow.md](./daily-log-flow.md)
+- [retro-flow.md](./retro-flow.md)
