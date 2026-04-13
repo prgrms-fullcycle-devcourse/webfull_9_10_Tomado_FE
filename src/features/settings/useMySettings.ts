@@ -14,6 +14,38 @@ const initialTimerSettings = {
     longBreakTime: 30,
 };
 
+const getNextStepDecreaseValue = (value: number) => {
+    if (value <= MIN_TIMER_SETTING) {
+        return MIN_TIMER_SETTING;
+    }
+
+    if (value <= 5) {
+        return MIN_TIMER_SETTING;
+    }
+
+    const remainder = value % 5;
+
+    if (remainder === 0) {
+        return value - 5;
+    }
+
+    return value - remainder;
+};
+
+const getNextStepIncreaseValue = (value: number) => {
+    if (value < 5) {
+        return 5;
+    }
+
+    const remainder = value % 5;
+
+    if (remainder === 0) {
+        return value + 5;
+    }
+
+    return value + (5 - remainder);
+};
+
 const getNextNumericSettingValue = (value: string) => {
     if (value === '') {
         return null;
@@ -169,22 +201,22 @@ export const useMySettings = () => {
             value: focusTime,
             canDecrease: focusTime > MIN_TIMER_SETTING,
             onChange: createSettingInputChangeHandler(setFocusTime),
-            decrease: () => setFocusTime(Math.max(MIN_TIMER_SETTING, focusTime - 5)),
-            increase: () => setFocusTime(focusTime + 5),
+            decrease: () => setFocusTime(getNextStepDecreaseValue(focusTime)),
+            increase: () => setFocusTime(getNextStepIncreaseValue(focusTime)),
         },
         shortBreak: {
             value: shortBreakTime,
             canDecrease: shortBreakTime > MIN_TIMER_SETTING,
             onChange: createSettingInputChangeHandler(setShortBreakTime),
-            decrease: () => setShortBreakTime(Math.max(MIN_TIMER_SETTING, shortBreakTime - 5)),
-            increase: () => setShortBreakTime(shortBreakTime + 5),
+            decrease: () => setShortBreakTime(getNextStepDecreaseValue(shortBreakTime)),
+            increase: () => setShortBreakTime(getNextStepIncreaseValue(shortBreakTime)),
         },
         longBreak: {
             value: longBreakTime,
             canDecrease: longBreakTime > MIN_TIMER_SETTING,
             onChange: createSettingInputChangeHandler(setLongBreakTime),
-            decrease: () => setLongBreakTime(Math.max(MIN_TIMER_SETTING, longBreakTime - 5)),
-            increase: () => setLongBreakTime(longBreakTime + 5),
+            decrease: () => setLongBreakTime(getNextStepDecreaseValue(longBreakTime)),
+            increase: () => setLongBreakTime(getNextStepIncreaseValue(longBreakTime)),
         },
     };
 

@@ -214,7 +214,7 @@ export default function My() {
                                         disabled={meta.isSaving}
                                         onClick={actions.reset}
                                     >
-                                        {meta.isSaving ? '저장 중...' : '설정값 초기화'}
+                                        설정값 초기화
                                     </Button>
                                     <Button
                                         className='flex-1'
