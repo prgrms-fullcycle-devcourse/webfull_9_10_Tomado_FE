@@ -32,7 +32,6 @@ import type {
 import type {
     CreateDailyLogRequest,
     DailyLog,
-    DailyLogSearchItem,
     DailyLogSummary,
     Error,
     ForbiddenResponse,
@@ -578,8 +577,8 @@ export const getSearchDailyLogsUrl = (params: SearchDailyLogsParams) => {
 export const searchDailyLogs = async (
     params: SearchDailyLogsParams,
     options?: RequestInit
-): Promise<DailyLogSearchItem[]> => {
-    return customInstance<DailyLogSearchItem[]>(getSearchDailyLogsUrl(params), {
+): Promise<DailyLogSummary[]> => {
+    return customInstance<DailyLogSummary[]>(getSearchDailyLogsUrl(params), {
         ...options,
         method: 'GET',
     });
