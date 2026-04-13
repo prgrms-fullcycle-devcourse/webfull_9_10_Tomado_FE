@@ -5,9 +5,16 @@ import { Badge, Button, DailyLogCard, Icon } from '@/components/ui';
 import { useEffect, useRef, useState } from 'react';
 import { Calendar } from '@@/ui';
 import { useModal, useToast } from '@/hooks';
-import { useCreateDailyLog, useUpdateDailyLog, useDeleteDailyLog } from '@/api/generated/daily-logs/daily-logs';
+import {
+    getGetAllDailyLogsQueryKey,
+    useGetAllDailyLogs,
+    useCreateDailyLog,
+    useUpdateDailyLog,
+    useDeleteDailyLog,
+} from '@/api/generated/daily-logs/daily-logs';
+import { queryClient } from '@/api/queryClient';
 import { DATE_FORMAT, formatDate } from '@/utils';
-import type { DailyLog } from '@/api/generated/model';
+import type { DailyLog, DailyLogSummary } from '@/api/generated/model';
 import { isSameDate } from '@/utils/dateUtils';
 
 export default function DailyLog() {
@@ -22,9 +29,11 @@ export default function DailyLog() {
     const [isSaveProgresing, setIsSaveProgresing] = useState(false);
     const [isOpenCalendar, setIsOpenCalendar] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-    const [selectedLog, setSelectedLog] = useState<DailyLog>();
+    const [selectedLog, setSelectedLog] = useState<DailyLogSummary>();
     const [pendingDeleteIds, setPendingDeleteIds] = useState<string[]>([]);
 
+    const dailyLogsParams = { page: 1, limit: 0 };
+    const { data: dailyLogsResponse, isLoading } = useGetAllDailyLogs(dailyLogsParams);
     const { mutateAsync: createDailyLog } = useCreateDailyLog();
     const { mutateAsync: updateDailyLog } = useUpdateDailyLog();
     const { mutateAsync: deleteDailyLog } = useDeleteDailyLog();
@@ -64,82 +73,17 @@ export default function DailyLog() {
     const panelClassName =
         'flex h-full min-h-0 w-full flex-col items-center rounded-2xl bg-white px-6 py-5 shadow-shadow-1';
 
-    const testLogArr = [
-        {
-            id: 'c9791d6c-d7a9-4c85-971d-cf937a98029b',
-            user_id: '18d23066-e476-49de-851e-fa8aef41241d',
-            log_date: '2026-04-04',
-            title: '',
-            content: '',
-            tags: [],
-            is_dirty: false,
-            draft_content: null,
-            created_at: '2026-04-09T15:14:22.142Z',
-            updated_at: '2026-04-09T15:14:22.142Z',
-        },
-        {
-            id: '6d0e08fb-df26-4314-adf5-57a6a668252c',
-            user_id: '18d23066-e476-49de-851e-fa8aef41241d',
-            log_date: '2026-04-01',
-            title: '만우절 기념 로그',
-            content: '만우절 기념 로그의 컨텐츠 입니다.',
-            tags: [],
-            is_dirty: false,
-            draft_content: null,
-            created_at: '2026-04-09T15:07:20.903Z',
-            updated_at: '2026-04-10T06:20:14.343Z',
-        },
-        {
-            id: 'f6a7b8c9-d0e1-2345-f014-456789012345',
-            user_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-            log_date: '2026-03-27',
-            title: '제목을 뭐로할까?',
-            content: '## 오늘 한 일\n- UI 작업\n- API 연동',
-            tags: ['frontend', 'docs'],
-            is_dirty: false,
-            draft_content: null,
-            created_at: '2026-03-27T09:00:00Z',
-            updated_at: '2026-03-27T18:00:00Z',
-        },
-        {
-            id: 'f6a7b8c9-d0e1-2345-f012-456789012345',
-            user_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-            log_date: '2026-03-26',
-            title: '엄청 힘들었던 날',
-            content: '## 오늘 한 일\n- 점심먹기\n- 저녁먹기',
-            tags: ['frontend', 'docs'],
-            is_dirty: false,
-            draft_content: null,
-            created_at: '2026-03-26T09:00:00Z',
-            updated_at: '2026-03-26T18:00:00Z',
-        },
-        {
-            id: 'f6a7b8c9-d0e1-2345-f013-456789012345',
-            user_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-            log_date: '2026-03-19',
-            title: '기분이 매우 좋았고 모든것이 잘풀려서 뭘 하든 잘되던 날',
-            content: '## 오늘 한 일\n- 친구만나기\n- 놀러가기',
-            tags: ['frontend', 'docs'],
-            is_dirty: false,
-            draft_content: null,
-            created_at: '2026-03-19T09:00:00Z',
-            updated_at: '2026-03-19T18:00:00Z',
-        },
-        {
-            id: 'f6a7b8c9-d0e1-2345-f052-456789012345',
-            user_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-            log_date: '2026-03-09',
-            title: '알차게 보낸 날',
-            content: '## 오늘 한 일\n- API 명세서 작성 완료\n- ERD 리뷰',
-            tags: ['backend', 'docs'],
-            is_dirty: false,
-            draft_content: null,
-            created_at: '2026-03-09T09:00:00Z',
-            updated_at: '2026-03-09T18:00:00Z',
-        },
-    ];
+    const dailyLogs = dailyLogsResponse?.data ?? [];
+    const visibleLogs = dailyLogs.filter((log) => !log.id || !pendingDeleteIds.includes(log.id));
 
-    const visibleLogs = testLogArr.filter((log) => !log.id || !pendingDeleteIds.includes(log.id));
+    const toDailyLogSummary = (log: DailyLog): DailyLogSummary => ({
+        id: log.id,
+        log_date: log.log_date,
+        updated_at: log.updated_at,
+        title: log.title,
+        content: log.content,
+        tags: log.tags,
+    });
 
     const handleContentChange = (value: string | undefined) => {
         setContent(value ?? '');
@@ -179,7 +123,7 @@ export default function DailyLog() {
                 },
             }).then((res) => {
                 console.log('res', res);
-                setSelectedLog(res);
+                setSelectedLog(toDailyLogSummary(res));
 
                 setAutoSaveState('saved');
                 setAutoSaveText('마지막 저장 방금 전');
@@ -198,7 +142,7 @@ export default function DailyLog() {
             },
         }).then((res) => {
             console.log('res', res);
-            setSelectedLog(res);
+            setSelectedLog(toDailyLogSummary(res));
 
             setAutoSaveState('saved');
             setAutoSaveText('마지막 저장 방금 전');
@@ -284,7 +228,7 @@ export default function DailyLog() {
         }
     };
 
-    const handleLogClick = (log: DailyLog): void => {
+    const handleLogClick = (log: DailyLogSummary): void => {
         setSelectedLog(log);
         setContent(log.content ?? '');
         setTitle(log.title ?? '');
@@ -293,7 +237,7 @@ export default function DailyLog() {
         setAutoSaveText(lastSaved);
     };
 
-    const handleDeleteConfirm = (log: DailyLog): void => {
+    const handleDeleteConfirm = (log: DailyLogSummary): void => {
         showModal({
             title: `${log.log_date} 로그 삭제`,
             description: `지금 삭제하시면 복구할 수 없어요.\n그래도 삭제하시겠어요?`,
@@ -314,7 +258,7 @@ export default function DailyLog() {
         setPendingDeleteIds((prev) => prev.filter((logId) => logId !== id));
     };
 
-    const handleDeleteWithUndo = (log: DailyLog) => {
+    const handleDeleteWithUndo = (log: DailyLogSummary) => {
         if (!log.id) return;
         if (deleteTimerMapRef.current[log.id]) return;
 
@@ -336,12 +280,9 @@ export default function DailyLog() {
             try {
                 await deleteDailyLog({ id });
 
-                // 둘 중 하나 선택
-                await getLogList();
-                // 또는
-                // await queryClient.invalidateQueries({
-                //   queryKey: getGetDailyLogsListQueryKey(params),
-                // });
+                await queryClient.invalidateQueries({
+                    queryKey: getGetAllDailyLogsQueryKey(dailyLogsParams),
+                });
             } catch {
                 showToast({
                     message: '로그 삭제에 실패했어요',
@@ -363,30 +304,6 @@ export default function DailyLog() {
         });
     };
 
-    // const deleteLog = async (log: DailyLog) => {
-    //     if (!log.id) {
-    //         showToast({
-    //             message: '삭제할 로그 id가 없습니다.',
-    //             duration: 3000,
-    //         });
-    //         return;
-    //     }
-
-    //     await deleteDailyLog({
-    //         id: log.id,
-    //     }).then(() => {
-    //         setSelectedLog(undefined);
-    //         setTitle('');
-    //         setContent('');
-    //         setAutoSaveText('');
-
-    //         showToast({
-    //             message: `${log.log_date} 로그가 성공적으로 삭제되었습니다.`,
-    //             duration: 3000,
-    //         });
-    //     });
-    // };
-
     const formatSectionHeaderDate = (date: Date): string => {
         return date.toLocaleDateString('ko-KR', {
             year: 'numeric',
@@ -401,13 +318,13 @@ export default function DailyLog() {
             return;
         }
 
-        let log = visibleLogs.find((log) => isSameDate(new Date(log.log_date), date));
+        let log = visibleLogs.find((log) => isSameDate(new Date(log.log_date ? log.log_date : ''), date));
         console.log(log);
 
         if (log) {
             setSelectedLog(log);
-            setTitle(log.title);
-            setContent(log.content);
+            setTitle(log.title ?? '');
+            setContent(log.content ?? '');
 
             const lastSaved = formatLastSaved(log.updated_at ?? '');
             setAutoSaveText(lastSaved);
@@ -440,6 +357,15 @@ export default function DailyLog() {
         // TODO: 키워드에 해당하는 로그 목록을 가져오는 api 호출
     };
 
+    const LogSkeletonRow = () => {
+        return (
+            <div className='flex flex-col w-full gap-3 rounded-xl border border-neutral-subtle bg-white p-4 animate-pulse'>
+                <div className='w-[80%] h-4 rounded-full bg-gray-100' />
+                <div className='w-[30%] h-3 rounded-full bg-gray-100' />
+            </div>
+        );
+    };
+
     return (
         <Container className='overflow-hidden'>
             <div className='flex h-[calc(100dvh-140px)] min-h-0 flex-col overflow-hidden'>
@@ -466,24 +392,28 @@ export default function DailyLog() {
                             </div>
                             <div className='mt-4 mb-2 flex w-full justify-between'>
                                 <p className='text-neutral-darker'>전체</p>
-                                <Badge label='총 0건' />
+                                <Badge label={`총 ${visibleLogs.length}건`} />
                             </div>
 
                             <div className='flex min-h-0 w-full flex-1 flex-col gap-3 overflow-y-auto mask-b-from-97% pb-10'>
-                                {visibleLogs.map((log) => (
-                                    <DailyLogCard
-                                        key={log.id}
-                                        dateLabel={relativeDate(log.log_date)}
-                                        title={log.title}
-                                        state={
-                                            log.log_date && isSameDate(log.log_date, selectedDate)
-                                                ? 'selected'
-                                                : 'default'
-                                        }
-                                        onClick={() => handleLogClick(log)}
-                                        onDeleteClick={() => handleDeleteConfirm(log)}
-                                    />
-                                ))}
+                                {isLoading && visibleLogs.length === 0
+                                    ? Array.from({ length: 3 }, (_, index) => (
+                                          <LogSkeletonRow key={`log-skeleton-${index}`} />
+                                      ))
+                                    : visibleLogs.map((log) => (
+                                          <DailyLogCard
+                                              key={log.id}
+                                              dateLabel={log.log_date ? relativeDate(log.log_date) : ''}
+                                              title={log.title ?? ''}
+                                              state={
+                                                  log.log_date && isSameDate(log.log_date, selectedDate)
+                                                      ? 'selected'
+                                                      : 'default'
+                                              }
+                                              onClick={() => handleLogClick(log)}
+                                              onDeleteClick={() => handleDeleteConfirm(log)}
+                                          />
+                                      ))}
                             </div>
 
                             <Button fullWidth={true} variant='outline'>
