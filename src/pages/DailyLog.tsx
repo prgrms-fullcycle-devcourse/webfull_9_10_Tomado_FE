@@ -12,6 +12,7 @@ import {
     useCreateDailyLog,
     useUpdateDailyLog,
     useDeleteDailyLog,
+    useSearchDailyLogs,
 } from '@/api/generated/daily-logs/daily-logs';
 import { queryClient } from '@/api/queryClient';
 import { DATE_FORMAT, formatDate } from '@/utils';
@@ -25,6 +26,7 @@ export default function DailyLog() {
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
     const [search, setSearch] = useState('');
+    const [searchKeyword, setSearchKeyword] = useState('');
     const [content, setContent] = useState('');
     const [title, setTitle] = useState('');
     const [autoSaveText, setAutoSaveText] = useState('');
@@ -34,6 +36,8 @@ export default function DailyLog() {
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
     const [selectedLog, setSelectedLog] = useState<DailyLogSummary>();
     const [pendingDeleteIds, setPendingDeleteIds] = useState<string[]>([]);
+    const trimmedSearchKeyword = searchKeyword.trim();
+    const isSearchMode = trimmedSearchKeyword.length > 0;
 
     const dailyLogsQueryKey = getGetAllDailyLogsQueryKey({ limit: DAILY_LOG_PAGE_SIZE });
     const {
@@ -60,6 +64,14 @@ export default function DailyLog() {
     const { mutateAsync: createDailyLog } = useCreateDailyLog();
     const { mutateAsync: updateDailyLog } = useUpdateDailyLog();
     const { mutateAsync: deleteDailyLog } = useDeleteDailyLog();
+    const { data: searchLogs = [], isLoading: isSearchLoading } = useSearchDailyLogs(
+        { q: trimmedSearchKeyword },
+        {
+            query: {
+                enabled: isSearchMode,
+            },
+        }
+    );
 
     const { showModal } = useModal();
     const { showToast } = useToast();
@@ -96,7 +108,7 @@ export default function DailyLog() {
     useEffect(() => {
         const target = loadMoreRef.current;
 
-        if (!target || !hasNextPage) {
+        if (!target || !hasNextPage || isSearchMode) {
             return;
         }
 
@@ -117,7 +129,7 @@ export default function DailyLog() {
         return () => {
             observer.disconnect();
         };
-    }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+    }, [fetchNextPage, hasNextPage, isFetchingNextPage, isSearchMode]);
 
     const DAILY_LOG_DELETE_UNDO_DURATION = 3000;
 
@@ -126,7 +138,22 @@ export default function DailyLog() {
 
     const dailyLogs = dailyLogsResponse?.pages.flatMap((page) => page.data ?? []) ?? [];
     const visibleLogs = dailyLogs.filter((log) => !log.id || !pendingDeleteIds.includes(log.id));
+    const visibleSearchLogs = searchLogs
+        .filter((log) => !log.id || !pendingDeleteIds.includes(log.id))
+        .map(
+            (log): DailyLogSummary => ({
+                id: log.id,
+                log_date: log.log_date,
+                title: log.title,
+                tags: log.tags,
+                has_retro_log: log.has_retro_log,
+            })
+        );
+    const displayLogs = isSearchMode ? visibleSearchLogs : visibleLogs;
+    const displayLoading = isSearchMode ? isSearchLoading : isLoading;
     const totalCount = dailyLogsResponse?.pages[0]?.meta?.total_count ?? 0;
+    const displayTotalCount = isSearchMode ? displayLogs.length : totalCount;
+    const emptyLogMessage = isSearchMode ? '검색 결과가 없습니다.' : '아직 작성된 로그가 없습니다.';
 
     const toDailyLogSummary = (log: DailyLog): DailyLogSummary => ({
         id: log.id,
@@ -281,9 +308,14 @@ export default function DailyLog() {
     const handleChangeSearchInput = (val: string) => {
         setSearch(val);
 
-        if (!val) {
-            getLogList();
+        if (!val.trim()) {
+            setSearchKeyword('');
         }
+    };
+
+    const handleClearSearchInput = () => {
+        setSearch('');
+        setSearchKeyword('');
     };
 
     const handleLogClick = (log: DailyLogSummary): void => {
@@ -405,14 +437,8 @@ export default function DailyLog() {
         handleCalendarDateSelect(nextDate);
     };
 
-    const getLogList = () => {
-        // TODO: 정해진 기간의 로그 목록을 가져오는 api 호출
-    };
-
     const searchLogList = () => {
-        console.log(search);
-
-        // TODO: 키워드에 해당하는 로그 목록을 가져오는 api 호출
+        setSearchKeyword(search.trim());
     };
 
     const LogSkeletonRow = () => {
@@ -420,6 +446,14 @@ export default function DailyLog() {
             <div className='flex flex-col w-full gap-3 rounded-xl border border-neutral-subtle bg-white p-4 animate-pulse'>
                 <div className='w-[80%] h-4 rounded-full bg-gray-100' />
                 <div className='w-[30%] h-3 rounded-full bg-gray-100' />
+            </div>
+        );
+    };
+
+    const EmptyLogList = () => {
+        return (
+            <div className='flex w-full shrink-0 items-center justify-center rounded-lg border-2 border-dashed border-gray-100 bg-white py-5 text-center'>
+                <p className='text-md text-neutral'>{emptyLogMessage}</p>
             </div>
         );
     };
@@ -441,6 +475,25 @@ export default function DailyLog() {
                                     placeholder='제목 또는 내용으로 검색하세요'
                                     value={search}
                                     onChange={(e) => handleChangeSearchInput(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key !== 'Enter' || e.nativeEvent.isComposing) return;
+
+                                        e.preventDefault();
+                                        searchLogList();
+                                    }}
+                                    rightElement={
+                                        search ? (
+                                            <button
+                                                aria-label='검색어 지우기'
+                                                className='flex size-5 shrink-0 items-center justify-center rounded-full text-neutral-darker transition-colors hover:bg-gray-100 hover:text-black'
+                                                type='button'
+                                                onClick={handleClearSearchInput}
+                                                onMouseDown={(e) => e.preventDefault()}
+                                            >
+                                                <Icon name='close' size={14} />
+                                            </button>
+                                        ) : null
+                                    }
                                 />
                                 {search && (
                                     <Button className='!px-2' variant='outline' onClick={searchLogList}>
@@ -450,32 +503,37 @@ export default function DailyLog() {
                             </div>
                             <div className='mt-4 mb-2 flex w-full justify-between'>
                                 <p className='text-neutral-darker'>전체</p>
-                                <Badge label={`총 ${totalCount}건`} />
+                                <Badge label={`총 ${displayTotalCount}건`} />
                             </div>
 
                             <div
                                 ref={listScrollRef}
                                 className='flex min-h-0 w-full flex-1 flex-col gap-3 overflow-y-auto mask-b-from-97% pb-10'
                             >
-                                {isLoading && visibleLogs.length === 0
+                                {displayLoading && displayLogs.length === 0
                                     ? Array.from({ length: 3 }, (_, index) => (
                                           <LogSkeletonRow key={`log-skeleton-${index}`} />
                                       ))
-                                    : visibleLogs.map((log) => (
-                                          <DailyLogCard
-                                              key={log.id}
-                                              dateLabel={log.log_date ? relativeDate(log.log_date) : ''}
-                                              title={log.title ?? ''}
-                                              state={
-                                                  log.log_date && isSameDate(log.log_date, selectedDate)
-                                                      ? 'selected'
-                                                      : 'default'
-                                              }
-                                              onClick={() => handleLogClick(log)}
-                                              onDeleteClick={() => handleDeleteConfirm(log)}
-                                          />
-                                      ))}
-                                {isFetchingNextPage
+                                    : null}
+
+                                {!displayLoading && displayLogs.length === 0 ? <EmptyLogList /> : null}
+
+                                {displayLogs.map((log) => (
+                                    <DailyLogCard
+                                        key={log.id}
+                                        dateLabel={log.log_date ? relativeDate(log.log_date) : ''}
+                                        title={log.title ?? ''}
+                                        state={
+                                            log.log_date && isSameDate(log.log_date, selectedDate)
+                                                ? 'selected'
+                                                : 'default'
+                                        }
+                                        onClick={() => handleLogClick(log)}
+                                        onDeleteClick={() => handleDeleteConfirm(log)}
+                                    />
+                                ))}
+
+                                {!isSearchMode && isFetchingNextPage
                                     ? Array.from({ length: 2 }, (_, index) => (
                                           <LogSkeletonRow key={`next-log-skeleton-${index}`} />
                                       ))

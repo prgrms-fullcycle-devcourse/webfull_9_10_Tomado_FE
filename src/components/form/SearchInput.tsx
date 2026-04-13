@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes } from 'react';
+import type { InputHTMLAttributes, ReactNode } from 'react';
 import { forwardRef, useState } from 'react';
 
 import { Icon, Shortcut } from '@@/ui';
@@ -7,6 +7,7 @@ export interface SearchInputProps extends Omit<InputHTMLAttributes<HTMLInputElem
     className?: string;
     fieldClassName?: string;
     inputClassName?: string;
+    rightElement?: ReactNode;
 }
 
 const cx = (...classes: Array<string | false | null | undefined>) => {
@@ -35,7 +36,7 @@ const getLeadingIconClassName = ({ disabled = false }: { disabled?: boolean }) =
 };
 
 export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
-    ({ className, fieldClassName, inputClassName, disabled = false, ...props }, ref) => {
+    ({ className, fieldClassName, inputClassName, rightElement, disabled = false, ...props }, ref) => {
         const [isFocus, setIsFocus] = useState(false);
 
         return (
@@ -52,7 +53,8 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
                         onFocus={() => setIsFocus(true)}
                         onBlur={() => setIsFocus(false)}
                     />
-                    {!isFocus && <Shortcut keys={['F']} />}
+                    {rightElement}
+                    {!rightElement && !isFocus && <Shortcut keys={['F']} />}
                 </div>
             </div>
         );
