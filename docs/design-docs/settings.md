@@ -60,6 +60,7 @@
 - 볼륨 변경 핸들러
 - 재생/일시정지/이전/다음 핸들러
 - 카테고리 카드 선택 핸들러
+- `stopBgmPlayback()`으로 인증 종료 시 오디오와 persisted 재생 상태를 함께 정리
 
 ### `useMySettings.ts`
 
@@ -77,7 +78,7 @@
 1. `tracks.ts`가 트랙 메타데이터를 준비한다.
 2. `bgmStorage.ts`가 복원할 초기 상태를 읽는다.
 3. `bgmAudioRuntime.ts`가 실제 `Audio` 엘리먼트를 제어한다.
-4. `useBgmPlayer.ts`가 store와 runtime을 조합해서 UI용 API를 노출한다.
+4. `useBgmPlayer.ts`가 store와 runtime을 조합해서 UI용 API와 정리 함수를 노출한다.
 5. `My` 페이지의 설정 섹션은 `useMySettings.ts`를 통해 사용자 설정 mutation을 조합한다.
 
 ## File Rules
