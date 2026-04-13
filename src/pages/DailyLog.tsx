@@ -3,11 +3,12 @@ import MdEditor from '@/features/log/components/MdEditor';
 import { Container, SectionHeader, SidebarContentLayout } from '@/components/layout';
 import { Badge, Button, DailyLogCard, Icon } from '@/components/ui';
 import { useEffect, useRef, useState } from 'react';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { Calendar } from '@@/ui';
 import { useModal, useToast } from '@/hooks';
 import {
+    getAllDailyLogs,
     getGetAllDailyLogsQueryKey,
-    useGetAllDailyLogs,
     useCreateDailyLog,
     useUpdateDailyLog,
     useDeleteDailyLog,
@@ -16,6 +17,8 @@ import { queryClient } from '@/api/queryClient';
 import { DATE_FORMAT, formatDate } from '@/utils';
 import type { DailyLog, DailyLogSummary } from '@/api/generated/model';
 import { isSameDate } from '@/utils/dateUtils';
+
+const DAILY_LOG_PAGE_SIZE = 10;
 
 export default function DailyLog() {
     const today = new Date();
@@ -32,8 +35,28 @@ export default function DailyLog() {
     const [selectedLog, setSelectedLog] = useState<DailyLogSummary>();
     const [pendingDeleteIds, setPendingDeleteIds] = useState<string[]>([]);
 
-    const dailyLogsParams = { page: 1, limit: 0 };
-    const { data: dailyLogsResponse, isLoading } = useGetAllDailyLogs(dailyLogsParams);
+    const dailyLogsQueryKey = getGetAllDailyLogsQueryKey({ limit: DAILY_LOG_PAGE_SIZE });
+    const {
+        data: dailyLogsResponse,
+        isLoading,
+        isFetchingNextPage,
+        hasNextPage,
+        fetchNextPage,
+    } = useInfiniteQuery({
+        queryKey: dailyLogsQueryKey,
+        initialPageParam: 1,
+        queryFn: ({ pageParam }) =>
+            getAllDailyLogs({
+                page: pageParam,
+                limit: DAILY_LOG_PAGE_SIZE,
+            }),
+        getNextPageParam: (lastPage) => {
+            const currentPage = lastPage.meta?.current_page ?? 1;
+            const totalPages = lastPage.meta?.total_pages ?? 1;
+
+            return currentPage < totalPages ? currentPage + 1 : undefined;
+        },
+    });
     const { mutateAsync: createDailyLog } = useCreateDailyLog();
     const { mutateAsync: updateDailyLog } = useUpdateDailyLog();
     const { mutateAsync: deleteDailyLog } = useDeleteDailyLog();
@@ -43,6 +66,8 @@ export default function DailyLog() {
 
     const contentChangeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const calendarWrapperRef = useRef<HTMLDivElement | null>(null);
+    const listScrollRef = useRef<HTMLDivElement | null>(null);
+    const loadMoreRef = useRef<HTMLDivElement | null>(null);
     const contentRef = useRef(content);
     const deleteTimerMapRef = useRef<Record<string, number>>({});
 
@@ -68,13 +93,40 @@ export default function DailyLog() {
         contentRef.current = content;
     }, [content]);
 
+    useEffect(() => {
+        const target = loadMoreRef.current;
+
+        if (!target || !hasNextPage) {
+            return;
+        }
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
+                    void fetchNextPage();
+                }
+            },
+            {
+                root: listScrollRef.current,
+                rootMargin: '120px',
+            }
+        );
+
+        observer.observe(target);
+
+        return () => {
+            observer.disconnect();
+        };
+    }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
     const DAILY_LOG_DELETE_UNDO_DURATION = 3000;
 
     const panelClassName =
         'flex h-full min-h-0 w-full flex-col items-center rounded-2xl bg-white px-6 py-5 shadow-shadow-1';
 
-    const dailyLogs = dailyLogsResponse?.data ?? [];
+    const dailyLogs = dailyLogsResponse?.pages.flatMap((page) => page.data ?? []) ?? [];
     const visibleLogs = dailyLogs.filter((log) => !log.id || !pendingDeleteIds.includes(log.id));
+    const totalCount = dailyLogsResponse?.pages[0]?.meta?.total_count ?? 0;
 
     const toDailyLogSummary = (log: DailyLog): DailyLogSummary => ({
         id: log.id,
@@ -124,6 +176,9 @@ export default function DailyLog() {
             }).then((res) => {
                 console.log('res', res);
                 setSelectedLog(toDailyLogSummary(res));
+                void queryClient.invalidateQueries({
+                    queryKey: dailyLogsQueryKey,
+                });
 
                 setAutoSaveState('saved');
                 setAutoSaveText('마지막 저장 방금 전');
@@ -143,6 +198,9 @@ export default function DailyLog() {
         }).then((res) => {
             console.log('res', res);
             setSelectedLog(toDailyLogSummary(res));
+            void queryClient.invalidateQueries({
+                queryKey: dailyLogsQueryKey,
+            });
 
             setAutoSaveState('saved');
             setAutoSaveText('마지막 저장 방금 전');
@@ -281,7 +339,7 @@ export default function DailyLog() {
                 await deleteDailyLog({ id });
 
                 await queryClient.invalidateQueries({
-                    queryKey: getGetAllDailyLogsQueryKey(dailyLogsParams),
+                    queryKey: dailyLogsQueryKey,
                 });
             } catch {
                 showToast({
@@ -392,10 +450,13 @@ export default function DailyLog() {
                             </div>
                             <div className='mt-4 mb-2 flex w-full justify-between'>
                                 <p className='text-neutral-darker'>전체</p>
-                                <Badge label={`총 ${visibleLogs.length}건`} />
+                                <Badge label={`총 ${totalCount}건`} />
                             </div>
 
-                            <div className='flex min-h-0 w-full flex-1 flex-col gap-3 overflow-y-auto mask-b-from-97% pb-10'>
+                            <div
+                                ref={listScrollRef}
+                                className='flex min-h-0 w-full flex-1 flex-col gap-3 overflow-y-auto mask-b-from-97% pb-10'
+                            >
                                 {isLoading && visibleLogs.length === 0
                                     ? Array.from({ length: 3 }, (_, index) => (
                                           <LogSkeletonRow key={`log-skeleton-${index}`} />
@@ -414,6 +475,12 @@ export default function DailyLog() {
                                               onDeleteClick={() => handleDeleteConfirm(log)}
                                           />
                                       ))}
+                                {isFetchingNextPage
+                                    ? Array.from({ length: 2 }, (_, index) => (
+                                          <LogSkeletonRow key={`next-log-skeleton-${index}`} />
+                                      ))
+                                    : null}
+                                <div ref={loadMoreRef} className='h-1 shrink-0' />
                             </div>
 
                             <Button fullWidth={true} variant='outline'>
