@@ -1,4 +1,5 @@
 import { useAuthStore } from '@/features/auth';
+import { stopBgmPlayback } from '@/features/settings';
 
 type Primitive = string | number | boolean;
 
@@ -74,6 +75,7 @@ const refreshSessionViaCookie = async (): Promise<void> => {
     });
 
     if (!response.ok) {
+        stopBgmPlayback();
         useAuthStore.getState().logout();
         throw new Error(await readErrorMessage(response));
     }
