@@ -2,8 +2,8 @@ import { useState } from 'react';
 import type { ButtonHTMLAttributes, HTMLAttributes, MouseEvent, MouseEventHandler } from 'react';
 
 import { Icon, Tag } from '.';
-import type { Retro } from '@/pages/Retro';
 import { RETRO_CATEGORY_NAME } from '@/features/log/retroConstants';
+import type { RetroLogListItem, RetroLogListItemTemplateTypesItem } from '@/api/generated/model';
 
 export type DailyLogCardState = 'default' | 'selected' | 'hover';
 export type RetroCardState = DailyLogCardState | 'empty';
@@ -29,7 +29,7 @@ export interface RetroCategoryItem {
 }
 
 export interface RetroCardProps extends HTMLAttributes<HTMLDivElement>, CardActionProps {
-    retro?: Retro;
+    retro?: RetroLogListItem;
     categories?: RetroCategoryItem[];
     state?: RetroCardState;
     emptyText?: string;
@@ -131,7 +131,7 @@ export const DailyLogCard = ({
     ...props
 }: DailyLogCardProps) => {
     const [isHovered, setIsHovered] = useState(false);
-    const shouldShowDeleteAction = state === 'hover' || (state === 'default' && isHovered);
+    const shouldShowDeleteAction = state === 'hover' || isHovered;
 
     const handleMouseEnter: DailyLogCardProps['onMouseEnter'] = (event) => {
         setIsHovered(true);
@@ -146,6 +146,7 @@ export const DailyLogCard = ({
     const handleDeleteClick = (event: MouseEvent<HTMLButtonElement>) => {
         deleteButtonProps?.onClick?.(event);
         onDeleteClick?.(event);
+        event.stopPropagation();
     };
 
     return (
@@ -199,7 +200,7 @@ export const RetroCard = ({
     }
 
     const [isHovered, setIsHovered] = useState(false);
-    const shouldShowDeleteAction = state === 'hover' || (state === 'default' && isHovered);
+    const shouldShowDeleteAction = state === 'hover' || isHovered;
 
     const handleMouseEnter: RetroCardProps['onMouseEnter'] = (event) => {
         setIsHovered(true);
@@ -214,6 +215,7 @@ export const RetroCard = ({
     const handleDeleteClick = (event: MouseEvent<HTMLButtonElement>) => {
         deleteButtonProps?.onClick?.(event);
         onDeleteClick?.(event);
+        event.stopPropagation();
     };
 
     const relativeDate = (targetDate: string | undefined) => {
@@ -264,7 +266,7 @@ export const RetroCard = ({
 
             <div className={retroCategoryListClassName}>
                 {categories.map((category) => {
-                    if (!retro?.template_types.includes(category.type)) return;
+                    if (!retro?.template_types?.includes(category.type as RetroLogListItemTemplateTypesItem)) return;
 
                     return (
                         <Tag

@@ -401,7 +401,7 @@ export default function DailyLog() {
             return;
         }
 
-        let log = testLogArr.find((log) => isSameDate(new Date(log.log_date), date));
+        let log = visibleLogs.find((log) => isSameDate(new Date(log.log_date), date));
         console.log(log);
 
         if (log) {
@@ -475,6 +475,11 @@ export default function DailyLog() {
                                         key={log.id}
                                         dateLabel={relativeDate(log.log_date)}
                                         title={log.title}
+                                        state={
+                                            log.log_date && isSameDate(log.log_date, selectedDate)
+                                                ? 'selected'
+                                                : 'default'
+                                        }
                                         onClick={() => handleLogClick(log)}
                                         onDeleteClick={() => handleDeleteConfirm(log)}
                                     />
