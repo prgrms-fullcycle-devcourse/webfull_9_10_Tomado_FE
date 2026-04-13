@@ -36,9 +36,11 @@ import type {
     DailyLogSummary,
     Error,
     ForbiddenResponse,
+    GetAllDailyLogsParams,
     GetDailyLogParams,
     GetDailyLogsListParams,
     NotFoundResponse,
+    PaginatedDailyLogsResponse,
     SearchDailyLogsParams,
     UnauthorizedResponse,
     UpdateDailyLogRequest,
@@ -406,6 +408,147 @@ export const prefetchGetDailyLogsListQuery = async <
     }
 ): Promise<QueryClient> => {
     const queryOptions = getGetDailyLogsListQueryOptions(params, options);
+
+    await queryClient.prefetchQuery(queryOptions);
+
+    return queryClient;
+};
+
+/**
+ * 사용자의 모든 데일리 로그를 최신순으로 페이징 처리하여 조회.
+ * @summary 모든 로그 목록 조회 (페이징)
+ */
+export const getGetAllDailyLogsUrl = (params?: GetAllDailyLogsParams) => {
+    const normalizedParams = new URLSearchParams();
+
+    Object.entries(params || {}).forEach(([key, value]) => {
+        if (value !== undefined) {
+            normalizedParams.append(key, value === null ? 'null' : value.toString());
+        }
+    });
+
+    const stringifiedParams = normalizedParams.toString();
+
+    return stringifiedParams.length > 0 ? `/api/v1/daily-logs/all?${stringifiedParams}` : `/api/v1/daily-logs/all`;
+};
+
+export const getAllDailyLogs = async (
+    params?: GetAllDailyLogsParams,
+    options?: RequestInit
+): Promise<PaginatedDailyLogsResponse> => {
+    return customInstance<PaginatedDailyLogsResponse>(getGetAllDailyLogsUrl(params), {
+        ...options,
+        method: 'GET',
+    });
+};
+
+export const getGetAllDailyLogsQueryKey = (params?: GetAllDailyLogsParams) => {
+    return [`/api/v1/daily-logs/all`, ...(params ? [params] : [])] as const;
+};
+
+export const getGetAllDailyLogsQueryOptions = <
+    TData = Awaited<ReturnType<typeof getAllDailyLogs>>,
+    TError = UnauthorizedResponse,
+>(
+    params?: GetAllDailyLogsParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllDailyLogs>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    }
+) => {
+    const { query: queryOptions, request: requestOptions } = options ?? {};
+
+    const queryKey = queryOptions?.queryKey ?? getGetAllDailyLogsQueryKey(params);
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getAllDailyLogs>>> = ({ signal }) =>
+        getAllDailyLogs(params, { signal, ...requestOptions });
+
+    return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+        Awaited<ReturnType<typeof getAllDailyLogs>>,
+        TError,
+        TData
+    > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type GetAllDailyLogsQueryResult = NonNullable<Awaited<ReturnType<typeof getAllDailyLogs>>>;
+export type GetAllDailyLogsQueryError = UnauthorizedResponse;
+
+export function useGetAllDailyLogs<TData = Awaited<ReturnType<typeof getAllDailyLogs>>, TError = UnauthorizedResponse>(
+    params: undefined | GetAllDailyLogsParams,
+    options: {
+        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllDailyLogs>>, TError, TData>> &
+            Pick<
+                DefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof getAllDailyLogs>>,
+                    TError,
+                    Awaited<ReturnType<typeof getAllDailyLogs>>
+                >,
+                'initialData'
+            >;
+        request?: SecondParameter<typeof customInstance>;
+    },
+    queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetAllDailyLogs<TData = Awaited<ReturnType<typeof getAllDailyLogs>>, TError = UnauthorizedResponse>(
+    params?: GetAllDailyLogsParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllDailyLogs>>, TError, TData>> &
+            Pick<
+                UndefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof getAllDailyLogs>>,
+                    TError,
+                    Awaited<ReturnType<typeof getAllDailyLogs>>
+                >,
+                'initialData'
+            >;
+        request?: SecondParameter<typeof customInstance>;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useGetAllDailyLogs<TData = Awaited<ReturnType<typeof getAllDailyLogs>>, TError = UnauthorizedResponse>(
+    params?: GetAllDailyLogsParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllDailyLogs>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary 모든 로그 목록 조회 (페이징)
+ */
+
+export function useGetAllDailyLogs<TData = Awaited<ReturnType<typeof getAllDailyLogs>>, TError = UnauthorizedResponse>(
+    params?: GetAllDailyLogsParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllDailyLogs>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+    const queryOptions = getGetAllDailyLogsQueryOptions(params, options);
+
+    const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+        queryKey: DataTag<QueryKey, TData, TError>;
+    };
+
+    return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary 모든 로그 목록 조회 (페이징)
+ */
+export const prefetchGetAllDailyLogsQuery = async <
+    TData = Awaited<ReturnType<typeof getAllDailyLogs>>,
+    TError = UnauthorizedResponse,
+>(
+    queryClient: QueryClient,
+    params?: GetAllDailyLogsParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof getAllDailyLogs>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    }
+): Promise<QueryClient> => {
+    const queryOptions = getGetAllDailyLogsQueryOptions(params, options);
 
     await queryClient.prefetchQuery(queryOptions);
 
