@@ -15,7 +15,8 @@ const panelHeadingRowClassName = 'flex items-start w-full justify-between';
 const panelHeadingClassName = 'text-2xl font-bold gray-900';
 
 export default function Main() {
-    const { timerSession, handleToggleTimer, handleRequestStopTimer } = useOutletContext<ITimerControllerContext>();
+    const { timerSession, handleToggleTimer, handleRequestStopTimer, handleSkipBreak } =
+        useOutletContext<ITimerControllerContext>();
 
     const todayDate = getTodayDate();
     const today = formatDate(todayDate, DATE_FORMAT.display);
@@ -45,6 +46,7 @@ export default function Main() {
                             tomatoProgress={timerSession.progress}
                             onRequestStop={handleRequestStopTimer}
                             onToggleTimer={handleToggleTimer}
+                            onSkipBreak={handleSkipBreak}
                         />
                     </section>
                     <section className={`${panelClassName} relative`}>

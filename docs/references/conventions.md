@@ -12,6 +12,9 @@
 - 도메인 의미가 있는 컴포넌트는 `features/*/components`에 둡니다.
 - 공용 훅은 `src/hooks`, 도메인 훅은 각 feature에 둡니다.
 - 공용 `cn` 유틸을 사용하고 로컬 `cx` 중복 선언은 줄입니다.
+- 화면 액션이 길어지면 페이지나 TSX 파일에 두지 않고 feature의 controller 훅으로 분리합니다.
+- controller 훅은 비동기 액션, 토스트, 모달, 캐시 갱신, 라우팅 후처리처럼 화면 행동을 조합하는 책임을 가집니다.
+- view 훅은 표시용 파생 상태를 계산하고, controller 훅은 액션과 상호작용을 담당하도록 구분합니다.
 
 ## Comments
 

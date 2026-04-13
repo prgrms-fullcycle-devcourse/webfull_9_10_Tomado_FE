@@ -3,112 +3,85 @@ import MdEditor from '@/features/log/components/MdEditor';
 import { Container, SectionHeader, SidebarContentLayout } from '@/components/layout';
 import { Badge, Button, DailyLogCard, Icon } from '@/components/ui';
 import { useEffect, useRef, useState } from 'react';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { Calendar } from '@@/ui';
 import { useModal, useToast } from '@/hooks';
+import {
+    getAllDailyLogs,
+    getGetAllDailyLogsQueryKey,
+    useCreateDailyLog,
+    useUpdateDailyLog,
+    useDeleteDailyLog,
+    useSearchDailyLogs,
+} from '@/api/generated/daily-logs/daily-logs';
+import { queryClient } from '@/api/queryClient';
+import { DATE_FORMAT, formatDate } from '@/utils';
+import type { DailyLog, DailyLogSummary } from '@/api/generated/model';
+import { isSameDate } from '@/utils/dateUtils';
+
+const DAILY_LOG_PAGE_SIZE = 10;
 
 export default function DailyLog() {
     const today = new Date();
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
 
     const [search, setSearch] = useState('');
+    const [searchKeyword, setSearchKeyword] = useState('');
     const [content, setContent] = useState('');
     const [title, setTitle] = useState('');
     const [autoSaveText, setAutoSaveText] = useState('');
-    const [autoSaveSate, setAutoSaveSate] = useState<'' | 'writing' | 'saving' | 'saved' | 'error'>('');
-    const [isAutoSaveProgresing, setIsAutoSaveProgresing] = useState(false);
+    const [autoSaveState, setAutoSaveState] = useState<'' | 'writing' | 'saving' | 'saved' | 'error'>('');
+    const [isSaveProgresing, setIsSaveProgresing] = useState(false);
     const [isOpenCalendar, setIsOpenCalendar] = useState(false);
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+    const [selectedLog, setSelectedLog] = useState<DailyLogSummary>();
+    const [pendingDeleteIds, setPendingDeleteIds] = useState<string[]>([]);
+    const trimmedSearchKeyword = searchKeyword.trim();
+    const isSearchMode = trimmedSearchKeyword.length > 0;
+
+    const dailyLogsQueryKey = getGetAllDailyLogsQueryKey({ limit: DAILY_LOG_PAGE_SIZE });
+    const {
+        data: dailyLogsResponse,
+        isLoading,
+        isFetchingNextPage,
+        hasNextPage,
+        fetchNextPage,
+    } = useInfiniteQuery({
+        queryKey: dailyLogsQueryKey,
+        initialPageParam: 1,
+        queryFn: ({ pageParam }) =>
+            getAllDailyLogs({
+                page: pageParam,
+                limit: DAILY_LOG_PAGE_SIZE,
+            }),
+        getNextPageParam: (lastPage) => {
+            const currentPage = lastPage.meta?.current_page ?? 1;
+            const totalPages = lastPage.meta?.total_pages ?? 1;
+
+            return currentPage < totalPages ? currentPage + 1 : undefined;
+        },
+    });
+    const { mutateAsync: createDailyLog } = useCreateDailyLog();
+    const { mutateAsync: updateDailyLog } = useUpdateDailyLog();
+    const { mutateAsync: deleteDailyLog } = useDeleteDailyLog();
+    const { data: searchLogs = [], isLoading: isSearchLoading } = useSearchDailyLogs(
+        { q: trimmedSearchKeyword },
+        {
+            query: {
+                enabled: isSearchMode,
+            },
+        }
+    );
 
     const { showModal } = useModal();
     const { showToast } = useToast();
 
-    // const testdata = [
-    //     {
-    //         focus_date: '2026-03-26',
-    //         total_focus_sec: 5200,
-    //         completed_sessions: 3,
-    //     },
-    //     {
-    //         focus_date: '2026-03-27',
-    //         total_focus_sec: 7200,
-    //         completed_sessions: 4,
-    //     },
-    //     {
-    //         focus_date: '2026-03-28',
-    //         total_focus_sec: 4200,
-    //         completed_sessions: 2,
-    //     },
-    // ];
-
-    type Log = {
-        id: string;
-        user_id: string;
-        log_date: string;
-        content: string;
-        title: string;
-        tags: string[];
-        is_dirty: boolean;
-        draft_content: null;
-        created_at: string;
-        updated_at: string;
-    };
-
-    const panelClassName =
-        'flex h-full min-h-0 w-full flex-col items-center rounded-2xl bg-white px-6 py-5 shadow-shadow-1';
-
-    const testLogArr = [
-        {
-            id: 'f6a7b8c9-d0e1-2345-f014-456789012345',
-            user_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-            log_date: '2026-03-27',
-            title: '제목을 뭐로할까?',
-            content: '## 오늘 한 일\n- UI 작업\n- API 연동',
-            tags: ['frontend', 'docs'],
-            is_dirty: false,
-            draft_content: null,
-            created_at: '2026-03-27T09:00:00Z',
-            updated_at: '2026-03-27T18:00:00Z',
-        },
-        {
-            id: 'f6a7b8c9-d0e1-2345-f012-456789012345',
-            user_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-            log_date: '2026-03-26',
-            title: '엄청 힘들었던 날',
-            content: '## 오늘 한 일\n- 점심먹기\n- 저녁먹기',
-            tags: ['frontend', 'docs'],
-            is_dirty: false,
-            draft_content: null,
-            created_at: '2026-03-26T09:00:00Z',
-            updated_at: '2026-03-26T18:00:00Z',
-        },
-        {
-            id: 'f6a7b8c9-d0e1-2345-f013-456789012345',
-            user_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-            log_date: '2026-03-19',
-            title: '기분이 매우 좋았고 모든것이 잘풀려서 뭘 하든 잘되던 날',
-            content: '## 오늘 한 일\n- 친구만나기\n- 놀러가기',
-            tags: ['frontend', 'docs'],
-            is_dirty: false,
-            draft_content: null,
-            created_at: '2026-03-19T09:00:00Z',
-            updated_at: '2026-03-19T18:00:00Z',
-        },
-        {
-            id: 'f6a7b8c9-d0e1-2345-f052-456789012345',
-            user_id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
-            log_date: '2026-03-09',
-            title: '알차게 보낸 날',
-            content: '## 오늘 한 일\n- API 명세서 작성 완료\n- ERD 리뷰',
-            tags: ['backend', 'docs'],
-            is_dirty: false,
-            draft_content: null,
-            created_at: '2026-03-09T09:00:00Z',
-            updated_at: '2026-03-09T18:00:00Z',
-        },
-    ];
-
     const contentChangeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const calendarWrapperRef = useRef<HTMLDivElement | null>(null);
+    const listScrollRef = useRef<HTMLDivElement | null>(null);
+    const loadMoreRef = useRef<HTMLDivElement | null>(null);
+    const contentRef = useRef(content);
+    const deleteTimerMapRef = useRef<Record<string, number>>({});
 
     useEffect(() => {
         if (!isOpenCalendar) {
@@ -128,12 +101,75 @@ export default function DailyLog() {
         };
     }, [isOpenCalendar]);
 
-    const handleContentChange = (value: string) => {
-        setContent(value);
+    useEffect(() => {
+        contentRef.current = content;
+    }, [content]);
 
-        if (isAutoSaveProgresing) return;
+    useEffect(() => {
+        const target = loadMoreRef.current;
 
-        setAutoSaveSate('writing');
+        if (!target || !hasNextPage || isSearchMode) {
+            return;
+        }
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
+                    void fetchNextPage();
+                }
+            },
+            {
+                root: listScrollRef.current,
+                rootMargin: '120px',
+            }
+        );
+
+        observer.observe(target);
+
+        return () => {
+            observer.disconnect();
+        };
+    }, [fetchNextPage, hasNextPage, isFetchingNextPage, isSearchMode]);
+
+    const DAILY_LOG_DELETE_UNDO_DURATION = 3000;
+
+    const panelClassName =
+        'flex h-full min-h-0 w-full flex-col items-center rounded-2xl bg-white px-6 py-5 shadow-shadow-1';
+
+    const dailyLogs = dailyLogsResponse?.pages.flatMap((page) => page.data ?? []) ?? [];
+    const visibleLogs = dailyLogs.filter((log) => !log.id || !pendingDeleteIds.includes(log.id));
+    const visibleSearchLogs = searchLogs
+        .filter((log) => !log.id || !pendingDeleteIds.includes(log.id))
+        .map(
+            (log): DailyLogSummary => ({
+                id: log.id,
+                log_date: log.log_date,
+                title: log.title,
+                tags: log.tags,
+                has_retro_log: log.has_retro_log,
+            })
+        );
+    const displayLogs = isSearchMode ? visibleSearchLogs : visibleLogs;
+    const displayLoading = isSearchMode ? isSearchLoading : isLoading;
+    const totalCount = dailyLogsResponse?.pages[0]?.meta?.total_count ?? 0;
+    const displayTotalCount = isSearchMode ? displayLogs.length : totalCount;
+    const emptyLogMessage = isSearchMode ? '검색 결과가 없습니다.' : '아직 작성된 로그가 없습니다.';
+
+    const toDailyLogSummary = (log: DailyLog): DailyLogSummary => ({
+        id: log.id,
+        log_date: log.log_date,
+        updated_at: log.updated_at,
+        title: log.title,
+        content: log.content,
+        tags: log.tags,
+    });
+
+    const handleContentChange = (value: string | undefined) => {
+        setContent(value ?? '');
+
+        if (isSaveProgresing) return;
+
+        setAutoSaveState('writing');
         setAutoSaveText('작성중...');
 
         if (contentChangeTimerRef.current) {
@@ -145,18 +181,59 @@ export default function DailyLog() {
         }, 2000);
     };
 
-    const saveContent = (): void => {
-        setAutoSaveSate('saving');
+    const saveContent = async () => {
+        if (contentChangeTimerRef.current) {
+            clearTimeout(contentChangeTimerRef.current);
+        }
+        setAutoSaveState('saving');
         setAutoSaveText('저장중...');
 
-        setIsAutoSaveProgresing(true);
-        // TODO: 저장 API 다녀온 후
-        setTimeout(() => {
-            setAutoSaveSate('saved');
+        setIsSaveProgresing(true);
+
+        const nextTitle = title == '' ? `${formatDate(selectedDate, DATE_FORMAT.display)} 로그` : title;
+
+        if (selectedLog?.id) {
+            await updateDailyLog({
+                id: selectedLog.id,
+                data: {
+                    title: nextTitle,
+                    content: contentRef.current,
+                    is_dirty: false,
+                },
+            }).then((res) => {
+                console.log('res', res);
+                setSelectedLog(toDailyLogSummary(res));
+                void queryClient.invalidateQueries({
+                    queryKey: dailyLogsQueryKey,
+                });
+
+                setAutoSaveState('saved');
+                setAutoSaveText('마지막 저장 방금 전');
+
+                setIsSaveProgresing(false);
+            });
+
+            return;
+        }
+
+        await createDailyLog({
+            data: {
+                log_date: formatDate(selectedDate, DATE_FORMAT.api),
+                title: nextTitle,
+                content: contentRef.current,
+            },
+        }).then((res) => {
+            console.log('res', res);
+            setSelectedLog(toDailyLogSummary(res));
+            void queryClient.invalidateQueries({
+                queryKey: dailyLogsQueryKey,
+            });
+
+            setAutoSaveState('saved');
             setAutoSaveText('마지막 저장 방금 전');
 
-            setIsAutoSaveProgresing(false);
-        }, 2000);
+            setIsSaveProgresing(false);
+        });
     };
 
     const relativeDate = (targetDate: string): string => {
@@ -231,35 +308,89 @@ export default function DailyLog() {
     const handleChangeSearchInput = (val: string) => {
         setSearch(val);
 
-        if (!val) {
-            getLogList();
+        if (!val.trim()) {
+            setSearchKeyword('');
         }
     };
 
-    const handleLogClick = (log: Log): void => {
-        setContent(log.content);
-        setTitle(log.title);
+    const handleClearSearchInput = () => {
+        setSearch('');
+        setSearchKeyword('');
+    };
+
+    const handleLogClick = (log: DailyLogSummary): void => {
+        setSelectedLog(log);
+        setContent(log.content ?? '');
+        setTitle(log.title ?? '');
         setSelectedDate(new Date(`${log.log_date}T00:00:00`));
-        const lastSaved = formatLastSaved(log.updated_at);
+        const lastSaved = formatLastSaved(log.updated_at ?? '');
         setAutoSaveText(lastSaved);
     };
 
-    const handleDeleteConfirm = (log: Log): void => {
+    const handleDeleteConfirm = (log: DailyLogSummary): void => {
         showModal({
             title: `${log.log_date} 로그 삭제`,
             description: `지금 삭제하시면 복구할 수 없어요.\n그래도 삭제하시겠어요?`,
             tone: 'danger',
             confirmLabel: '삭제하기',
-            onConfirm: () => deleteLog(log),
+            onConfirm: () => handleDeleteWithUndo(log),
         });
     };
 
-    const deleteLog = (log: Log) => {
-        // TODO: 로그 삭제 api
+    const clearPendingDelete = (id: string) => {
+        const timerId = deleteTimerMapRef.current[id];
+
+        if (timerId) {
+            window.clearTimeout(timerId);
+            delete deleteTimerMapRef.current[id];
+        }
+
+        setPendingDeleteIds((prev) => prev.filter((logId) => logId !== id));
+    };
+
+    const handleDeleteWithUndo = (log: DailyLogSummary) => {
+        if (!log.id) return;
+        if (deleteTimerMapRef.current[log.id]) return;
+
+        const id = log.id;
+
+        if (contentChangeTimerRef.current) {
+            window.clearTimeout(contentChangeTimerRef.current);
+            contentChangeTimerRef.current = null;
+        }
+
+        setPendingDeleteIds((prev) => [...prev, id]);
+
+        setSelectedLog(undefined);
+        setTitle('');
+        setContent('');
+        setAutoSaveText('');
+
+        deleteTimerMapRef.current[id] = window.setTimeout(async () => {
+            try {
+                await deleteDailyLog({ id });
+
+                await queryClient.invalidateQueries({
+                    queryKey: dailyLogsQueryKey,
+                });
+            } catch {
+                showToast({
+                    message: '로그 삭제에 실패했어요',
+                    iconName: 'error',
+                    duration: 3000,
+                });
+            } finally {
+                clearPendingDelete(id);
+            }
+        }, DAILY_LOG_DELETE_UNDO_DURATION);
 
         showToast({
-            message: `${log.log_date} 로그가 성공적으로 삭제되었습니다.`,
-            duration: 3000,
+            message: '로그를 삭제했어요',
+            iconName: 'delete',
+            textButton: true,
+            textButtonLabel: '취소',
+            onTextButtonClick: () => clearPendingDelete(id),
+            duration: DAILY_LOG_DELETE_UNDO_DURATION,
         });
     };
 
@@ -277,31 +408,54 @@ export default function DailyLog() {
             return;
         }
 
+        let log = visibleLogs.find((log) => isSameDate(new Date(log.log_date ? log.log_date : ''), date));
+        console.log(log);
+
+        if (log) {
+            setSelectedLog(log);
+            setTitle(log.title ?? '');
+            setContent(log.content ?? '');
+
+            const lastSaved = formatLastSaved(log.updated_at ?? '');
+            setAutoSaveText(lastSaved);
+        } else {
+            setSelectedLog(undefined);
+            setTitle('');
+            setContent('');
+
+            setAutoSaveText('');
+        }
+
         setSelectedDate(date);
         setIsOpenCalendar(false);
     };
 
     const moveSelectedDate = (days: number) => {
-        setSelectedDate((currentDate) => {
-            const nextDate = new Date(currentDate);
-            nextDate.setDate(currentDate.getDate() + days);
+        const nextDate = new Date(selectedDate);
+        nextDate.setDate(selectedDate.getDate() + days);
 
-            if (nextDate.getTime() > todayStart.getTime()) {
-                return currentDate;
-            }
-
-            return nextDate;
-        });
-    };
-
-    const getLogList = () => {
-        // TODO: 정해진 기간의 로그 목록을 가져오는 api 호출
+        handleCalendarDateSelect(nextDate);
     };
 
     const searchLogList = () => {
-        console.log(search);
+        setSearchKeyword(search.trim());
+    };
 
-        // TODO: 키워드에 해당하는 로그 목록을 가져오는 api 호출
+    const LogSkeletonRow = () => {
+        return (
+            <div className='flex flex-col w-full gap-3 rounded-xl border border-neutral-subtle bg-white p-4 animate-pulse'>
+                <div className='w-[80%] h-4 rounded-full bg-gray-100' />
+                <div className='w-[30%] h-3 rounded-full bg-gray-100' />
+            </div>
+        );
+    };
+
+    const EmptyLogList = () => {
+        return (
+            <div className='flex w-full shrink-0 items-center justify-center rounded-lg border-2 border-dashed border-gray-100 bg-white py-5 text-center'>
+                <p className='text-md text-neutral'>{emptyLogMessage}</p>
+            </div>
+        );
     };
 
     return (
@@ -321,6 +475,25 @@ export default function DailyLog() {
                                     placeholder='제목 또는 내용으로 검색하세요'
                                     value={search}
                                     onChange={(e) => handleChangeSearchInput(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key !== 'Enter' || e.nativeEvent.isComposing) return;
+
+                                        e.preventDefault();
+                                        searchLogList();
+                                    }}
+                                    rightElement={
+                                        search ? (
+                                            <button
+                                                aria-label='검색어 지우기'
+                                                className='flex size-5 shrink-0 items-center justify-center rounded-full text-neutral-darker transition-colors hover:bg-gray-100 hover:text-black'
+                                                type='button'
+                                                onClick={handleClearSearchInput}
+                                                onMouseDown={(e) => e.preventDefault()}
+                                            >
+                                                <Icon name='close' size={14} />
+                                            </button>
+                                        ) : null
+                                    }
                                 />
                                 {search && (
                                     <Button className='!px-2' variant='outline' onClick={searchLogList}>
@@ -330,19 +503,42 @@ export default function DailyLog() {
                             </div>
                             <div className='mt-4 mb-2 flex w-full justify-between'>
                                 <p className='text-neutral-darker'>전체</p>
-                                <Badge label='총 0건' />
+                                <Badge label={`총 ${displayTotalCount}건`} />
                             </div>
 
-                            <div className='flex min-h-0 w-full flex-1 flex-col gap-3 overflow-y-auto mask-b-from-97% pb-10'>
-                                {testLogArr.map((log) => (
+                            <div
+                                ref={listScrollRef}
+                                className='flex min-h-0 w-full flex-1 flex-col gap-3 overflow-y-auto mask-b-from-97% pb-10'
+                            >
+                                {displayLoading && displayLogs.length === 0
+                                    ? Array.from({ length: 3 }, (_, index) => (
+                                          <LogSkeletonRow key={`log-skeleton-${index}`} />
+                                      ))
+                                    : null}
+
+                                {!displayLoading && displayLogs.length === 0 ? <EmptyLogList /> : null}
+
+                                {displayLogs.map((log) => (
                                     <DailyLogCard
                                         key={log.id}
-                                        dateLabel={relativeDate(log.created_at)}
-                                        title={log.title}
+                                        dateLabel={log.log_date ? relativeDate(log.log_date) : ''}
+                                        title={log.title ?? ''}
+                                        state={
+                                            log.log_date && isSameDate(log.log_date, selectedDate)
+                                                ? 'selected'
+                                                : 'default'
+                                        }
                                         onClick={() => handleLogClick(log)}
                                         onDeleteClick={() => handleDeleteConfirm(log)}
                                     />
                                 ))}
+
+                                {!isSearchMode && isFetchingNextPage
+                                    ? Array.from({ length: 2 }, (_, index) => (
+                                          <LogSkeletonRow key={`next-log-skeleton-${index}`} />
+                                      ))
+                                    : null}
+                                <div ref={loadMoreRef} className='h-1 shrink-0' />
                             </div>
 
                             <Button fullWidth={true} variant='outline'>
@@ -387,7 +583,7 @@ export default function DailyLog() {
                                     </button>
                                 </div>
                                 <div className='flex items-center text-neutral text-sm whitespace-nowrap'>
-                                    {autoSaveSate === 'saving' ? (
+                                    {autoSaveState === 'saving' ? (
                                         <div className='animate-spin h-4 w-4 border-3 border-gray-300 border-t-primary rounded-full mr-1' />
                                     ) : (
                                         ''
@@ -412,10 +608,7 @@ export default function DailyLog() {
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                             />
-                            <MdEditor
-                                content={content}
-                                contentChange={(value) => handleContentChange(value || '')}
-                            ></MdEditor>
+                            <MdEditor content={content} contentChange={handleContentChange}></MdEditor>
                             <Button
                                 className='mt-3 px-10'
                                 variant='filled'

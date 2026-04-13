@@ -13,14 +13,10 @@ Access Token 만료 시 `/auth/refresh`로 재발급하세요.
 
  * OpenAPI spec version: 1.0.0
  */
+import type { DailyLogSummary } from './dailyLogSummary';
+import type { PaginatedDailyLogsResponseMeta } from './paginatedDailyLogsResponseMeta';
 
-export interface DailyLogSummary {
-    id?: string;
-    log_date?: string;
-    updated_at?: string;
-    /** @nullable */
-    title?: string | null;
-    content?: string;
-    tags?: string[];
-    has_retro_log?: boolean;
+export interface PaginatedDailyLogsResponse {
+    data?: DailyLogSummary[];
+    meta?: PaginatedDailyLogsResponseMeta;
 }

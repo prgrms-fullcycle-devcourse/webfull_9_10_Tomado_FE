@@ -15,6 +15,7 @@ Access Token 만료 시 `/auth/refresh`로 재발급하세요.
  */
 
 /**
- * 기존 template_type에 맞는 content 구조로 수정
+ * 기존 template_type에 맞는 content 구조로 수정. 각 값은 문자열이면 빈 문자열("")도 허용한다.
+
  */
 export type UpdateRetroLogRequestContent = { [key: string]: unknown };

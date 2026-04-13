@@ -20,6 +20,7 @@ export const FocusMode = ({
     timerSession,
     handleToggleTimer,
     handleRequestStopTimer,
+    handleSkipBreak,
     className,
     children,
     ...props
@@ -62,6 +63,17 @@ export const FocusMode = ({
                                         variant='ghost'
                                     />
                                 </div>
+                                {timerSession.sessionType !== 'focus' ? (
+                                    <Button
+                                        className='!border-white !bg-transparent !text-white hover:!bg-white/10 hover:!text-white'
+                                        icon={<Icon color='white' name='next' />}
+                                        onClick={handleSkipBreak}
+                                        size='md'
+                                        variant='outline'
+                                    >
+                                        휴식 건너뛰기
+                                    </Button>
+                                ) : null}
                             </div>
                         </div>
 

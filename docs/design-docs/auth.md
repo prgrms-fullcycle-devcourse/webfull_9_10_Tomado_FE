@@ -32,6 +32,10 @@
 - `avatarStorage.ts`
     - 사용자 아바타 업로드/삭제 관련 유틸
 
+- `useMyProfileController.ts`
+    - `My` 페이지의 프로필/계정 액션 오케스트레이션 담당
+    - 닉네임 저장, 아바타 업로드/삭제, 회원탈퇴, 프로필 메뉴 상태를 묶어 처리
+
 ## Route Flow
 
 - `GuestLayout`
@@ -53,5 +57,8 @@
 - 데모 로그인은 프론트에서 별도 user를 주입하지 않습니다.
 - `VITE_DEMO_LOGIN_ID`, `VITE_DEMO_LOGIN_PASSWORD`가 설정되면 해당 계정으로 실제 로그인 API를 호출합니다.
 - 프로필 최신화는 `AuthLayout`에서 `useGetMyProfile` 결과를 받아 `updateUser`로 반영합니다.
-- `My` 페이지에서는 `useGetMyProfile`, `useUpdateMyProfile`을 통해 닉네임 수정 흐름을 처리합니다.
+- `My` 페이지의 프로필/계정 영역은 `useMyProfileController`가 담당합니다.
+- 닉네임 저장은 프로필 캐시와 auth store를 먼저 갱신하는 낙관적 업데이트 기준으로 동작합니다.
+- 회원 탈퇴 성공 시 로그아웃 후 랜딩 페이지로 이동합니다.
 - 아바타 업로드/삭제 성공 시 auth store와 프로필 조회 캐시를 함께 갱신합니다.
+- 로그아웃, 회원탈퇴, 세션 복구 실패 같은 인증 종료 경로에서는 BGM 재생도 함께 정리합니다.

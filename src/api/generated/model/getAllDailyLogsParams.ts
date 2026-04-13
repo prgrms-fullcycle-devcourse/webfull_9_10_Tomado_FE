@@ -14,13 +14,13 @@ Access Token 만료 시 `/auth/refresh`로 재발급하세요.
  * OpenAPI spec version: 1.0.0
  */
 
-export interface DailyLogSummary {
-    id?: string;
-    log_date?: string;
-    updated_at?: string;
-    /** @nullable */
-    title?: string | null;
-    content?: string;
-    tags?: string[];
-    has_retro_log?: boolean;
-}
+export type GetAllDailyLogsParams = {
+    /**
+     * 페이지 번호
+     */
+    page?: number;
+    /**
+     * 페이지당 개수 (0을 입력하면 페이징 없이 전체 목록을 조회합니다)
+     */
+    limit?: number;
+};

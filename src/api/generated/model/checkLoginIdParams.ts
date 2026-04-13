@@ -14,13 +14,12 @@ Access Token 만료 시 `/auth/refresh`로 재발급하세요.
  * OpenAPI spec version: 1.0.0
  */
 
-export interface DailyLogSummary {
-    id?: string;
-    log_date?: string;
-    updated_at?: string;
-    /** @nullable */
-    title?: string | null;
-    content?: string;
-    tags?: string[];
-    has_retro_log?: boolean;
-}
+export type CheckLoginIdParams = {
+    /**
+     * 확인할 로그인 ID (영문+숫자, 4~20자)
+     * @minLength 4
+     * @maxLength 20
+     * @pattern ^[a-zA-Z0-9]{4,20}$
+     */
+    login_id: string;
+};
