@@ -36,37 +36,39 @@ export default function My() {
                                     ) : (
                                         <Icon name='avatar' size={100} />
                                     )}
-                                    <button
-                                        aria-expanded={avatar.isMenuOpen}
-                                        aria-haspopup='menu'
-                                        aria-label='프로필 이미지 메뉴 열기'
-                                        className='w-[35px] h-[35px] flex justify-center items-center absolute right-0 bottom-0 border-1 border-(--color-tomato-50) rounded-full bg-primary hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-60'
-                                        disabled={!avatar.canEdit}
-                                        onClick={avatar.onEditClick}
-                                        type='button'
-                                    >
-                                        <Icon name='edit' color='color-white' size={20} />
-                                    </button>
-                                    {avatar.hasAvatar && avatar.isMenuOpen ? (
-                                        <div className='absolute right-0 bottom-8 z-20 p-2'>
-                                            <Menu
-                                                inline
-                                                items={[
-                                                    {
-                                                        label: avatar.isUploading
-                                                            ? '이미지 업로드 중...'
-                                                            : '이미지 수정',
-                                                        onClick: avatar.openPicker,
-                                                    },
-                                                    {
-                                                        label: '이미지 삭제',
-                                                        onClick: avatar.confirmDelete,
-                                                        tone: 'danger' as const,
-                                                    },
-                                                ]}
-                                            />
-                                        </div>
-                                    ) : null}
+                                    <div className='absolute right-0 bottom-0'>
+                                        <button
+                                            aria-expanded={avatar.isMenuOpen}
+                                            aria-haspopup='menu'
+                                            aria-label='프로필 이미지 메뉴 열기'
+                                            className='w-[35px] h-[35px] flex justify-center items-center border-1 border-(--color-tomato-50) rounded-full bg-primary hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-60'
+                                            disabled={!avatar.canEdit}
+                                            onClick={avatar.onEditClick}
+                                            type='button'
+                                        >
+                                            <Icon name='edit' color='color-white' size={20} />
+                                        </button>
+                                        {avatar.hasAvatar && avatar.isMenuOpen ? (
+                                            <div className='absolute top-0 left-5 z-20 pt-2'>
+                                                <Menu
+                                                    inline
+                                                    items={[
+                                                        {
+                                                            label: avatar.isUploading
+                                                                ? '이미지 업로드 중...'
+                                                                : '이미지 수정',
+                                                            onClick: avatar.openPicker,
+                                                        },
+                                                        {
+                                                            label: '이미지 삭제',
+                                                            onClick: avatar.confirmDelete,
+                                                            tone: 'danger' as const,
+                                                        },
+                                                    ]}
+                                                />
+                                            </div>
+                                        ) : null}
+                                    </div>
                                     <input
                                         accept='image/*'
                                         className='hidden'
@@ -214,7 +216,7 @@ export default function My() {
                                         disabled={meta.isSaving}
                                         onClick={actions.reset}
                                     >
-                                        {meta.isSaving ? '저장 중...' : '설정값 초기화'}
+                                        설정값 초기화
                                     </Button>
                                     <Button
                                         className='flex-1'
