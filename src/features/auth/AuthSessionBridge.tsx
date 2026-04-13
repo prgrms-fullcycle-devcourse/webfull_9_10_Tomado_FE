@@ -1,6 +1,7 @@
 import { useEffect, type ReactNode } from 'react';
 
 import { getMyProfile } from '@/api/generated/users/users';
+import { stopBgmPlayback } from '@/features/settings';
 
 import { mapUserDtoToAuthUser } from './api';
 import { useAuthStore } from './useAuthStore';
@@ -25,6 +26,7 @@ export function AuthSessionBridge({ children }: { children: ReactNode }) {
                 login(mapUserDtoToAuthUser(user));
             } catch {
                 if (cancelled) return;
+                stopBgmPlayback();
                 logout();
             } finally {
                 if (!cancelled) {

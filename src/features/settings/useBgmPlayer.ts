@@ -71,6 +71,18 @@ const useBgmPlayerStore = create<BgmPlayerStoreState>()(
     )
 );
 
+export const stopBgmPlayback = () => {
+    if (bgmAudio) {
+        bgmAudio.pause();
+        bgmAudio.currentTime = 0;
+    }
+
+    useBgmPlayerStore.setState({
+        playerPlaying: false,
+        currentTime: 0,
+    });
+};
+
 export const useBgmPlayer = () => {
     const [bgmTracks, setBgmTracks] = useState<BgmTrack[]>([]);
     // INFO: 이 훅은 UI가 바로 사용할 핸들러와 현재 재생 상태만 노출합니다.

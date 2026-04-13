@@ -1,6 +1,7 @@
 import { queryClient } from '@/api/queryClient';
 import type { User } from '@/api/generated/model';
 import { getGetMyProfileQueryKey, useDeleteMe, useGetMyProfile, useUpdateMyProfile } from '@/api/generated/users/users';
+import { stopBgmPlayback } from '@/features/settings';
 import { useModal, useToast } from '@/hooks';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -90,6 +91,7 @@ export const useMyProfileController = () => {
     const handleDeleteAccount = async () => {
         try {
             await deleteMe();
+            stopBgmPlayback();
             logout();
             await queryClient.clear();
             showToast({

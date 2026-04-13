@@ -3,6 +3,7 @@ import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { useLogout } from '@/api/generated/auth/auth';
 import { useGetMyProfile, useGetMySettings } from '@/api/generated/users/users';
+import { stopBgmPlayback } from '@/features/settings';
 import { useGlobalKeyboardShortcuts, useModal } from '@/hooks';
 import {
     FocusMode,
@@ -110,6 +111,7 @@ export function AuthLayout() {
                 } catch {
                     // 서버 로그아웃 실패해도 클라이언트는 로그아웃 처리
                 } finally {
+                    stopBgmPlayback();
                     logout();
                     navigate('/', { replace: true });
                 }
