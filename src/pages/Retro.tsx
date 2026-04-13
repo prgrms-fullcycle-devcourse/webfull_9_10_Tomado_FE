@@ -1,5 +1,12 @@
-import type { CreateRetroLogRequestTemplateType, RetroLogListItem } from '@/api/generated/model';
-import { useCreateRetroLog, useUpdateRetroLog, useDeleteRetroLog } from '@/api/generated/retro-logs/retro-logs';
+import type { CreateRetroLogRequestTemplateType, RetroLog, RetroLogListItem } from '@/api/generated/model';
+import {
+    getListRetroLogsQueryKey,
+    useCreateRetroLog,
+    useUpdateRetroLog,
+    useDeleteRetroLog,
+    useListRetroLogs,
+} from '@/api/generated/retro-logs/retro-logs';
+import { queryClient } from '@/api/queryClient';
 import RetroItem from '@/features/log/components/RetroItem';
 import { RETRO_CATEGORY_NAME, RETRO_FORM } from '@/features/log/retroConstants';
 import { useToast } from '@/hooks';
@@ -15,76 +22,6 @@ export default function Retro() {
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     type RetroTemplateType = NonNullable<RetroLogListItem['template_types']>[number];
 
-    const testRetroArr: RetroLogListItem[] = [
-        {
-            retro_date: '2026-04-10',
-            template_types: ['Communication'],
-            count: 1,
-            latest_created_at: '2026-04-11T03:02:42.128Z',
-            retros: [
-                {
-                    id: '8e7c5999-cb98-412a-8ed2-2630150c7820',
-                    user_id: '18d23066-e476-49de-851e-fa8aef41241d',
-                    daily_log_id: undefined,
-                    retro_date: '2026-04-10',
-                    template_type: 'Communication',
-                    content: {
-                        improvements: '명세 변경 시 Swagger와 Notion을 동시에 갱신하겠다.',
-                        feedback_received: '400 에러와 field를 명시해 달라는 요청을 받았다.',
-                        communication_friction: '초기 문서에는 쿼리 파라미터가 하나만 필수라고 적혀 있었다.',
-                        communication_highlights: '짧은 미팅으로 API 계약을 빠르게 맞췄다.',
-                    },
-                    is_dirty: false,
-                    draft_content: null,
-                    created_at: '2026-04-11T03:02:42.128Z',
-                    updated_at: '2026-04-11T03:02:42.128Z',
-                },
-            ],
-        },
-        {
-            retro_date: '2026-04-09',
-            template_types: ['Decision', 'Emotion'],
-            count: 2,
-            latest_created_at: '2026-04-11T13:24:45.374Z',
-            retros: [
-                {
-                    id: '8852af54-10b6-4441-b04a-86f221f3fafb',
-                    user_id: '18d23066-e476-49de-851e-fa8aef41241d',
-                    daily_log_id: undefined,
-                    retro_date: '2026-04-09',
-                    template_type: 'Decision',
-                    content: {
-                        decision_made: '이런 결정을 내렸어요',
-                        outcome_impact: '잘 되었어요',
-                        decision_reason: '이게 좋았어요',
-                        alternatives_considered: '없습니다.',
-                    },
-                    is_dirty: false,
-                    draft_content: null,
-                    created_at: '2026-04-11T13:24:45.374Z',
-                    updated_at: '2026-04-11T13:24:45.374Z',
-                },
-                {
-                    id: 'c0a5f490-edb8-4a5b-a9a4-0f4617a305ee',
-                    user_id: '18d23066-e476-49de-851e-fa8aef41241d',
-                    daily_log_id: undefined,
-                    retro_date: '2026-04-09',
-                    template_type: 'Emotion',
-                    content: {
-                        mood_today: '병합 해소 후 안도감이 크다. 다소 피곤하다~!',
-                        grateful_for: '리뷰 코멘트가 구체적이어서 수정이 빨랐다!',
-                        what_drained: '인증·회고 작업을 번갈아 하며 맥락 전환이 잦았다.',
-                        what_energized: '동료와 짝으로 디버깅한 시간.',
-                    },
-                    is_dirty: false,
-                    draft_content: null,
-                    created_at: '2026-04-11T03:02:54.756Z',
-                    updated_at: '2026-04-11T11:10:41.113Z',
-                },
-            ],
-        },
-    ];
-
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
     const [isOpenCalendar, setIsOpenCalendar] = useState(false);
     const [content, setContent] = useState<Record<string, Record<string, string>>>({});
@@ -98,6 +35,8 @@ export default function Retro() {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [pendingDeleteRetroIds, setPendingDeleteRetroIds] = useState<string[]>([]);
 
+    const retroLogsQueryKey = getListRetroLogsQueryKey();
+    const { data: retroLogs = [], isLoading: isRetroLogsLoading } = useListRetroLogs();
     const { mutateAsync: createRetroLog } = useCreateRetroLog();
     const { mutateAsync: updateRetroLog } = useUpdateRetroLog();
     const { mutateAsync: deleteRetroLog } = useDeleteRetroLog();
@@ -121,7 +60,7 @@ export default function Retro() {
     const panelClassName =
         'flex h-full min-h-0 w-full flex-col items-center rounded-2xl bg-white px-6 py-5 shadow-shadow-1';
 
-    const visibleRetroArr: RetroLogListItem[] = testRetroArr
+    const visibleRetroArr: RetroLogListItem[] = retroLogs
         .map((retro): RetroLogListItem | null => {
             const visibleRetros =
                 retro.retros?.filter((item) => !item.id || !pendingDeleteRetroIds.includes(item.id)) ?? [];
@@ -176,12 +115,39 @@ export default function Retro() {
         });
     };
 
+    const mergeRetroLogIntoSelectedRetro = (retroLog: RetroLog, baseRetro?: RetroLogListItem): RetroLogListItem => {
+        const nextRetros = baseRetro?.retros?.some((item) => retroLog.id && item.id === retroLog.id)
+            ? baseRetro.retros.map((item) => (item.id === retroLog.id ? retroLog : item))
+            : [...(baseRetro?.retros?.filter((item) => item.template_type !== retroLog.template_type) ?? []), retroLog];
+
+        const templateTypes = nextRetros.reduce<RetroTemplateType[]>((types, item) => {
+            if (!item.template_type) return types;
+
+            const templateType = item.template_type as RetroTemplateType;
+
+            if (!types.includes(templateType)) {
+                types.push(templateType);
+            }
+
+            return types;
+        }, []);
+
+        return {
+            ...baseRetro,
+            retro_date: retroLog.retro_date ?? baseRetro?.retro_date ?? formatDate(selectedDate, DATE_FORMAT.api),
+            template_types: templateTypes,
+            count: nextRetros.length,
+            latest_created_at: baseRetro?.latest_created_at ?? retroLog.created_at,
+            retros: nextRetros,
+        };
+    };
+
     const handleCalendarDateSelect = (date: Date) => {
         if (date.getTime() > todayStart.getTime()) {
             return;
         }
 
-        let retro = testRetroArr.find((retro) => {
+        const retro = visibleRetroArr.find((retro) => {
             if (retro.retro_date) return isSameDate(new Date(retro.retro_date), date);
         });
         console.log('CALENDAR retro', retro);
@@ -399,7 +365,10 @@ ${selectedCategoryContent[key] ?? ''}
                 },
             }).then((res) => {
                 console.log('UPDATE then res', res);
-                setSelectedRetro(res);
+                setSelectedRetro((prev) => mergeRetroLogIntoSelectedRetro(res, prev));
+                void queryClient.invalidateQueries({
+                    queryKey: retroLogsQueryKey,
+                });
 
                 setAutoSaveState('saved');
                 setAutoSaveText('마지막 저장 방금 전');
@@ -418,8 +387,10 @@ ${selectedCategoryContent[key] ?? ''}
             },
         }).then((res) => {
             console.log('CREATE then res', res);
-            // TODO: Retro 목록 조회 코드 필요
-            // setSelectedRetro(res);
+            setSelectedRetro((prev) => mergeRetroLogIntoSelectedRetro(res, prev));
+            void queryClient.invalidateQueries({
+                queryKey: retroLogsQueryKey,
+            });
 
             setAutoSaveState('saved');
             setAutoSaveText('마지막 저장 방금 전');
@@ -530,9 +501,9 @@ ${selectedCategoryContent[key] ?? ''}
         const timerId = window.setTimeout(async () => {
             try {
                 await Promise.all(targetRetroIds.map((id) => deleteRetroLog({ id })));
-
-                // TODO: 목록 API 붙이면 여기서 재조회
-                // await refetchRetroList();
+                await queryClient.invalidateQueries({
+                    queryKey: retroLogsQueryKey,
+                });
             } catch {
                 showToast({
                     iconName: 'error',
@@ -541,6 +512,7 @@ ${selectedCategoryContent[key] ?? ''}
                 });
             } finally {
                 removeDeleteTimers(targetRetroIds);
+                setPendingDeleteRetroIds((prev) => prev.filter((id) => !targetRetroIds.includes(id)));
             }
         }, RETRO_DELETE_UNDO_DURATION);
 
@@ -583,6 +555,18 @@ ${selectedCategoryContent[key] ?? ''}
         return str.charAt(0).toUpperCase() + str.slice(1);
     };
 
+    const RetroSkeletonRow = () => {
+        return (
+            <div className='flex flex-col w-full gap-3 rounded-xl border border-neutral-subtle bg-white p-4 animate-pulse'>
+                <div className='h-4 w-[45%] rounded-full bg-gray-100' />
+                <div className='flex gap-2'>
+                    <div className='h-5 w-12 rounded-full bg-gray-100' />
+                    <div className='h-5 w-12 rounded-full bg-gray-100' />
+                </div>
+            </div>
+        );
+    };
+
     return (
         <Container className='overflow-hidden'>
             <div className='flex h-[calc(100dvh-140px)] min-h-0 flex-col overflow-hidden'>
@@ -597,10 +581,24 @@ ${selectedCategoryContent[key] ?? ''}
                             <SearchInput placeholder='제목 또는 내용으로 검색하세요' />
                             <div className='mt-4 mb-2 flex w-full justify-between'>
                                 <p className='text-neutral-darker'>전체</p>
-                                <Badge label={`총 ${testRetroArr.length}건`} />
+                                <Badge label={`총 ${retroLogs.length}건`} />
                             </div>
 
                             <div className='flex min-h-0 w-full flex-1 flex-col gap-3 overflow-y-auto mask-b-from-97% pb-10'>
+                                {isRetroLogsLoading && visibleRetroArr.length === 0
+                                    ? Array.from({ length: 3 }, (_, index) => (
+                                          <RetroSkeletonRow key={`retro-skeleton-${index}`} />
+                                      ))
+                                    : null}
+
+                                {!isRetroLogsLoading && visibleRetroArr.length === 0 ? (
+                                    <div className='flex min-h-40 w-full shrink-0 items-center justify-center rounded-[28px] border-2 border-dashed border-gray-100 bg-white px-6 py-10 text-center'>
+                                        <p className='text-lg font-semibold leading-7 text-neutral'>
+                                            아직 작성된 회고가 없습니다.
+                                        </p>
+                                    </div>
+                                ) : null}
+
                                 {visibleRetroArr.map((retro: RetroLogListItem) => (
                                     <RetroCard
                                         key={retro.retro_date}
