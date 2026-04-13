@@ -13,13 +13,28 @@ Access Token 만료 시 `/auth/refresh`로 재발급하세요.
 
  * OpenAPI spec version: 1.0.0
  */
-import { useMutation } from '@tanstack/react-query';
-import type { MutationFunction, QueryClient, UseMutationOptions, UseMutationResult } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import type {
+    DataTag,
+    DefinedInitialDataOptions,
+    DefinedUseQueryResult,
+    MutationFunction,
+    QueryClient,
+    QueryFunction,
+    QueryKey,
+    UndefinedInitialDataOptions,
+    UseMutationOptions,
+    UseMutationResult,
+    UseQueryOptions,
+    UseQueryResult,
+} from '@tanstack/react-query';
 
 import type {
     AuthTokens,
+    CheckLoginIdParams,
     Error,
     Login200,
+    LoginIdCheckResponse,
     LoginRequest,
     RefreshTokenRequest,
     Register201,
@@ -30,6 +45,143 @@ import type {
 import { customInstance } from '../../mutator/custom-instance';
 
 type SecondParameter<T extends (...args: never) => unknown> = Parameters<T>[1];
+
+/**
+ * 회원가입 전에 `login_id` 사용 가능 여부를 확인합니다.
+ * @summary 로그인 아이디 중복 확인
+ */
+export const getCheckLoginIdUrl = (params: CheckLoginIdParams) => {
+    const normalizedParams = new URLSearchParams();
+
+    Object.entries(params || {}).forEach(([key, value]) => {
+        if (value !== undefined) {
+            normalizedParams.append(key, value === null ? 'null' : value.toString());
+        }
+    });
+
+    const stringifiedParams = normalizedParams.toString();
+
+    return stringifiedParams.length > 0
+        ? `/api/v1/auth/login-id/check?${stringifiedParams}`
+        : `/api/v1/auth/login-id/check`;
+};
+
+export const checkLoginId = async (
+    params: CheckLoginIdParams,
+    options?: RequestInit
+): Promise<LoginIdCheckResponse> => {
+    return customInstance<LoginIdCheckResponse>(getCheckLoginIdUrl(params), {
+        ...options,
+        method: 'GET',
+    });
+};
+
+export const getCheckLoginIdQueryKey = (params?: CheckLoginIdParams) => {
+    return [`/api/v1/auth/login-id/check`, ...(params ? [params] : [])] as const;
+};
+
+export const getCheckLoginIdQueryOptions = <TData = Awaited<ReturnType<typeof checkLoginId>>, TError = Error>(
+    params: CheckLoginIdParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof checkLoginId>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    }
+) => {
+    const { query: queryOptions, request: requestOptions } = options ?? {};
+
+    const queryKey = queryOptions?.queryKey ?? getCheckLoginIdQueryKey(params);
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof checkLoginId>>> = ({ signal }) =>
+        checkLoginId(params, { signal, ...requestOptions });
+
+    return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+        Awaited<ReturnType<typeof checkLoginId>>,
+        TError,
+        TData
+    > & { queryKey: DataTag<QueryKey, TData, TError> };
+};
+
+export type CheckLoginIdQueryResult = NonNullable<Awaited<ReturnType<typeof checkLoginId>>>;
+export type CheckLoginIdQueryError = Error;
+
+export function useCheckLoginId<TData = Awaited<ReturnType<typeof checkLoginId>>, TError = Error>(
+    params: CheckLoginIdParams,
+    options: {
+        query: Partial<UseQueryOptions<Awaited<ReturnType<typeof checkLoginId>>, TError, TData>> &
+            Pick<
+                DefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof checkLoginId>>,
+                    TError,
+                    Awaited<ReturnType<typeof checkLoginId>>
+                >,
+                'initialData'
+            >;
+        request?: SecondParameter<typeof customInstance>;
+    },
+    queryClient?: QueryClient
+): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useCheckLoginId<TData = Awaited<ReturnType<typeof checkLoginId>>, TError = Error>(
+    params: CheckLoginIdParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof checkLoginId>>, TError, TData>> &
+            Pick<
+                UndefinedInitialDataOptions<
+                    Awaited<ReturnType<typeof checkLoginId>>,
+                    TError,
+                    Awaited<ReturnType<typeof checkLoginId>>
+                >,
+                'initialData'
+            >;
+        request?: SecondParameter<typeof customInstance>;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+export function useCheckLoginId<TData = Awaited<ReturnType<typeof checkLoginId>>, TError = Error>(
+    params: CheckLoginIdParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof checkLoginId>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
+/**
+ * @summary 로그인 아이디 중복 확인
+ */
+
+export function useCheckLoginId<TData = Awaited<ReturnType<typeof checkLoginId>>, TError = Error>(
+    params: CheckLoginIdParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof checkLoginId>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    },
+    queryClient?: QueryClient
+): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
+    const queryOptions = getCheckLoginIdQueryOptions(params, options);
+
+    const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
+        queryKey: DataTag<QueryKey, TData, TError>;
+    };
+
+    return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary 로그인 아이디 중복 확인
+ */
+export const prefetchCheckLoginIdQuery = async <TData = Awaited<ReturnType<typeof checkLoginId>>, TError = Error>(
+    queryClient: QueryClient,
+    params: CheckLoginIdParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof checkLoginId>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    }
+): Promise<QueryClient> => {
+    const queryOptions = getCheckLoginIdQueryOptions(params, options);
+
+    await queryClient.prefetchQuery(queryOptions);
+
+    return queryClient;
+};
 
 /**
  * 신규 회원 가입. 성공 시 `users` + `user_settings` 레코드 자동 생성.
