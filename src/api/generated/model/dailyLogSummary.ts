@@ -17,8 +17,10 @@ Access Token 만료 시 `/auth/refresh`로 재발급하세요.
 export interface DailyLogSummary {
     id?: string;
     log_date?: string;
+    updated_at?: string;
     /** @nullable */
     title?: string | null;
+    content?: string;
     tags?: string[];
     has_retro_log?: boolean;
 }
