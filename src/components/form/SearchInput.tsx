@@ -1,5 +1,5 @@
 import type { InputHTMLAttributes, ReactNode } from 'react';
-import { forwardRef, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 
 import { Icon, Shortcut } from '@@/ui';
 
@@ -35,9 +35,39 @@ const getLeadingIconClassName = ({ disabled = false }: { disabled?: boolean }) =
     return cx('shrink-0 text-neutral-darker', disabled && 'text-neutral');
 };
 
+const isEditableTarget = (target: EventTarget | null) => {
+    if (!(target instanceof HTMLElement)) return false;
+
+    const tagName = target.tagName.toLowerCase();
+
+    return target.isContentEditable || tagName === 'input' || tagName === 'textarea' || tagName === 'select';
+};
+
 export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
     ({ className, fieldClassName, inputClassName, rightElement, disabled = false, ...props }, ref) => {
         const [isFocus, setIsFocus] = useState(false);
+        const inputRef = useRef<HTMLInputElement>(null);
+
+        useImperativeHandle(ref, () => inputRef.current as HTMLInputElement);
+
+        useEffect(() => {
+            if (disabled) return;
+
+            const handleShortcutKeyDown = (event: KeyboardEvent) => {
+                if (event.code !== 'KeyF') return;
+                if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey || event.isComposing) return;
+                if (document.activeElement === inputRef.current || isEditableTarget(event.target)) return;
+
+                event.preventDefault();
+                inputRef.current?.focus();
+            };
+
+            window.addEventListener('keydown', handleShortcutKeyDown);
+
+            return () => {
+                window.removeEventListener('keydown', handleShortcutKeyDown);
+            };
+        }, [disabled]);
 
         return (
             <div className={cx('w-full', className)}>
@@ -45,7 +75,7 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(
                     <Icon className={getLeadingIconClassName({ disabled })} name='search' size={16} />
                     <input
                         {...props}
-                        ref={ref}
+                        ref={inputRef}
                         className={cx(getSearchInputClassName({ disabled }), inputClassName)}
                         disabled={disabled}
                         placeholder='제목 또는 내용으로 검색하세요'
