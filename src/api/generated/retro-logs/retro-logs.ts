@@ -190,6 +190,8 @@ export const prefetchGetRetroLogQuery = async <
 
 /**
  * 회고 생성. `daily_log_id` 없이도 생성 가능. 성공 시 `daily_focus_stats.has_retro_log = true` UPSERT.
+자동 저장 등 임시 저장 시 `partial: true`를 보내면 content 필드에 빈 문자열을 허용한다.
+
  * @summary 회고 생성
  */
 export const getCreateRetroLogUrl = () => {

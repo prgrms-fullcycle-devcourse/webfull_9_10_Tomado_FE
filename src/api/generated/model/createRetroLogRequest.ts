@@ -24,6 +24,10 @@ export interface CreateRetroLogRequest {
     daily_log_id?: string | null;
     retro_date: string;
     template_type: CreateRetroLogRequestTemplateType;
+    /** true면 임시 저장(자동 저장 등)으로 간주한다. content의 각 필드는 빈 문자열을 허용한다.
+  생략 또는 false면 모든 필수 항목에 비어 있지 않은 문자열이 있어야 한다.
+   */
+    partial?: boolean;
     /** template_type별 content 예시 */
     content: CreateRetroLogRequestContent;
 }

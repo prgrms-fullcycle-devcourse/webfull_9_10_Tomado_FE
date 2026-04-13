@@ -17,6 +17,10 @@ import type { UpdateRetroLogRequestContent } from './updateRetroLogRequestConten
 import type { UpdateRetroLogRequestDraftContent } from './updateRetroLogRequestDraftContent';
 
 export interface UpdateRetroLogRequest {
+    /** true면 임시 저장으로 간주하여 content 필드 값에 빈 문자열을 허용한다.
+  content를 보낼 때 함께 사용한다.
+   */
+    partial?: boolean;
     /** 기존 template_type에 맞는 content 구조로 수정 */
     content?: UpdateRetroLogRequestContent;
     is_dirty?: boolean;
