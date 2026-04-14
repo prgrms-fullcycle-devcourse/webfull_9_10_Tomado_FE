@@ -8,6 +8,7 @@ import {
     useGetStatsHeatmapSummary,
     useGetStatsOverview,
 } from '@/api/generated/stats/stats';
+import { useGetMyProfile } from '@/api/generated/users/users';
 import type { DailyFocusStat, RetroLogTemplateType } from '@/api/generated/model';
 import { DATE_FORMAT, formatDate, getTodayDate, parseDate } from '@/utils';
 import { Container, SectionHeader, DoubleColumnLayout } from '@@/layout';
@@ -74,11 +75,7 @@ const getFormattedAverageSessions = (dailyAverageSessions = 0) => {
 };
 
 const isNotFoundError = (error: unknown) => {
-    if (!(error instanceof Error)) {
-        return false;
-    }
-
-    return error.message.includes('404') || error.message.includes('없');
+    return typeof error === 'object' && error !== null && 'status' in error && error.status === 404;
 };
 
 const hasFocusDate = (value: DailyFocusStat): value is DailyFocusStat & { focus_date: string } => {
@@ -93,6 +90,7 @@ export default function Dashboard() {
     const [view, setView] = useState<'calendar' | 'history'>('calendar');
     const [selectedDate, setSelectedDate] = useState(getTodayDate());
     const selectedDateObject = parseDate(selectedDate);
+    const { data: profile } = useGetMyProfile();
     const { data: statsOverview } = useGetStatsOverview();
     const { data: heatmapSummary, isLoading: isHeatmapSummaryLoading } = useGetStatsHeatmapSummary();
     const { data: heatmapData = [], isLoading: isHeatmapLoading } = useGetStatsHeatmap();
@@ -120,7 +118,10 @@ export default function Dashboard() {
             ? '작성된 데일리로그가 없습니다.'
             : '데일리로그를 불러오지 못했어요.'
         : '작성된 데일리로그가 없습니다.';
-    const formattedDateRange = `가입일부터 ${formatDate(getTodayDate(), DATE_FORMAT.display)}까지`;
+    const formattedDateRange = `${formatDate(profile?.created_at ?? getTodayDate(), DATE_FORMAT.display)} ~ ${formatDate(
+        getTodayDate(),
+        DATE_FORMAT.display
+    )}`;
     const summaryMetrics = [
         { label: '연속스트릭', value: `${statsOverview?.streak ?? 0}일`, accent: true },
         { label: '포모도로', value: `${statsOverview?.total_sessions ?? 0}세션` },
