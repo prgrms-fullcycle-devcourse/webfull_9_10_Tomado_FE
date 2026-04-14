@@ -1,5 +1,5 @@
 import type { FormEvent } from 'react';
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import {
@@ -9,7 +9,7 @@ import {
     useAuthStore,
     useSignupForm,
 } from '@@@/auth';
-import { useRegister } from '@/api/generated/auth/auth';
+import { useCheckLoginId, useRegister } from '@/api/generated/auth/auth';
 import { Input } from '@@/form';
 import { Container } from '@@/layout';
 import { Button } from '@@/ui';
@@ -59,6 +59,69 @@ export default function Signup() {
     const registerMutation = useRegister();
     const { values, validations, isFormValid, setFieldValue: setSignupFieldValue, getSubmitPayload } = useSignupForm();
     const [submitError, setSubmitError] = useState<string | null>(null);
+    const [debouncedUserId, setDebouncedUserId] = useState(values.userId);
+    const userIdInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        userIdInputRef.current?.focus();
+    }, []);
+
+    useEffect(() => {
+        const timeoutId = window.setTimeout(() => {
+            setDebouncedUserId(values.userId.trim());
+        }, 400);
+
+        return () => window.clearTimeout(timeoutId);
+    }, [values.userId]);
+
+    const shouldCheckLoginId = validations.userId.isValid && debouncedUserId.length > 0;
+    const { data: loginIdCheckResult, isFetching: isCheckingLoginId } = useCheckLoginId(
+        { login_id: debouncedUserId },
+        { query: { enabled: shouldCheckLoginId, retry: false } }
+    );
+
+    const isUserIdCheckPending =
+        validations.userId.isValid && values.userId.trim().length > 0 && values.userId.trim() !== debouncedUserId;
+    const isUserIdAvailable = shouldCheckLoginId && loginIdCheckResult?.available === true;
+    const isUserIdTaken = shouldCheckLoginId && loginIdCheckResult?.available === false;
+    const isUserIdChecking = isUserIdCheckPending || isCheckingLoginId;
+
+    const userIdGuide = useMemo(() => {
+        if (!values.userId) {
+            return validations.userId;
+        }
+
+        if (!validations.userId.isValid) {
+            return validations.userId;
+        }
+
+        if (isUserIdChecking) {
+            return {
+                isValid: false,
+                helperText: '아이디 사용 가능 여부를 확인하고 있어요',
+            };
+        }
+
+        if (isUserIdTaken) {
+            return {
+                isValid: false,
+                helperText: '이미 사용 중인 아이디예요',
+            };
+        }
+
+        if (isUserIdAvailable) {
+            return {
+                isValid: true,
+                helperText: '사용 가능한 아이디예요',
+            };
+        }
+
+        return validations.userId;
+    }, [isUserIdAvailable, isUserIdChecking, isUserIdCheckPending, isUserIdTaken, validations.userId, values.userId]);
+    const userIdIconName = !values.userId || isUserIdChecking ? undefined : userIdGuide.isValid ? 'check' : 'error';
+    const userIdInputState = isUserIdChecking
+        ? 'default'
+        : getSignupFieldState(userIdGuide.isValid, Boolean(values.userId));
 
     const setFieldValue = (field: keyof SignupFormValues, value: string) => {
         setSubmitError(null);
@@ -81,6 +144,7 @@ export default function Signup() {
     };
 
     const isPending = registerMutation.isPending;
+    const canSubmit = isFormValid && isUserIdAvailable && !isCheckingLoginId && !isUserIdCheckPending;
 
     return (
         <main>
@@ -93,15 +157,14 @@ export default function Signup() {
                             <form className={fieldsClassName} id={signupFormId} onSubmit={handleSubmit}>
                                 <Input
                                     autoComplete='username'
-                                    helperText={validations.userId.helperText}
-                                    iconName={
-                                        values.userId ? (validations.userId.isValid ? 'check' : 'error') : undefined
-                                    }
+                                    helperText={userIdGuide.helperText}
+                                    iconName={userIdIconName}
                                     label={signupFieldMetaMap.userId.label}
                                     name='userId'
                                     onChange={(event) => setFieldValue('userId', event.target.value)}
                                     placeholder={signupFieldMetaMap.userId.placeholder}
-                                    state={getSignupFieldState(validations.userId.isValid, Boolean(values.userId))}
+                                    ref={userIdInputRef}
+                                    state={userIdInputState}
                                     type={signupFieldMetaMap.userId.type}
                                     value={values.userId}
                                 />
@@ -162,7 +225,7 @@ export default function Signup() {
                             {submitError ? <p className={errorMessageClassName}>{submitError}</p> : null}
 
                             <Button
-                                disabled={!isFormValid || isPending}
+                                disabled={!canSubmit || isPending}
                                 form={signupFormId}
                                 fullWidth
                                 size='lg'

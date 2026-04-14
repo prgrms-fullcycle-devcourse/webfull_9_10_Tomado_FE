@@ -166,6 +166,7 @@ export const useTodoList = ({ assignedDate = getTodayDate() }: UseTodoListOption
 
     const handleUpdateTodoChecked = useCallback(
         async (id: string, checked: boolean) => {
+            await queryClient.cancelQueries({ queryKey: todosQueryKey });
             const previousTodos = queryClient.getQueryData<TodoDto[]>(todosQueryKey) ?? [];
 
             queryClient.setQueryData<TodoDto[]>(todosQueryKey, (current = []) => {
@@ -182,13 +183,16 @@ export const useTodoList = ({ assignedDate = getTodayDate() }: UseTodoListOption
             });
 
             try {
-                await toggleTodoComplete({
+                const updatedTodo = await toggleTodoComplete({
                     id,
                     data: {
                         completed: checked,
                     },
                 });
-                await invalidateTodoQueries();
+
+                queryClient.setQueryData<TodoDto[]>(todosQueryKey, (current = []) => {
+                    return current.map((todo) => (todo.id === id ? updatedTodo : todo));
+                });
             } catch {
                 queryClient.setQueryData(todosQueryKey, previousTodos);
                 showToast({

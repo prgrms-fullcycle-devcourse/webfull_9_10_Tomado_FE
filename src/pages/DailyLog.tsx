@@ -1,8 +1,8 @@
 import { Input, SearchInput } from '@/components/form';
-import MdEditor from '@/features/log/components/MdEditor';
+import MdEditor, { type MdEditorHandle } from '@/features/log/components/MdEditor';
 import { Container, SectionHeader, SidebarContentLayout } from '@/components/layout';
 import { Badge, Button, DailyLogCard, Icon } from '@/components/ui';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { Calendar } from '@@/ui';
 import { useModal, useToast } from '@/hooks';
@@ -20,15 +20,18 @@ import type { DailyLog, DailyLogSummary } from '@/api/generated/model';
 import { isSameDate } from '@/utils/dateUtils';
 
 const DAILY_LOG_PAGE_SIZE = 10;
+const LOG_AUTO_SAVE_DURATION = 5000;
 
 export default function DailyLog() {
     const today = new Date();
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const todayDateKey = formatDate(todayStart, DATE_FORMAT.api);
 
     const [search, setSearch] = useState('');
     const [searchKeyword, setSearchKeyword] = useState('');
     const [content, setContent] = useState('');
     const [title, setTitle] = useState('');
+    const [isContentDirty, setIsContentDirty] = useState(false);
     const [autoSaveText, setAutoSaveText] = useState('');
     const [autoSaveState, setAutoSaveState] = useState<'' | 'writing' | 'saving' | 'saved' | 'error'>('');
     const [isSaveProgresing, setIsSaveProgresing] = useState(false);
@@ -80,7 +83,10 @@ export default function DailyLog() {
     const calendarWrapperRef = useRef<HTMLDivElement | null>(null);
     const listScrollRef = useRef<HTMLDivElement | null>(null);
     const loadMoreRef = useRef<HTMLDivElement | null>(null);
+    const mdEditorRef = useRef<MdEditorHandle | null>(null);
     const contentRef = useRef(content);
+    const lastSavedContentRef = useRef(content);
+    const initialTodayLogSelectedRef = useRef(false);
     const deleteTimerMapRef = useRef<Record<string, number>>({});
 
     useEffect(() => {
@@ -164,8 +170,40 @@ export default function DailyLog() {
         tags: log.tags,
     });
 
+    const resetContentState = (nextContent: string) => {
+        contentRef.current = nextContent;
+        lastSavedContentRef.current = nextContent;
+        setContent(nextContent);
+        setIsContentDirty(false);
+    };
+
+    const restoreLastSavedState = () => {
+        const lastSavedText = selectedLog?.updated_at ? formatLastSaved(selectedLog.updated_at) : '';
+
+        setAutoSaveState(lastSavedText ? 'saved' : '');
+        setAutoSaveText(lastSavedText);
+    };
+
+    const markContentSaved = (savedContent: string) => {
+        lastSavedContentRef.current = savedContent;
+        setIsContentDirty(contentRef.current !== savedContent);
+    };
+
     const handleContentChange = (value: string | undefined) => {
-        setContent(value ?? '');
+        const nextContent = value ?? '';
+
+        contentRef.current = nextContent;
+        setContent(nextContent);
+        setIsContentDirty(nextContent !== lastSavedContentRef.current);
+
+        if (nextContent === lastSavedContentRef.current) {
+            if (contentChangeTimerRef.current) {
+                clearTimeout(contentChangeTimerRef.current);
+            }
+
+            restoreLastSavedState();
+            return;
+        }
 
         if (isSaveProgresing) return;
 
@@ -178,13 +216,22 @@ export default function DailyLog() {
 
         contentChangeTimerRef.current = setTimeout(() => {
             saveContent();
-        }, 2000);
+        }, LOG_AUTO_SAVE_DURATION);
     };
 
     const saveContent = async () => {
         if (contentChangeTimerRef.current) {
             clearTimeout(contentChangeTimerRef.current);
         }
+
+        const contentToSave = contentRef.current;
+
+        if (contentToSave === lastSavedContentRef.current) {
+            setIsContentDirty(false);
+            restoreLastSavedState();
+            return;
+        }
+
         setAutoSaveState('saving');
         setAutoSaveText('저장중...');
 
@@ -203,6 +250,7 @@ export default function DailyLog() {
             }).then((res) => {
                 console.log('res', res);
                 setSelectedLog(toDailyLogSummary(res));
+                markContentSaved(contentToSave);
                 void queryClient.invalidateQueries({
                     queryKey: dailyLogsQueryKey,
                 });
@@ -225,6 +273,7 @@ export default function DailyLog() {
         }).then((res) => {
             console.log('res', res);
             setSelectedLog(toDailyLogSummary(res));
+            markContentSaved(contentToSave);
             void queryClient.invalidateQueries({
                 queryKey: dailyLogsQueryKey,
             });
@@ -320,7 +369,7 @@ export default function DailyLog() {
 
     const handleLogClick = (log: DailyLogSummary): void => {
         setSelectedLog(log);
-        setContent(log.content ?? '');
+        resetContentState(log.content ?? '');
         setTitle(log.title ?? '');
         setSelectedDate(new Date(`${log.log_date}T00:00:00`));
         const lastSaved = formatLastSaved(log.updated_at ?? '');
@@ -363,7 +412,7 @@ export default function DailyLog() {
 
         setSelectedLog(undefined);
         setTitle('');
-        setContent('');
+        resetContentState('');
         setAutoSaveText('');
 
         deleteTimerMapRef.current[id] = window.setTimeout(async () => {
@@ -414,14 +463,14 @@ export default function DailyLog() {
         if (log) {
             setSelectedLog(log);
             setTitle(log.title ?? '');
-            setContent(log.content ?? '');
+            resetContentState(log.content ?? '');
 
             const lastSaved = formatLastSaved(log.updated_at ?? '');
             setAutoSaveText(lastSaved);
         } else {
             setSelectedLog(undefined);
             setTitle('');
-            setContent('');
+            resetContentState('');
 
             setAutoSaveText('');
         }
@@ -429,6 +478,31 @@ export default function DailyLog() {
         setSelectedDate(date);
         setIsOpenCalendar(false);
     };
+
+    useEffect(() => {
+        if (
+            initialTodayLogSelectedRef.current ||
+            isLoading ||
+            isSearchMode ||
+            selectedLog ||
+            isContentDirty ||
+            formatDate(selectedDate, DATE_FORMAT.api) !== todayDateKey
+        ) {
+            return;
+        }
+
+        const todayLog = visibleLogs.find((log) => log.log_date === todayDateKey);
+
+        if (!todayLog) {
+            return;
+        }
+
+        initialTodayLogSelectedRef.current = true;
+        setSelectedLog(todayLog);
+        setTitle(todayLog.title ?? '');
+        resetContentState(todayLog.content ?? '');
+        setAutoSaveText(formatLastSaved(todayLog.updated_at ?? ''));
+    }, [isContentDirty, isLoading, isSearchMode, selectedDate, selectedLog, todayDateKey, visibleLogs]);
 
     const moveSelectedDate = (days: number) => {
         const nextDate = new Date(selectedDate);
@@ -439,6 +513,15 @@ export default function DailyLog() {
 
     const searchLogList = () => {
         setSearchKeyword(search.trim());
+    };
+
+    const handleTitleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+        if (event.key !== 'Tab' || event.shiftKey) {
+            return;
+        }
+
+        event.preventDefault();
+        mdEditorRef.current?.focusContent();
     };
 
     const LogSkeletonRow = () => {
@@ -607,13 +690,18 @@ export default function DailyLog() {
                                 placeholder='제목을 입력해 주세요'
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
+                                onKeyDown={handleTitleKeyDown}
                             />
-                            <MdEditor content={content} contentChange={handleContentChange}></MdEditor>
+                            <MdEditor
+                                ref={mdEditorRef}
+                                content={content}
+                                contentChange={handleContentChange}
+                            ></MdEditor>
                             <Button
                                 className='mt-3 px-10'
                                 variant='filled'
                                 size='lg'
-                                disabled={!content}
+                                disabled={!content || !isContentDirty}
                                 onClick={saveContent}
                             >
                                 저장
