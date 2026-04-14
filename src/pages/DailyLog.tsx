@@ -1,8 +1,8 @@
 import { Input, SearchInput } from '@/components/form';
-import MdEditor from '@/features/log/components/MdEditor';
+import MdEditor, { type MdEditorHandle } from '@/features/log/components/MdEditor';
 import { Container, SectionHeader, SidebarContentLayout } from '@/components/layout';
 import { Badge, Button, DailyLogCard, Icon } from '@/components/ui';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { Calendar } from '@@/ui';
 import { useModal, useToast } from '@/hooks';
@@ -81,6 +81,7 @@ export default function DailyLog() {
     const calendarWrapperRef = useRef<HTMLDivElement | null>(null);
     const listScrollRef = useRef<HTMLDivElement | null>(null);
     const loadMoreRef = useRef<HTMLDivElement | null>(null);
+    const mdEditorRef = useRef<MdEditorHandle | null>(null);
     const contentRef = useRef(content);
     const deleteTimerMapRef = useRef<Record<string, number>>({});
 
@@ -442,6 +443,15 @@ export default function DailyLog() {
         setSearchKeyword(search.trim());
     };
 
+    const handleTitleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+        if (event.key !== 'Tab' || event.shiftKey) {
+            return;
+        }
+
+        event.preventDefault();
+        mdEditorRef.current?.focusContent();
+    };
+
     const LogSkeletonRow = () => {
         return (
             <div className='flex flex-col w-full gap-3 rounded-xl border border-neutral-subtle bg-white p-4 animate-pulse'>
@@ -608,8 +618,13 @@ export default function DailyLog() {
                                 placeholder='제목을 입력해 주세요'
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
+                                onKeyDown={handleTitleKeyDown}
                             />
-                            <MdEditor content={content} contentChange={handleContentChange}></MdEditor>
+                            <MdEditor
+                                ref={mdEditorRef}
+                                content={content}
+                                contentChange={handleContentChange}
+                            ></MdEditor>
                             <Button
                                 className='mt-3 px-10'
                                 variant='filled'

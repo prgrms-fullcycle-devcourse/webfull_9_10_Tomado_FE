@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import MDEditor from '@uiw/react-md-editor';
 import rehypeSanitize from 'rehype-sanitize';
 
@@ -7,9 +7,19 @@ type MdEditorProps = {
     contentChange: (value?: string) => void;
 };
 
-const MdEditor = (props: MdEditorProps) => {
+export type MdEditorHandle = {
+    focusContent: () => void;
+};
+
+const MdEditor = forwardRef<MdEditorHandle, MdEditorProps>((props, ref) => {
     const wrapperRef = useRef<HTMLDivElement>(null);
     const [height, setHeight] = useState(300);
+
+    useImperativeHandle(ref, () => ({
+        focusContent: () => {
+            wrapperRef.current?.querySelector<HTMLTextAreaElement>('textarea')?.focus();
+        },
+    }));
 
     useEffect(() => {
         if (!wrapperRef.current) return;
@@ -40,6 +50,8 @@ const MdEditor = (props: MdEditorProps) => {
             />
         </div>
     );
-};
+});
+
+MdEditor.displayName = 'MdEditor';
 
 export default MdEditor;
