@@ -95,6 +95,7 @@ const isSameRetroContent = (left: RetroContent = {}, right: RetroContent = {}) =
 export default function Retro() {
     const today = new Date();
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const todayDateKey = formatDate(todayStart, DATE_FORMAT.api);
     type RetroTemplateType = NonNullable<RetroLogListItem['template_types']>[number];
 
     const [search, setSearch] = useState('');
@@ -163,6 +164,7 @@ export default function Retro() {
     const lastSavedContentRef = useRef<RetroContentMap>({});
     const selectedCategoryRef = useRef(selectedCategory);
     const selectedRetroRef = useRef<RetroLogListItem | undefined>(selectedRetro);
+    const initialTodayRetroSelectedRef = useRef(false);
     const deleteTimerMapRef = useRef<Record<string, number>>({});
 
     useEffect(() => {
@@ -213,8 +215,6 @@ export default function Retro() {
         'flex h-full min-h-0 w-full flex-col items-center rounded-2xl bg-white px-6 py-5 shadow-shadow-1';
 
     const getVisibleRetroList = (retroList: RetroLogListItem[]): RetroLogListItem[] => {
-        console.log('retroList', retroList);
-
         return retroList
             .map((retro): RetroLogListItem | null => {
                 const visibleRetros =
@@ -519,6 +519,44 @@ export default function Retro() {
 
         restoreCategorySaveState(nextCategory);
     };
+
+    useEffect(() => {
+        if (
+            initialTodayRetroSelectedRef.current ||
+            isRetroLogsLoading ||
+            isSearchMode ||
+            selectedRetro ||
+            isSelectedCategoryDirty ||
+            formatDate(selectedDate, DATE_FORMAT.api) !== todayDateKey
+        ) {
+            return;
+        }
+
+        const todayRetro = visibleRetroArr.find((retro) => retro.retro_date === todayDateKey);
+
+        if (!todayRetro?.retros || !todayRetro.template_types?.length) {
+            return;
+        }
+
+        const nextCategory = todayRetro.template_types[0].toLowerCase();
+
+        initialTodayRetroSelectedRef.current = true;
+        selectedRetroRef.current = todayRetro;
+        selectedCategoryRef.current = nextCategory;
+        setSelectedRetro(todayRetro);
+        resetContentState(getRetroContentMap(todayRetro.retros));
+        setSelectedDate(new Date(`${todayRetro.retro_date}T00:00:00`));
+        setSelectedCategory(nextCategory);
+        restoreCategorySaveState(nextCategory);
+    }, [
+        isRetroLogsLoading,
+        isSearchMode,
+        isSelectedCategoryDirty,
+        selectedDate,
+        selectedRetro,
+        todayDateKey,
+        visibleRetroArr,
+    ]);
 
     const handleChangeSearchInput = (value: string) => {
         setSearch(value);
