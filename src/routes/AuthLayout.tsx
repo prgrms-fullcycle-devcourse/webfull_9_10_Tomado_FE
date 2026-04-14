@@ -1,4 +1,4 @@
-import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
+import { Suspense, lazy, startTransition, useCallback, useEffect, useRef, useState } from 'react';
 import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 import { useLogout } from '@/api/generated/auth/auth';
@@ -24,11 +24,14 @@ const LazyBgmPlayerLayer = lazy(() =>
     }))
 );
 
+const FOCUS_MODE_HISTORY_STATE_KEY = '__focusModeOpen__';
+
 export function AuthLayout() {
     const [isFocusMode, setIsFocusMode] = useState(false);
     const [playerModalOpen, setPlayerModalOpen] = useState(false);
     const [shouldLoadBgmPlayer, setShouldLoadBgmPlayer] = useState(false);
     const [pendingBgmToggle, setPendingBgmToggle] = useState(false);
+    const hasFocusModeHistoryEntryRef = useRef(false);
 
     const location = useLocation();
     const navigate = useNavigate();
@@ -63,7 +66,9 @@ export function AuthLayout() {
 
     useGlobalKeyboardShortcuts({
         onShiftSpace: () => {
-            setIsFocusMode(true);
+            startTransition(() => {
+                setIsFocusMode(true);
+            });
         },
 
         onSpace: () => {
@@ -71,6 +76,36 @@ export function AuthLayout() {
             setPendingBgmToggle(true);
         },
     });
+
+    useEffect(() => {
+        if (!isFocusMode || hasFocusModeHistoryEntryRef.current) {
+            return;
+        }
+
+        window.history.pushState(
+            {
+                ...(window.history.state ?? {}),
+                [FOCUS_MODE_HISTORY_STATE_KEY]: true,
+            },
+            ''
+        );
+        hasFocusModeHistoryEntryRef.current = true;
+    }, [isFocusMode]);
+
+    useEffect(() => {
+        const handlePopState = () => {
+            if (!isFocusMode || !hasFocusModeHistoryEntryRef.current) {
+                return;
+            }
+
+            hasFocusModeHistoryEntryRef.current = false;
+            setIsFocusMode(false);
+        };
+
+        window.addEventListener('popstate', handlePopState);
+
+        return () => window.removeEventListener('popstate', handlePopState);
+    }, [isFocusMode]);
 
     useEffect(() => {
         if (!settingsQuery.data) return;
@@ -99,6 +134,21 @@ export function AuthLayout() {
         setPlayerModalOpen(true);
     }, []);
 
+    const handleOpenFocusMode = useCallback(() => {
+        startTransition(() => {
+            setIsFocusMode(true);
+        });
+    }, []);
+
+    const handleCloseFocusMode = useCallback(() => {
+        if (hasFocusModeHistoryEntryRef.current) {
+            window.history.back();
+            return;
+        }
+
+        setIsFocusMode(false);
+    }, []);
+
     const handleLogoutClick = useCallback(() => {
         showModal({
             title: '로그아웃 하시겠어요?',
@@ -125,7 +175,7 @@ export function AuthLayout() {
         <>
             <AuthHeader
                 avatarSrc={authUser?.avatarSrc ?? undefined}
-                onFocusModeClick={() => setIsFocusMode(true)}
+                onFocusModeClick={handleOpenFocusMode}
                 onLogoutClick={handleLogoutClick}
                 onMusicClick={handleMusicClick}
             />
@@ -134,7 +184,7 @@ export function AuthLayout() {
             <FocusMode
                 open={isFocusMode}
                 onMusicClick={handleMusicClick}
-                onClose={() => setIsFocusMode(false)}
+                onClose={handleCloseFocusMode}
                 timerSession={timerSession}
                 handleToggleTimer={handleToggleTimer}
                 handleRequestStopTimer={handleRequestStopTimer}
