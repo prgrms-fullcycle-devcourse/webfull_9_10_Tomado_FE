@@ -25,6 +25,7 @@ const LOG_AUTO_SAVE_DURATION = 5000;
 export default function DailyLog() {
     const today = new Date();
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const todayDateKey = formatDate(todayStart, DATE_FORMAT.api);
 
     const [search, setSearch] = useState('');
     const [searchKeyword, setSearchKeyword] = useState('');
@@ -85,6 +86,7 @@ export default function DailyLog() {
     const mdEditorRef = useRef<MdEditorHandle | null>(null);
     const contentRef = useRef(content);
     const lastSavedContentRef = useRef(content);
+    const initialTodayLogSelectedRef = useRef(false);
     const deleteTimerMapRef = useRef<Record<string, number>>({});
 
     useEffect(() => {
@@ -476,6 +478,31 @@ export default function DailyLog() {
         setSelectedDate(date);
         setIsOpenCalendar(false);
     };
+
+    useEffect(() => {
+        if (
+            initialTodayLogSelectedRef.current ||
+            isLoading ||
+            isSearchMode ||
+            selectedLog ||
+            isContentDirty ||
+            formatDate(selectedDate, DATE_FORMAT.api) !== todayDateKey
+        ) {
+            return;
+        }
+
+        const todayLog = visibleLogs.find((log) => log.log_date === todayDateKey);
+
+        if (!todayLog) {
+            return;
+        }
+
+        initialTodayLogSelectedRef.current = true;
+        setSelectedLog(todayLog);
+        setTitle(todayLog.title ?? '');
+        resetContentState(todayLog.content ?? '');
+        setAutoSaveText(formatLastSaved(todayLog.updated_at ?? ''));
+    }, [isContentDirty, isLoading, isSearchMode, selectedDate, selectedLog, todayDateKey, visibleLogs]);
 
     const moveSelectedDate = (days: number) => {
         const nextDate = new Date(selectedDate);
