@@ -6,89 +6,38 @@ import { Button, Icon } from '@@/ui';
 const cx = (...classes: Array<string | false | null | undefined>) => classes.filter(Boolean).join(' ');
 
 const pageClassName = 'w-full bg-neutral-subtle';
-const layoutClassName = 'flex flex-col gap-28 pb-32';
+const layoutClassName = 'flex flex-col';
 
 const heroClassName =
-    'grid items-start gap-14 bg-transparent lg:grid-cols-[minmax(0,1fr)_560px] lg:pt-20 max-w-[1200px] mx-auto';
+    'grid items-start gap-14 bg-transparent lg:grid-cols-[minmax(0,1fr)_560px] max-w-[1200px] mx-auto py-24';
 const heroTitleClassName = 'text-5xl leading-[1.08] font-bold tracking-[-0.03em] text-[#111827] lg:text-6xl';
 const heroDescriptionClassName = 'text-xl text-neutral-darker';
 const heroActionsClassName = 'flex flex-wrap items-center gap-3';
-const demoInputWrapperClassName = 'flex items-center gap-3 rounded-xl border border-[#d7e2f1] bg-[#f7faff] px-4 py-3';
 const demoInputClassName = 'w-full bg-transparent text-sm text-gray-700 placeholder:text-neutral focus:outline-none';
-const demoShortcutClassName =
-    'inline-flex h-7 min-w-7 items-center justify-center rounded-md border border-[#c6d4e8] bg-white px-2 text-xs font-medium text-[#53627c]';
 
 const sectionClassName = 'flex flex-col gap-5 max-w-[1200px] mx-auto';
-const sectionEyebrowClassName = 'text-sm font-semibold tracking-[0.16em] text-[#6b7c99] uppercase';
 const sectionTitleClassName = 'text-4xl leading-tight font-bold lg:text-5xl';
-const sectionBodyClassName = 'max-w-[68ch] text-lg leading-8 text-neutral-darker';
+const sectionBodyClassName = 'max-w-[68ch] text-lg leading-8 text-neutral-darker text-center';
 
-const showcaseGridClassName = 'grid gap-6 lg:grid-cols-2 max-w-[1200px] mx-auto';
-const showcaseCardClassName =
-    'overflow-hidden rounded-[36px] border border-[#d7e2f1] bg-white shadow-[0_24px_48px_rgba(87,112,153,0.08)]';
-const showcaseContentClassName = 'flex flex-col gap-8 p-8';
-const showcaseTitleClassName = 'text-[28px] leading-tight font-bold text-[#111827]';
-const showcaseDescriptionClassName = 'text-base leading-7 text-[#53627c]';
+const ctaClassName = 'w-full bg-[var(--color-gray-900)] text-white';
+const ctaTitleClassName = 'text-4xl leading-tight font-bold lg:text-5xl text-center';
 
-const featureListClassName = 'grid gap-4 lg:grid-cols-3 max-w-[1200px] mx-auto';
-const featureCardClassName =
-    'rounded-[30px] border border-[#d7e2f1] bg-white p-7 shadow-[0_18px_36px_rgba(87,112,153,0.06)]';
-const featureIconClassName =
-    'mb-5 inline-flex size-12 items-center justify-center rounded-2xl bg-[#f7faff] text-primary';
-const featureTitleClassName = 'text-xl font-bold text-[#111827]';
-const featureTextClassName = 'mt-2 text-sm leading-7 text-[#53627c]';
-
-const comparisonClassName = 'grid gap-4 lg:grid-cols-3';
-const comparisonCardClassName = 'rounded-[30px] border border-[#d7e2f1] bg-white p-7';
-const comparisonLabelClassName = 'text-sm font-semibold tracking-[0.16em] text-[#6b7c99] uppercase';
-const comparisonTitleClassName = 'mt-3 text-2xl font-bold text-[#111827]';
-const comparisonTextClassName = 'mt-3 text-sm leading-7 text-[#53627c]';
-
-const ctaClassName =
-    'rounded-[40px] border border-[#d7e2f1] bg-white px-8 py-10 text-[#111827] shadow-[0_24px_48px_rgba(87,112,153,0.08)] max-w-[1200px] mx-auto w-full';
-const ctaTitleClassName = 'max-w-[12ch] text-4xl leading-tight font-bold lg:text-5xl';
-const ctaBodyClassName = 'mt-4 max-w-[56ch] text-base leading-7 text-[#53627c]';
-
-const featureItems = [
+const retroTemplateItems = [
     {
-        icon: 'pomodoro',
-        title: '지금 바로 집중 시작',
-        text: '세션과 세트를 따라 포모도로를 이어가며, 하던 흐름을 끊지 않고 바로 다음 집중으로 넘어갈 수 있습니다.',
+        category: '기술',
+        title: '막혔던 지점을 기술 관점에서 정리',
+        question: '오늘 가장 오래 붙잡고 있던 문제는 무엇이었고, 다음에는 어떤 기준으로 풀어볼까요?',
     },
     {
-        icon: 'edit',
-        title: '한 번에 같이 남기기',
-        text: '할 일, 데일리로그, 회고를 따로 옮기지 말고 같은 날짜에 이어서 적어보세요.',
+        category: '회고',
+        title: '하루를 돌아보며 패턴 찾기',
+        question: '오늘 잘된 선택 하나와 반복하고 싶지 않은 선택 하나를 적어보세요.',
     },
     {
-        icon: 'tree',
-        title: '다시 볼수록 선명해짐',
-        text: '캘린더와 히트맵으로 언제 집중이 잘 됐고 무엇을 남겼는지 빠르게 돌아볼 수 있습니다.',
+        category: '소통',
+        title: '협업 과정에서 남길 판단 기록',
+        question: '오늘 나눈 대화 중 나중에 다시 참고할 만한 내용은 무엇이었나요?',
     },
-] as const;
-
-const problemItems = [
-    {
-        label: '끊기는 순간 01',
-        title: '할 일과 기록이 자꾸 따로 놉니다',
-        text: '할 일은 체크했는데 기록은 안 남고, 기록은 남겼는데 맥락이 빠지면 하루 전체가 끊겨 보입니다.',
-    },
-    {
-        label: '끊기는 순간 02',
-        title: '집중한 시간만 남고 결과는 흐려집니다',
-        text: '타이머를 오래 돌려도 어떤 일을 끝냈는지 바로 이어지지 않으면 집중 데이터는 금방 의미를 잃습니다.',
-    },
-    {
-        label: '끊기는 순간 03',
-        title: '나중에 다시 볼수록 찾기 어려워집니다',
-        text: '그날 한 일과 회고가 흩어져 있으면 패턴도 놓치고, 같은 비효율도 다시 반복하게 됩니다.',
-    },
-] as const;
-
-const statItems = [
-    { value: '25:00', label: '포모도로 타이머' },
-    { value: '1/3', label: '완료된 오늘의 투두' },
-    { value: '365', label: '히스토리를 남기는 캘린더' },
 ] as const;
 
 const timelineItems = ['집중', '휴식', '장휴식'] as const;
@@ -104,9 +53,9 @@ export default function Landing() {
     const [demoTodoInput, setDemoTodoInput] = useState('');
     const [currentFlowStep, setCurrentFlowStep] = useState(0);
     const [demoTodos, setDemoTodos] = useState([
-        { id: 1, label: '오전 강의 3개 듣기', checked: true },
-        { id: 2, label: 'API 명세서 정리', checked: false },
-        { id: 3, label: '회고 초안 작성', checked: false },
+        { id: 1, label: '오전 강의 3개 듣기', checked: false },
+        { id: 2, label: 'API 명세서 정리', checked: true },
+        { id: 3, label: '회고 초안 작성', checked: true },
     ]);
 
     useEffect(() => {
@@ -150,10 +99,9 @@ export default function Landing() {
     const demoDisplaySeconds = String(demoSeconds % 60).padStart(2, '0');
     const landingTabMinutes = String(Math.floor(landingTabSeconds / 60)).padStart(2, '0');
     const landingTabDisplaySeconds = String(landingTabSeconds % 60).padStart(2, '0');
-    const timerProgressRatio = demoSeconds / (25 * 60);
-    const sessionFilledCount = Math.min(completedTodoCount, 4);
     const normalizedFlowStep = currentFlowStep % landingFlowSteps.length;
     const activeLandingTabTitle = landingFlowSteps[normalizedFlowStep];
+    const heroTodoItems = demoTodos.slice(0, 3);
 
     const handleToggleDemoTimer = () => {
         setIsDemoRunning((prev) => !prev);
@@ -193,7 +141,7 @@ export default function Landing() {
                     <div className='flex flex-col gap-8 pt-6 lg:pt-10'>
                         <div className='flex flex-col gap-5'>
                             <h1 className={heroTitleClassName}>
-                                할 일 적고,
+                                할 일 적고
                                 <br />
                                 포모도로 시작하기
                             </h1>
@@ -214,7 +162,7 @@ export default function Landing() {
                         </div>
                     </div>
                     {/* window slide animation */}
-                    <div className='overflow-hidden rounded-[44px] bg-white shadow-[0_24px_48px_rgba(87,112,153,0.08)] lg:-translate-y-2'>
+                    <div className='overflow-hidden rounded-[32px] border border-neutral-lighter bg-white shadow-shadow-1 lg:-translate-y-2'>
                         <div className='relative h-[74px] overflow-hidden bg-neutral-darker'>
                             <div className='absolute inset-x-0 bottom-0 h-1'>
                                 <div
@@ -226,7 +174,7 @@ export default function Landing() {
                             {/* window tab bar */}
                             <div className='pt-1'>
                                 <div className='flex items-start gap-0 px-0'>
-                                    <div className='bg-neutral-lighter'>
+                                    <div className='bg-white'>
                                         <div className='flex h-[60px] items-center gap-3 rounded-br-[22px] bg-neutral-darker px-6'>
                                             <span className='size-4 rounded-full bg-[#ff5f57]' />
                                             <span className='size-4 rounded-full bg-[#febc2e]' />
@@ -235,7 +183,7 @@ export default function Landing() {
                                     </div>
 
                                     <div className='flex min-w-0 items-start gap-[2px] overflow-hidden'>
-                                        <div className='flex h-[60px] min-w-[300px] items-center gap-4 rounded-t-[20px] bg-neutral-lighter px-6'>
+                                        <div className='flex h-[60px] min-w-[300px] items-center gap-4 rounded-t-[20px] bg-white px-6'>
                                             <Icon color='color-primary' name='pomodoro' size={18} />
                                             <span className='text-[18px] leading-none font-semibold'>
                                                 {landingTabMinutes}:{landingTabDisplaySeconds}
@@ -246,15 +194,15 @@ export default function Landing() {
                                         </div>
                                     </div>
 
-                                    <div className='bg-neutral-lighter'>
+                                    <div className='bg-white'>
                                         <div className='flex h-[60px] items-center gap-3 rounded-bl-[22px] bg-neutral-darker px-6' />
                                     </div>
                                 </div>
-                                <hr className='bg-neutral-lighter h-[12px] border-none' />
+                                <hr className='bg-white h-[12px] border-none' />
                             </div>
                         </div>
 
-                        <div className='relative min-h-[300px] overflow-hidden bg-[#fbfdff] p-6'>
+                        <div className='relative min-h-[300px] overflow-hidden bg-neutral-subtle p-6'>
                             <div
                                 className={cx(
                                     'absolute inset-0 grid gap-4 p-6 transition-all duration-500 ease-in-out',
@@ -264,78 +212,44 @@ export default function Landing() {
                                 )}
                             >
                                 <div className='grid gap-4 sm:grid-cols-[1.1fr_0.9fr]'>
-                                    <div className='rounded-[30px] border border-[#dfe8f4] bg-white p-5 shadow-[0_16px_30px_rgba(87,112,153,0.06)]'>
-                                        <div className='mb-4 flex items-center justify-between'>
+                                    <div className='rounded-2xl border border-neutral-lighter bg-white px-6 py-5 shadow-shadow-1'>
+                                        <div className='mb-5 flex items-center justify-between'>
                                             <strong className='text-xl font-bold text-[#111827]'>TODAY</strong>
-                                            <span className='rounded-full bg-[#667891] px-3 py-1 text-xs text-white'>
+                                            <span className='rounded-full bg-[#667891] px-3 py-1 text-xs font-medium text-white'>
                                                 0set
                                             </span>
                                         </div>
-                                        <div className='flex flex-col items-center gap-4 py-3'>
-                                            <div className='flex items-center gap-3'>
-                                                {timelineItems.map((item, index) => (
-                                                    <div className='flex flex-col items-center gap-2' key={item}>
-                                                        <span
-                                                            className={cx(
-                                                                'size-5 rounded-md border-2 border-neutral',
-                                                                index === 0 && 'border-primary bg-primary'
-                                                            )}
-                                                        />
-                                                        <span className='text-[11px] font-semibold text-[#42526b]'>
-                                                            {item}
-                                                        </span>
-                                                    </div>
-                                                ))}
+                                        <div className='flex flex-col gap-6'>
+                                            <div className='rounded-2xl border border-neutral-lighter bg-neutral-subtle px-5 py-6 text-left'>
+                                                <span className='text-sm font-medium text-neutral'>이번 세션</span>
+                                                <strong className='mt-3 block text-5xl leading-none font-bold text-black'>
+                                                    24:00
+                                                </strong>
                                             </div>
-                                            <div className='size-24 rounded-full bg-primary shadow-[inset_0_-14px_0_rgba(0,0,0,0.05)]' />
-                                            <strong className='text-5xl leading-none font-bold text-black'>
-                                                24:00
-                                            </strong>
                                         </div>
                                     </div>
 
-                                    <div className='rounded-[30px] border border-[#dfe8f4] bg-white p-5 shadow-[0_16px_30px_rgba(87,112,153,0.06)]'>
+                                    <div className='rounded-2xl border border-neutral-lighter bg-white px-6 py-5 shadow-shadow-1'>
                                         <div className='mb-4 flex items-center justify-between'>
                                             <strong className='text-xl font-bold text-[#111827]'>TODO</strong>
-                                            <span className='rounded-full bg-[#667891] px-3 py-1 text-xs text-white'>
-                                                1/3
+                                            <span className='rounded-full bg-[#667891] px-3 py-1 text-xs font-medium text-white'>
+                                                {completedTodoCount}/{demoTodos.length}
                                             </span>
                                         </div>
                                         <div className='space-y-3'>
-                                            <div className='flex items-center gap-3 rounded-xl border border-[#d7e2f1] bg-[#f7faff] px-4 py-3'>
-                                                <Icon color='color-neutral-darker' name='add' size={16} />
-                                                <span className='text-sm text-neutral'>할 일을 추가해보세요</span>
-                                                <span className='ml-auto inline-flex h-7 min-w-7 items-center justify-center rounded-md border border-[#c6d4e8] bg-white px-2 text-xs font-medium text-[#53627c]'>
-                                                    T
-                                                </span>
-                                            </div>
-                                            {['오전 강의 3개 듣기', 'API 명세서 정리', '회고 초안 작성'].map(
-                                                (item, index) => (
-                                                    <div
-                                                        className='flex items-center gap-3 rounded-xl border border-[#e3ebf6] bg-[#fbfdff] px-4 py-3'
-                                                        key={item}
-                                                    >
-                                                        <Icon color='color-neutral' name='drag_indicator' size={16} />
-                                                        <Icon
-                                                            color={
-                                                                index === 0 ? 'color-primary' : 'color-neutral-subtle'
-                                                            }
-                                                            name={index === 0 ? 'checked' : 'unchecked'}
-                                                            size={22}
-                                                        />
-                                                        <span
-                                                            className={cx(
-                                                                'text-sm',
-                                                                index === 0
-                                                                    ? 'text-neutral line-through'
-                                                                    : 'text-gray-700'
-                                                            )}
-                                                        >
-                                                            {item}
-                                                        </span>
-                                                    </div>
-                                                )
-                                            )}
+                                            {heroTodoItems.map((item) => (
+                                                <div
+                                                    className='flex items-center gap-3 rounded-xl border border-neutral-lighter bg-neutral-subtle px-4 py-3'
+                                                    key={item.id}
+                                                >
+                                                    <Icon
+                                                        color={item.checked ? 'color-primary' : 'color-neutral-subtle'}
+                                                        name={item.checked ? 'unchecked' : 'checked'}
+                                                        size={20}
+                                                    />
+                                                    <div className='h-3 flex-1 rounded-full bg-white' />
+                                                </div>
+                                            ))}
                                         </div>
                                     </div>
                                 </div>
@@ -403,9 +317,11 @@ export default function Landing() {
                 <section className='flex flex-col items-center gap-10 bg-neutral-lighter w-full py-30 text-center'>
                     <div className={sectionClassName}>
                         <h2 className={sectionTitleClassName}>
-                            불필요한 작업 전환은
+                            {/* 불필요한 작업 전환은
                             <br />
-                            집중을 흐트러뜨립니다.
+                            집중을 흐트러뜨립니다 */}
+                            할 일과 타이머,
+                            <br />한 화면에서
                         </h2>
                         <p className={sectionBodyClassName}>
                             토마두는 해야 할 일과 타이머를 한 화면에 두고,
@@ -414,233 +330,332 @@ export default function Landing() {
                         </p>
                     </div>
 
-                    <div className='relative flex rounded-[40px] p-6 gap-4'>
-                        <div className='rounded-[34px] border border-[#d7e2f1] bg-white p-6'>
-                            <div className='flex items-start justify-between gap-4'>
-                                <div>
-                                    <p className='text-sm font-semibold tracking-[0.16em] text-primary uppercase'>
-                                        Today
-                                    </p>
-                                    <h2 className='mt-3 text-3xl font-bold text-black'>25분 집중 세션</h2>
+                    <div className='w-full max-w-[1040px]'>
+                        <div className='grid gap-4 sm:grid-cols-[1.1fr_0.9fr]'>
+                            <div className='rounded-2xl border border-neutral-lighter bg-white px-6 py-5 shadow-shadow-1'>
+                                <div className='mb-4 flex items-center justify-between'>
+                                    <strong className='text-xl font-bold text-[#111827]'>TODAY</strong>
+                                    <span className='rounded-full bg-[#667891] px-3 py-1 text-xs font-medium text-white'>
+                                        0set
+                                    </span>
                                 </div>
-                                <span className='rounded-full bg-[#667891] px-3 py-1 text-sm text-white'>0set</span>
+                                <div className='flex flex-col items-center gap-5 py-3'>
+                                    <div className='flex items-start gap-3'>
+                                        {timelineItems.map((item, index) => (
+                                            <div className='flex flex-col items-center gap-2' key={item}>
+                                                <span
+                                                    className={cx(
+                                                        'h-7 w-7 rounded-[10px] border-2 border-neutral text-xs',
+                                                        index === 0 && 'border-primary bg-primary'
+                                                    )}
+                                                />
+                                                <span
+                                                    className={cx(
+                                                        'text-[11px] font-semibold',
+                                                        index === 0 ? 'text-neutral-darker' : 'text-neutral'
+                                                    )}
+                                                >
+                                                    {item}
+                                                </span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className='relative size-24 rounded-full bg-primary shadow-[inset_0_-14px_0_rgba(0,0,0,0.05)]'>
+                                        <div className='absolute left-4 top-4 size-7 rounded-full bg-white/25' />
+                                    </div>
+                                    <strong className='text-5xl leading-none font-bold text-black'>
+                                        {demoMinutes}:{demoDisplaySeconds}
+                                    </strong>
+                                    <div className='flex items-center gap-4'>
+                                        <Button
+                                            className='shadow-[0_10px_20px_rgba(255,102,77,0.25)]'
+                                            icon={<Icon name={isDemoRunning ? 'pause' : 'play'} />}
+                                            iconOnly
+                                            onClick={handleToggleDemoTimer}
+                                            size='lg'
+                                        >
+                                            재생
+                                        </Button>
+                                        <Button
+                                            disabled={!isDemoRunning && demoSeconds === 25 * 60}
+                                            icon={<Icon name='stop' />}
+                                            iconOnly
+                                            onClick={handleResetDemoTimer}
+                                            size='lg'
+                                            variant='outline'
+                                        >
+                                            정지
+                                        </Button>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className='flex flex-col items-center gap-6'>
-                                <div className='flex items-center gap-3'>
-                                    {timelineItems.map((item, index) => (
-                                        <div className='flex flex-col items-center gap-2' key={item}>
+                            <div className='rounded-2xl border border-neutral-lighter bg-white px-6 py-5 shadow-shadow-1'>
+                                <div className='mb-4 flex items-center justify-between'>
+                                    <strong className='text-xl font-bold text-[#111827]'>TODO</strong>
+                                    <span className='rounded-full bg-[#667891] px-3 py-1 text-xs font-medium text-white'>
+                                        {completedTodoCount}/{demoTodos.length}
+                                    </span>
+                                </div>
+                                <div className='space-y-3'>
+                                    <div className='flex items-center gap-3 rounded-xl border border-neutral-lighter bg-white px-4 py-3 shadow-[inset_0_0_0_1px_rgba(232,236,243,0.3)]'>
+                                        <Icon color='color-neutral-darker' name='add' size={16} />
+                                        <input
+                                            className={demoInputClassName}
+                                            onChange={(event) => setDemoTodoInput(event.target.value)}
+                                            onKeyDown={(event) => {
+                                                const nativeEvent = event.nativeEvent as KeyboardEvent & {
+                                                    isComposing?: boolean;
+                                                    keyCode?: number;
+                                                };
+
+                                                if (nativeEvent.isComposing || nativeEvent.keyCode === 229) {
+                                                    return;
+                                                }
+
+                                                if (event.key === 'Enter') {
+                                                    event.preventDefault();
+                                                    handleAddDemoTodo();
+                                                }
+                                            }}
+                                            placeholder='할 일을 추가해보세요'
+                                            value={demoTodoInput}
+                                        />
+                                        <span className='ml-auto inline-flex h-7 min-w-7 items-center justify-center rounded-md border border-neutral-lighter bg-neutral-subtle px-2 text-xs font-medium text-[#53627c]'>
+                                            T
+                                        </span>
+                                    </div>
+                                    {demoTodos.map((item) => (
+                                        <div
+                                            className='flex items-center gap-3 rounded-xl border border-neutral-lighter bg-white px-4 py-3'
+                                            key={item.id}
+                                        >
+                                            <Icon color='color-neutral' name='drag_indicator' size={16} />
+                                            <button onClick={() => handleToggleDemoTodo(item.id)} type='button'>
+                                                <Icon
+                                                    color={item.checked ? 'color-primary' : 'color-neutral-subtle'}
+                                                    name={item.checked ? 'checked' : 'unchecked'}
+                                                    size={22}
+                                                />
+                                            </button>
                                             <span
                                                 className={cx(
-                                                    'size-6 rounded-lg border-2 border-neutral',
-                                                    index < sessionFilledCount && 'border-primary bg-primary'
-                                                )}
-                                            />
-                                            <span
-                                                className={cx(
-                                                    'text-sm font-semibold text-neutral',
-                                                    index === 0 && 'text-[#42526b]'
+                                                    'text-sm',
+                                                    item.checked ? 'text-neutral line-through' : 'text-gray-700'
                                                 )}
                                             >
-                                                {item}
+                                                {item.label}
                                             </span>
                                         </div>
                                     ))}
                                 </div>
-
-                                <div
-                                    className='size-44 rounded-full bg-primary shadow-[inset_0_-18px_0_rgba(0,0,0,0.05)] transition-transform duration-300'
-                                    style={{ transform: `scale(${0.9 + timerProgressRatio * 0.1})` }}
-                                />
-                                <strong className='text-6xl leading-none font-bold text-black'>
-                                    {demoMinutes}:{demoDisplaySeconds}
-                                </strong>
-
-                                <div className='flex items-center gap-4'>
-                                    <Button
-                                        icon={<Icon name={isDemoRunning ? 'pause' : 'play'} />}
-                                        iconOnly
-                                        onClick={handleToggleDemoTimer}
-                                        size='lg'
-                                    >
-                                        재생
-                                    </Button>
-                                    <Button
-                                        disabled={!isDemoRunning && demoSeconds === 25 * 60}
-                                        icon={<Icon color='white' name='stop' />}
-                                        iconOnly
-                                        onClick={handleResetDemoTimer}
-                                        size='lg'
-                                    >
-                                        정지
-                                    </Button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className='rounded-[28px] border border-[#d7e2f1] bg-white p-5 shadow-[0_18px_36px_rgba(87,112,153,0.08)]'>
-                            <div className='mb-4 flex items-center justify-between'>
-                                <h3 className='text-2xl font-bold text-black'>TODO</h3>
-                                <span className='rounded-full bg-[#667891] px-3 py-1 text-sm text-white'>
-                                    {completedTodoCount}/{demoTodos.length}
-                                </span>
-                            </div>
-                            <div className='space-y-3'>
-                                <div className={demoInputWrapperClassName}>
-                                    <Icon color='color-neutral-darker' name='add' size={16} />
-                                    <input
-                                        className={demoInputClassName}
-                                        onChange={(event) => setDemoTodoInput(event.target.value)}
-                                        onKeyDown={(event) => {
-                                            if (event.key === 'Enter') {
-                                                event.preventDefault();
-                                                handleAddDemoTodo();
-                                            }
-                                        }}
-                                        placeholder='할 일을 추가해보세요'
-                                        value={demoTodoInput}
-                                    />
-                                    <span className={demoShortcutClassName}>T</span>
-                                </div>
-
-                                {demoTodos.map((item) => (
-                                    <div
-                                        className='flex items-center gap-3 rounded-xl border border-[#e3ebf6] bg-[#fbfdff] px-4 py-3'
-                                        key={item.id}
-                                    >
-                                        <Icon color='color-neutral' name='drag_indicator' size={16} />
-                                        <button onClick={() => handleToggleDemoTodo(item.id)} type='button'>
-                                            <Icon
-                                                color={item.checked ? 'color-primary' : 'color-neutral-subtle'}
-                                                name={item.checked ? 'checked' : 'unchecked'}
-                                                size={24}
-                                            />
-                                        </button>
-                                        <span
-                                            className={cx(
-                                                'text-sm',
-                                                item.checked ? 'text-neutral line-through' : 'text-gray-700'
-                                            )}
-                                        >
-                                            {item.label}
-                                        </span>
-                                    </div>
-                                ))}
                             </div>
                         </div>
                     </div>
                 </section>
 
-                <section className={showcaseGridClassName}>
-                    <article className={showcaseCardClassName}>
-                        <div className={showcaseContentClassName}>
-                            <div>
-                                <p className={sectionEyebrowClassName}>지금 집중할 때</p>
-                                <h3 className={showcaseTitleClassName}>할 일을 적고, 바로 이번 세션을 시작하세요</h3>
-                                <p className={showcaseDescriptionClassName}>
-                                    무엇에 집중할지 적어두고 타이머를 켜보세요. 진행 중인 일과 집중 상태가 같은 화면에서
-                                    이어져서, 끝나고 나서도 왜 이 시간에 몰입했는지 놓치지 않습니다.
-                                </p>
-                            </div>
+                <section className='flex flex-col items-center gap-12 max-w-[1200px] mx-auto py-24'>
+                    <div className='flex flex-col gap-4'>
+                        <h2 className='text-center text-4xl leading-tight font-bold text-[#111827] lg:text-5xl'>
+                            빈 종이 말고,
+                            <br />
+                            질문에서 시작하는 회고
+                        </h2>
+                        <p className='text-center text-xl text-[#6b7c99]'>
+                            뭘 써야 할지 몰라서 안 썼다면,
+                            <br />
+                            질문에 답하는 것부터 시작해보세요.
+                        </p>
+                    </div>
 
-                            <div className='grid gap-4 sm:grid-cols-3'>
-                                {statItems.map((item) => (
-                                    <div
-                                        className='rounded-2xl border border-[#dfe8f4] bg-[#f7faff] px-5 py-4'
-                                        key={item.label}
-                                    >
-                                        <strong className='text-3xl font-bold text-[#334155]'>{item.value}</strong>
-                                        <p className='mt-2 text-sm text-[#63748f]'>{item.label}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </article>
-
-                    <article className={showcaseCardClassName}>
-                        <div className={showcaseContentClassName}>
-                            <div>
-                                <p className={sectionEyebrowClassName}>끝나고 나면</p>
-                                <h3 className={showcaseTitleClassName}>오늘 한 일과 생각을 같은 날짜에 남기세요</h3>
-                                <p className={showcaseDescriptionClassName}>
-                                    작업이 끝나면 데일리로그와 회고까지 바로 이어서 적어보세요. 그날 한 일, 남긴 판단,
-                                    다음 액션이 한 날짜에 쌓여서 나중에 다시 보기 쉬워집니다.
-                                </p>
-                            </div>
-
-                            <div className='grid gap-3'>
-                                <div className='rounded-2xl border border-[#dfe8f4] bg-[#fbfdff] px-5 py-4'>
-                                    <div className='flex items-center justify-between'>
-                                        <strong className='text-xl font-bold text-black'>데일리로그</strong>
-                                        <Icon color='color-neutral-darker' name='arrow_right' size={20} />
-                                    </div>
-                                    <p className='mt-4 text-base text-[#334155]'>오늘 한 일</p>
-                                    <p className='mt-3 text-sm leading-7 text-[#63748f]'>
-                                        API 명세서 정리 완료, ERD 리뷰, 대시보드 데이터 설계 방향 정리
-                                    </p>
+                    <div className='flex w-full flex-col gap-6 pt-2'>
+                        {retroTemplateItems.map((item, index) => (
+                            <article
+                                className={cx(
+                                    'relative border border-[#d9e3f0] bg-white px-9 py-7 shadow-[0_18px_40px_rgba(109,128,159,0.08)]',
+                                    index === 0 && 'max-w-[900px] self-end rounded-[36px] ml-20',
+                                    index === 1 && 'max-w-[760px] self-start rounded-[34px] mr-20',
+                                    index === 2 && 'max-w-[840px] self-end rounded-[36px] ml-20'
+                                )}
+                                key={item.title}
+                            >
+                                <div
+                                    className={cx(
+                                        'absolute bottom-[-10px] h-5 w-5 rotate-45 border-[#d9e3f0] bg-white',
+                                        index % 2 === 0 ? 'right-12 border-r border-b' : 'left-12 border-b'
+                                    )}
+                                />
+                                <div className='mb-4 flex items-center gap-3'>
+                                    <span className='inline-flex h-8 min-w-8 items-center justify-center rounded-full bg-[#fff3ee] px-2 text-sm font-bold text-primary'>
+                                        Q{index + 1}
+                                    </span>
+                                    <div className='h-px flex-1 bg-[#e8eef7]' />
                                 </div>
-                                <div className='rounded-2xl border border-[#dfe8f4] bg-[#fbfdff] px-5 py-4'>
-                                    <div className='flex items-center justify-between'>
-                                        <strong className='text-xl font-bold text-black'>회고</strong>
-                                        <Icon color='color-neutral-darker' name='arrow_right' size={20} />
-                                    </div>
-                                    <div className='mt-4 flex flex-wrap gap-2'>
-                                        {['기술', '결정', '소통', '감정'].map((tag) => (
-                                            <span
-                                                className='rounded-full border border-[#c6d4e8] bg-white px-3 py-1 text-sm text-[#53627c]'
-                                                key={tag}
-                                            >
-                                                {tag}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </article>
-                </section>
-
-                <section className={featureListClassName}>
-                    {featureItems.map((item) => (
-                        <article className={featureCardClassName} key={item.title}>
-                            <span className={featureIconClassName}>
-                                <Icon color='color-primary' name={item.icon} size={24} />
-                            </span>
-                            <h3 className={featureTitleClassName}>{item.title}</h3>
-                            <p className={featureTextClassName}>{item.text}</p>
-                        </article>
-                    ))}
-                </section>
-
-                <section className={sectionClassName}>
-                    <p className={sectionEyebrowClassName}>왜 이렇게 쓰냐면</p>
-                    <h2 className={sectionTitleClassName}>타이머만 돌리고 끝내면, 오늘 한 일이 남지 않기 때문입니다</h2>
-                    <div className={comparisonClassName}>
-                        {problemItems.map((item) => (
-                            <article className={comparisonCardClassName} key={item.title}>
-                                <p className={comparisonLabelClassName}>{item.label}</p>
-                                <h3 className={comparisonTitleClassName}>{item.title}</h3>
-                                <p className={comparisonTextClassName}>{item.text}</p>
+                                <p className='text-[16px] leading-[1.45] font-bold tracking-[-0.02em] text-[#111827]'>
+                                    {item.question}
+                                </p>
                             </article>
                         ))}
                     </div>
                 </section>
 
-                <section className={ctaClassName}>
-                    <h2 className={ctaTitleClassName}>오늘 할 일을 적고, 첫 세션부터 시작하세요</h2>
-                    <p className={ctaBodyClassName}>
-                        집중만 하고 끝내지 말고, 오늘 한 일까지 남겨보세요. TOMADO가 할 일, 기록, 회고를 한 흐름으로
-                        이어줍니다.
-                    </p>
-                    <div className='mt-8 flex flex-wrap gap-3'>
-                        <Button onClick={() => navigate('/signup')} size='lg'>
-                            무료로 시작하기
-                        </Button>
-                        <Button onClick={() => navigate('/login')} size='lg' variant='outline'>
-                            로그인
-                        </Button>
+                <section className='w-full bg-[linear-gradient(180deg,#eef3fa_0%,#e5edf7_100%)] py-24'>
+                    <div className='max-w-[1200px] mx-auto flex flex-col gap-8 px-6'>
+                        <div className='text-center'>
+                            <h2 className='text-4xl leading-tight font-bold text-[#111827] lg:text-5xl'>
+                                지난 날들,
+                                <br />
+                                언제든 꺼내보기
+                            </h2>
+                            <p className='mt-5 text-xl leading-8 text-[#6b7c99]'>
+                                얼마나 집중했는지, 무엇을 했는지,
+                                <br />
+                                모두 한 곳에 모여있어요.
+                            </p>
+                        </div>
+
+                        <div className='rounded-[28px] bg-white p-6 shadow-[0_24px_48px_rgba(77,97,128,0.18)]'>
+                            <div className='grid gap-4 lg:grid-cols-[0.92fr_1.08fr]'>
+                                <div className='grid gap-4'>
+                                    <div className='grid gap-4 sm:grid-cols-2'>
+                                        <div className='rounded-2xl border border-neutral-lighter bg-neutral-subtle px-5 py-4'>
+                                            <p className='text-sm font-medium text-[#6b7c99]'>이번 주 집중 시간</p>
+                                            <strong className='mt-3 block text-4xl font-bold text-[#111827]'>
+                                                12h 40m
+                                            </strong>
+                                        </div>
+                                        <div className='rounded-2xl border border-neutral-lighter bg-neutral-subtle px-5 py-4'>
+                                            <p className='text-sm font-medium text-[#6b7c99]'>완료한 할 일</p>
+                                            <strong className='mt-3 block text-4xl font-bold text-[#111827]'>
+                                                28개
+                                            </strong>
+                                        </div>
+                                    </div>
+
+                                    <div className='rounded-2xl border border-neutral-lighter bg-white px-5 py-5'>
+                                        <div className='mb-4 flex items-center'>
+                                            <strong className='text-xl font-bold text-[#111827]'>집중 히트맵</strong>
+                                        </div>
+                                        <div className='grid grid-cols-7 gap-2'>
+                                            {[
+                                                1, 3, 2, 0, 2, 1, 2, 2, 4, 3, 0, 0, 2, 4, 3, 1, 0, 1, 0, 1, 2, 0, 3, 2,
+                                                1, 4, 2, 3,
+                                            ].map((level, index) => (
+                                                <span
+                                                    className={cx(
+                                                        'h-8 rounded-lg',
+                                                        level === 0 && 'bg-[var(--color-heatmap-1)]',
+                                                        level === 1 && 'bg-[var(--color-heatmap-2)]',
+                                                        level === 2 && 'bg-[var(--color-heatmap-3)]',
+                                                        level === 3 && 'bg-[var(--color-heatmap-4)]',
+                                                        level === 4 && 'bg-[var(--color-heatmap-5)]'
+                                                    )}
+                                                    key={index}
+                                                />
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className='grid gap-4'>
+                                    <div className='rounded-2xl border border-neutral-lighter bg-white px-5 py-5'>
+                                        <div className='mb-4 flex items-center justify-between'>
+                                            <strong className='text-xl font-bold text-[#111827]'>최근 기록</strong>
+                                            <span className='rounded-full bg-neutral-subtle px-3 py-1 text-xs font-semibold text-[#667891]'>
+                                                04.14
+                                            </span>
+                                        </div>
+                                        <div className='grid gap-3'>
+                                            <div className='rounded-xl border border-neutral-lighter bg-neutral-subtle px-4 py-4'>
+                                                <div className='flex items-center justify-between'>
+                                                    <strong className='text-base font-bold text-[#111827]'>
+                                                        데일리로그
+                                                    </strong>
+                                                    <Icon color='color-neutral-darker' name='arrow_right' size={18} />
+                                                </div>
+                                                <p className='mt-3 text-sm leading-7 text-[#53627c]'>
+                                                    API 명세서 정리 완료, ERD 리뷰, 대시보드 구조 정리
+                                                </p>
+                                            </div>
+                                            <div className='rounded-xl border border-neutral-lighter bg-neutral-subtle px-4 py-4'>
+                                                <div className='flex items-center justify-between'>
+                                                    <strong className='text-base font-bold text-[#111827]'>회고</strong>
+                                                    <div className='flex gap-2'>
+                                                        {['기술', '결정', '소통'].map((tag) => (
+                                                            <span
+                                                                className='rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-[#667891]'
+                                                                key={tag}
+                                                            >
+                                                                {tag}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <p className='mt-3 text-sm leading-7 text-[#53627c]'>
+                                                    오늘은 선택 기준을 더 또렷하게 남겼고, 다음에는 회고를 더 짧고 자주
+                                                    적어보기로 했어요.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className='grid gap-4 sm:grid-cols-3'>
+                                        <div className='rounded-2xl border border-neutral-lighter bg-white px-4 py-4'>
+                                            <p className='text-sm font-medium text-[#6b7c99]'>최장 집중</p>
+                                            <strong className='mt-3 block text-2xl font-bold text-[#111827]'>
+                                                2h 10m
+                                            </strong>
+                                        </div>
+                                        <div className='rounded-2xl border border-neutral-lighter bg-white px-4 py-4'>
+                                            <p className='text-sm font-medium text-[#6b7c99]'>회고 작성일</p>
+                                            <strong className='mt-3 block text-2xl font-bold text-[#111827]'>
+                                                18일
+                                            </strong>
+                                        </div>
+                                        <div className='rounded-2xl border border-neutral-lighter bg-white px-4 py-4'>
+                                            <p className='text-sm font-medium text-[#6b7c99]'>기록한 카테고리</p>
+                                            <strong className='mt-3 block text-2xl font-bold text-[#111827]'>
+                                                7개
+                                            </strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </section>
+
+                <section className={ctaClassName}>
+                    <div className='mx-auto max-w-[1200px]'>
+                        <div className='flex flex-col items-center px-6 py-20'>
+                            <h2 className={ctaTitleClassName}>
+                                성장에 투자한 시간들을
+                                <br />
+                                토마두와 함께 기록해 볼까요?
+                            </h2>
+                            <div className='mt-8 flex flex-wrap gap-3'>
+                                <Button onClick={() => navigate('/signup')} size='lg'>
+                                    시작하기
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <footer className='w-full bg-[var(--color-gray-950)] text-white/70'>
+                    <div className='mx-auto flex max-w-[1200px] items-center justify-between gap-4 px-6 py-6 text-sm'>
+                        <p>Copyright © 2026 TeamPalette. All rights reserved.</p>
+                        <a
+                            className='inline-flex items-center gap-2 font-medium text-white/88 transition-colors hover:text-white'
+                            href='https://github.com/prgrms-fullcycle-devcourse/webfull_9_10_Tomado_FE'
+                            rel='noreferrer'
+                            target='_blank'
+                        >
+                            <img alt='GitHub' className='h-4 w-4' src='https://skillicons.dev/icons?i=github' />
+                            <span>GitHub</span>
+                        </a>
+                    </div>
+                </footer>
             </div>
         </main>
     );
