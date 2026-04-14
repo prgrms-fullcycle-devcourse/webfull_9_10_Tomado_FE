@@ -5,7 +5,7 @@
 ## Summary
 
 - `DailyLog`와 `Retro` 페이지가 이 도메인의 주요 진입점입니다.
-- 현재는 생성/수정/삭제 API가 부분적으로 연결되어 있고, 목록 조회는 아직 테스트용 로컬 배열이 남아 있습니다.
+- 생성/수정/삭제, 목록 조회, 검색 API를 사용해 서버 기록과 화면 상태를 동기화합니다.
 - 카드 선택 상태, 자동저장 표시, 삭제 undo 같은 기록 작성 UX를 함께 다룹니다.
 
 ## Main Parts
@@ -15,7 +15,7 @@
 - 데일리로그 화면의 현재 구현 중심 파일입니다.
 - 제목/본문 로컬 상태, 선택 날짜, 선택된 로그, autosave 상태를 함께 관리합니다.
 - `useCreateDailyLog`, `useUpdateDailyLog`, `useDeleteDailyLog`를 사용해 생성/수정/삭제 API를 호출합니다.
-- 목록 영역은 아직 `testLogArr` 로컬 배열을 사용합니다.
+- 목록 영역은 `getAllDailyLogs`와 `useInfiniteQuery`로 페이지 단위 조회하며, 검색 모드에서는 `useSearchDailyLogs` 결과를 표시합니다.
 - 삭제는 즉시 서버 삭제하지 않고 토스트 undo 시간을 둔 지연 삭제 패턴을 사용합니다.
 - 선택된 로그 카드는 `DailyLogCard`의 `selected` 상태로 시각적으로 강조됩니다.
 
@@ -24,7 +24,8 @@
 - 회고 화면의 현재 구현 중심 파일입니다.
 - 카테고리별 content 상태, 선택 날짜, 선택된 회고, autosave 상태를 관리합니다.
 - `useCreateRetroLog`, `useUpdateRetroLog`, `useDeleteRetroLog`를 사용해 생성/수정/삭제 API를 호출합니다.
-- 목록 영역은 아직 `testRetroArr` 로컬 배열을 사용합니다.
+- 목록 영역은 `/api/v1/retro-logs/list`의 페이지네이션 응답을 `useInfiniteQuery`로 받아 인피니티 스크롤로 확장합니다.
+- 검색 모드에서는 `useSearchRetroLogs` 결과를 표시하고, 검색 결과가 아직 로드된 목록 페이지에 없으면 날짜별 회고 상세 조회로 선택 내용을 채웁니다.
 - 삭제는 선택한 템플릿 타입 단위로 지연 삭제 + 토스트 undo 패턴을 사용합니다.
 - 선택된 회고 카드는 `RetroCard`의 `selected` 상태로 강조됩니다.
 
@@ -56,14 +57,11 @@
 
 ## Current Notes
 
-- 목록 조회와 검색은 아직 실제 API로 전환되지 않았습니다.
-- 회고 생성 후에는 목록 재조회가 없어 현재 선택 상태와 목록 동기화가 완전하지 않습니다.
-- 데일리로그도 목록/검색 API가 붙기 전까지는 더미 데이터와 실제 mutation이 함께 존재합니다.
+- 생성/수정/삭제 후에는 관련 목록 쿼리를 invalidate해 서버 목록과 다시 맞춥니다.
 - 카드의 `selected` 상태 추가로 현재 선택된 기록을 시각적으로 더 명확히 보여줍니다.
+- 저장 실패 처리와 페이지 상태/controller 훅 분리는 아직 더 정리할 수 있습니다.
 
 ## Follow-up
 
-- 데일리로그 목록 조회 / 검색 API 연결
-- 회고 목록 조회 / 검색 API 연결
-- 생성/수정/삭제 후 목록 재조회 또는 캐시 동기화 정리
 - 페이지 상태와 API 동기화 로직의 controller 훅 분리 검토
+- 저장 실패 및 자동저장 복구 UX 보강
