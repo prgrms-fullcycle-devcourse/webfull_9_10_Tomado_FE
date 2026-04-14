@@ -5,13 +5,14 @@ import type {
     RetroLogSearchItem,
 } from '@/api/generated/model';
 import {
+    getRetroLog,
     getListRetroLogsQueryKey,
     useCreateRetroLog,
     useUpdateRetroLog,
     useDeleteRetroLog,
-    useListRetroLogs,
     useSearchRetroLogs,
 } from '@/api/generated/retro-logs/retro-logs';
+import { customInstance } from '@/api/mutator/custom-instance';
 import { queryClient } from '@/api/queryClient';
 import RetroItem from '@/features/log/components/RetroItem';
 import { RETRO_CATEGORY_NAME, RETRO_FORM } from '@/features/log/retroConstants';
@@ -21,7 +22,35 @@ import { isSameDate } from '@/utils/dateUtils';
 import { SearchInput, SegmentedControl } from '@@/form';
 import { Container, SectionHeader, SidebarContentLayout } from '@@/layout';
 import { Badge, Button, Calendar, Icon, RetroCard } from '@@/ui';
+import { useInfiniteQuery } from '@tanstack/react-query';
 import { useEffect, useRef, useState } from 'react';
+
+const RETRO_LOG_PAGE_SIZE = 10;
+
+type RetroLogListResponse = {
+    items?: RetroLogListItem[];
+    page?: number;
+    page_size?: number;
+    total_count?: number;
+    total_pages?: number;
+    has_next?: boolean;
+};
+
+type RetroLogListParams = {
+    page: number;
+    page_size: number;
+};
+
+const getRetroLogListPage = (params: RetroLogListParams, options?: RequestInit) => {
+    return customInstance<RetroLogListResponse>('/api/v1/retro-logs/list', {
+        ...options,
+        method: 'GET',
+        params: {
+            page: params.page,
+            page_size: params.page_size,
+        },
+    });
+};
 
 export default function Retro() {
     const today = new Date();
@@ -45,8 +74,32 @@ export default function Retro() {
     const trimmedSearchKeyword = searchKeyword.trim();
     const isSearchMode = trimmedSearchKeyword.length > 0;
 
-    const retroLogsQueryKey = getListRetroLogsQueryKey();
-    const { data: retroLogs = [], isLoading: isRetroLogsLoading, refetch: refetchRetroLogs } = useListRetroLogs();
+    const retroLogsQueryKey = [...getListRetroLogsQueryKey(), { page_size: RETRO_LOG_PAGE_SIZE }] as const;
+    const {
+        data: retroLogsResponse,
+        isLoading: isRetroLogsLoading,
+        isFetchingNextPage,
+        hasNextPage,
+        fetchNextPage,
+    } = useInfiniteQuery({
+        queryKey: retroLogsQueryKey,
+        initialPageParam: 1,
+        queryFn: ({ pageParam, signal }) =>
+            getRetroLogListPage(
+                {
+                    page: pageParam,
+                    page_size: RETRO_LOG_PAGE_SIZE,
+                },
+                { signal }
+            ),
+        getNextPageParam: (lastPage) => {
+            const currentPage = lastPage.page ?? 1;
+            const totalPages = lastPage.total_pages ?? currentPage;
+            const hasNext = lastPage.has_next ?? currentPage < totalPages;
+
+            return hasNext ? currentPage + 1 : undefined;
+        },
+    });
     const { data: retroSearchResults = [], isLoading: isRetroSearchLoading } = useSearchRetroLogs(
         { q: trimmedSearchKeyword },
         {
@@ -62,6 +115,8 @@ export default function Retro() {
     const { showToast } = useToast();
 
     const calendarWrapperRef = useRef<HTMLDivElement | null>(null);
+    const listScrollRef = useRef<HTMLDivElement | null>(null);
+    const loadMoreRef = useRef<HTMLDivElement | null>(null);
     const contentChangeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const contentRef = useRef(content);
     const deleteTimerMapRef = useRef<Record<string, number>>({});
@@ -74,11 +129,40 @@ export default function Retro() {
         contentRef.current = content;
     }, [content]);
 
+    useEffect(() => {
+        const target = loadMoreRef.current;
+
+        if (!target || !hasNextPage || isSearchMode) {
+            return;
+        }
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) {
+                    void fetchNextPage();
+                }
+            },
+            {
+                root: listScrollRef.current,
+                rootMargin: '120px',
+            }
+        );
+
+        observer.observe(target);
+
+        return () => {
+            observer.disconnect();
+        };
+    }, [fetchNextPage, hasNextPage, isFetchingNextPage, isSearchMode]);
+
+    const RETRO_AUTO_SAVE_DURATION = 5000;
     const RETRO_DELETE_UNDO_DURATION = 3000;
     const panelClassName =
         'flex h-full min-h-0 w-full flex-col items-center rounded-2xl bg-white px-6 py-5 shadow-shadow-1';
 
     const getVisibleRetroList = (retroList: RetroLogListItem[]): RetroLogListItem[] => {
+        console.log('retroList', retroList);
+
         return retroList
             .map((retro): RetroLogListItem | null => {
                 const visibleRetros =
@@ -104,12 +188,14 @@ export default function Retro() {
             .filter((retro): retro is RetroLogListItem => retro !== null);
     };
 
+    const retroLogs = retroLogsResponse?.pages.flatMap((page) => page.items ?? []) ?? [];
     const visibleRetroArr = getVisibleRetroList(retroLogs);
     const visibleSearchResults = retroSearchResults.filter(
         (retro) => !retro.id || !pendingDeleteRetroIds.includes(retro.id)
     );
     const displayLoading = isSearchMode ? isRetroSearchLoading : isRetroLogsLoading;
-    const displayTotalCount = isSearchMode ? visibleSearchResults.length : visibleRetroArr.length;
+    const totalRetroCount = retroLogsResponse?.pages[0]?.total_count ?? visibleRetroArr.length;
+    const displayTotalCount = isSearchMode ? visibleSearchResults.length : totalRetroCount;
     const emptyRetroMessage = isSearchMode ? '검색 결과가 없습니다.' : '아직 작성된 회고가 없습니다.';
 
     const findRetroListItemByRetroId = (retroId: string, retroList: RetroLogListItem[]) => {
@@ -126,6 +212,39 @@ export default function Retro() {
             },
             {} as Record<string, Record<string, string>>
         );
+    };
+
+    const buildRetroListItem = (retros: RetroLog[], retroDate: string): RetroLogListItem | undefined => {
+        const visibleRetros = retros.filter((retro) => !retro.id || !pendingDeleteRetroIds.includes(retro.id));
+
+        if (visibleRetros.length === 0) return undefined;
+
+        const templateTypes = visibleRetros.reduce<RetroTemplateType[]>((types, item) => {
+            if (!item.template_type) return types;
+
+            const templateType = item.template_type as RetroTemplateType;
+
+            if (!types.includes(templateType)) {
+                types.push(templateType);
+            }
+
+            return types;
+        }, []);
+
+        const latestCreatedAt = visibleRetros.reduce<string | undefined>((latest, retro) => {
+            if (!retro.created_at) return latest;
+            if (!latest) return retro.created_at;
+
+            return new Date(retro.created_at).getTime() > new Date(latest).getTime() ? retro.created_at : latest;
+        }, undefined);
+
+        return {
+            retro_date: retroDate,
+            template_types: templateTypes,
+            count: visibleRetros.length,
+            latest_created_at: latestCreatedAt,
+            retros: visibleRetros,
+        };
     };
 
     const initContent = () => {
@@ -338,8 +457,12 @@ export default function Retro() {
         let matchedRetro = findRetroListItemByRetroId(searchItem.id, retroLogs);
 
         if (!matchedRetro) {
-            const refetchResult = await refetchRetroLogs();
-            matchedRetro = findRetroListItemByRetroId(searchItem.id, refetchResult.data ?? []);
+            try {
+                const dateRetros = await getRetroLog({ date: searchItem.retro_date });
+                matchedRetro = buildRetroListItem(dateRetros, searchItem.retro_date);
+            } catch {
+                matchedRetro = undefined;
+            }
         }
 
         if (!matchedRetro?.retros || !matchedRetro.template_types) {
@@ -380,7 +503,7 @@ export default function Retro() {
 
         contentChangeTimerRef.current = setTimeout(() => {
             saveContent();
-        }, 2000);
+        }, RETRO_AUTO_SAVE_DURATION);
     };
 
     const copyContent = async () => {
@@ -729,7 +852,10 @@ ${selectedCategoryContent[key] ?? ''}
                                 <Badge label={`총 ${displayTotalCount}건`} />
                             </div>
 
-                            <div className='flex min-h-0 w-full flex-1 flex-col gap-3 overflow-y-auto mask-b-from-97% pb-10'>
+                            <div
+                                ref={listScrollRef}
+                                className='flex min-h-0 w-full flex-1 flex-col gap-3 overflow-y-auto mask-b-from-97% pb-10'
+                            >
                                 {displayLoading &&
                                 ((isSearchMode && visibleSearchResults.length === 0) ||
                                     (!isSearchMode && visibleRetroArr.length === 0))
@@ -768,6 +894,13 @@ ${selectedCategoryContent[key] ?? ''}
                                               onDeleteClick={() => openDeleteModal(retro)}
                                           />
                                       ))}
+
+                                {!isSearchMode && isFetchingNextPage
+                                    ? Array.from({ length: 2 }, (_, index) => (
+                                          <RetroSkeletonRow key={`next-retro-skeleton-${index}`} />
+                                      ))
+                                    : null}
+                                <div ref={loadMoreRef} className='h-1 shrink-0' />
                             </div>
 
                             <Button fullWidth={true} variant='outline'>
