@@ -12,6 +12,11 @@ interface ErrorResponse {
     };
 }
 
+interface HttpError extends Error {
+    status?: number;
+    code?: string;
+}
+
 export interface CustomInstanceConfig extends Omit<RequestInit, 'body'> {
     params?: Record<string, QueryValue>;
     body?: BodyInit | null;
@@ -67,6 +72,25 @@ const readErrorMessage = async (response: Response) => {
     }
 };
 
+const buildHttpError = async (response: Response): Promise<HttpError> => {
+    let code: string | undefined;
+    let message = `Request failed with status ${response.status}`;
+
+    try {
+        const payload = (await response.clone().json()) as ErrorResponse;
+        code = payload.error?.code;
+        message = payload.error?.message ?? message;
+    } catch {
+        message = await readErrorMessage(response);
+    }
+
+    const error = new Error(message) as HttpError;
+    error.status = response.status;
+    error.code = code;
+
+    return error;
+};
+
 // INFO: refresh 쿠키를 사용해 세션을 복구합니다.
 const refreshSessionViaCookie = async (): Promise<void> => {
     const response = await fetch(buildRequestUrl(REFRESH_PATH), {
@@ -120,7 +144,7 @@ export const customInstance = async <TResponse>(url: string, config: CustomInsta
     }
 
     if (!response.ok) {
-        throw new Error(await readErrorMessage(response));
+        throw await buildHttpError(response);
     }
 
     if (response.status === 204) {
