@@ -20,6 +20,7 @@ import type { DailyLog, DailyLogSummary } from '@/api/generated/model';
 import { isSameDate } from '@/utils/dateUtils';
 
 const DAILY_LOG_PAGE_SIZE = 10;
+const LOG_AUTO_SAVE_DURATION = 5000;
 
 export default function DailyLog() {
     const today = new Date();
@@ -178,7 +179,7 @@ export default function DailyLog() {
 
         contentChangeTimerRef.current = setTimeout(() => {
             saveContent();
-        }, 2000);
+        }, LOG_AUTO_SAVE_DURATION);
     };
 
     const saveContent = async () => {
