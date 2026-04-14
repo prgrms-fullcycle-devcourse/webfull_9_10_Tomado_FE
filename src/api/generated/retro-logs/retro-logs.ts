@@ -34,9 +34,10 @@ import type {
     Error,
     ForbiddenResponse,
     GetRetroLogParams,
+    ListRetroLogsParams,
     NotFoundResponse,
     RetroLog,
-    RetroLogListItem,
+    RetroLogListResponse,
     RetroLogSearchItem,
     SearchRetroLogsParams,
     UnauthorizedResponse,
@@ -419,39 +420,55 @@ export const prefetchSearchRetroLogsQuery = async <
 };
 
 /**
- * 현재 사용자 기준으로 작성된 회고를 날짜 단위로 묶어 반환한다.
+ * 현재 사용자 기준으로 작성된 회고를 날짜 단위로 묶어 페이지네이션으로 반환한다.
 좌측 사이드바 목록 렌더링용 API.
 
  * @summary 회고 로그 목록 조회
  */
-export const getListRetroLogsUrl = () => {
-    return `/api/v1/retro-logs/list`;
+export const getListRetroLogsUrl = (params?: ListRetroLogsParams) => {
+    const normalizedParams = new URLSearchParams();
+
+    Object.entries(params || {}).forEach(([key, value]) => {
+        if (value !== undefined) {
+            normalizedParams.append(key, value === null ? 'null' : value.toString());
+        }
+    });
+
+    const stringifiedParams = normalizedParams.toString();
+
+    return stringifiedParams.length > 0 ? `/api/v1/retro-logs/list?${stringifiedParams}` : `/api/v1/retro-logs/list`;
 };
 
-export const listRetroLogs = async (options?: RequestInit): Promise<RetroLogListItem[]> => {
-    return customInstance<RetroLogListItem[]>(getListRetroLogsUrl(), {
+export const listRetroLogs = async (
+    params?: ListRetroLogsParams,
+    options?: RequestInit
+): Promise<RetroLogListResponse> => {
+    return customInstance<RetroLogListResponse>(getListRetroLogsUrl(params), {
         ...options,
         method: 'GET',
     });
 };
 
-export const getListRetroLogsQueryKey = () => {
-    return [`/api/v1/retro-logs/list`] as const;
+export const getListRetroLogsQueryKey = (params?: ListRetroLogsParams) => {
+    return [`/api/v1/retro-logs/list`, ...(params ? [params] : [])] as const;
 };
 
 export const getListRetroLogsQueryOptions = <
     TData = Awaited<ReturnType<typeof listRetroLogs>>,
-    TError = UnauthorizedResponse,
->(options?: {
-    query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listRetroLogs>>, TError, TData>>;
-    request?: SecondParameter<typeof customInstance>;
-}) => {
+    TError = Error | UnauthorizedResponse,
+>(
+    params?: ListRetroLogsParams,
+    options?: {
+        query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listRetroLogs>>, TError, TData>>;
+        request?: SecondParameter<typeof customInstance>;
+    }
+) => {
     const { query: queryOptions, request: requestOptions } = options ?? {};
 
-    const queryKey = queryOptions?.queryKey ?? getListRetroLogsQueryKey();
+    const queryKey = queryOptions?.queryKey ?? getListRetroLogsQueryKey(params);
 
     const queryFn: QueryFunction<Awaited<ReturnType<typeof listRetroLogs>>> = ({ signal }) =>
-        listRetroLogs({ signal, ...requestOptions });
+        listRetroLogs(params, { signal, ...requestOptions });
 
     return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
         Awaited<ReturnType<typeof listRetroLogs>>,
@@ -461,9 +478,13 @@ export const getListRetroLogsQueryOptions = <
 };
 
 export type ListRetroLogsQueryResult = NonNullable<Awaited<ReturnType<typeof listRetroLogs>>>;
-export type ListRetroLogsQueryError = UnauthorizedResponse;
+export type ListRetroLogsQueryError = Error | UnauthorizedResponse;
 
-export function useListRetroLogs<TData = Awaited<ReturnType<typeof listRetroLogs>>, TError = UnauthorizedResponse>(
+export function useListRetroLogs<
+    TData = Awaited<ReturnType<typeof listRetroLogs>>,
+    TError = Error | UnauthorizedResponse,
+>(
+    params: undefined | ListRetroLogsParams,
     options: {
         query: Partial<UseQueryOptions<Awaited<ReturnType<typeof listRetroLogs>>, TError, TData>> &
             Pick<
@@ -478,7 +499,11 @@ export function useListRetroLogs<TData = Awaited<ReturnType<typeof listRetroLogs
     },
     queryClient?: QueryClient
 ): DefinedUseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useListRetroLogs<TData = Awaited<ReturnType<typeof listRetroLogs>>, TError = UnauthorizedResponse>(
+export function useListRetroLogs<
+    TData = Awaited<ReturnType<typeof listRetroLogs>>,
+    TError = Error | UnauthorizedResponse,
+>(
+    params?: ListRetroLogsParams,
     options?: {
         query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listRetroLogs>>, TError, TData>> &
             Pick<
@@ -493,7 +518,11 @@ export function useListRetroLogs<TData = Awaited<ReturnType<typeof listRetroLogs
     },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> };
-export function useListRetroLogs<TData = Awaited<ReturnType<typeof listRetroLogs>>, TError = UnauthorizedResponse>(
+export function useListRetroLogs<
+    TData = Awaited<ReturnType<typeof listRetroLogs>>,
+    TError = Error | UnauthorizedResponse,
+>(
+    params?: ListRetroLogsParams,
     options?: {
         query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listRetroLogs>>, TError, TData>>;
         request?: SecondParameter<typeof customInstance>;
@@ -504,14 +533,18 @@ export function useListRetroLogs<TData = Awaited<ReturnType<typeof listRetroLogs
  * @summary 회고 로그 목록 조회
  */
 
-export function useListRetroLogs<TData = Awaited<ReturnType<typeof listRetroLogs>>, TError = UnauthorizedResponse>(
+export function useListRetroLogs<
+    TData = Awaited<ReturnType<typeof listRetroLogs>>,
+    TError = Error | UnauthorizedResponse,
+>(
+    params?: ListRetroLogsParams,
     options?: {
         query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listRetroLogs>>, TError, TData>>;
         request?: SecondParameter<typeof customInstance>;
     },
     queryClient?: QueryClient
 ): UseQueryResult<TData, TError> & { queryKey: DataTag<QueryKey, TData, TError> } {
-    const queryOptions = getListRetroLogsQueryOptions(options);
+    const queryOptions = getListRetroLogsQueryOptions(params, options);
 
     const query = useQuery(queryOptions, queryClient) as UseQueryResult<TData, TError> & {
         queryKey: DataTag<QueryKey, TData, TError>;
@@ -525,15 +558,16 @@ export function useListRetroLogs<TData = Awaited<ReturnType<typeof listRetroLogs
  */
 export const prefetchListRetroLogsQuery = async <
     TData = Awaited<ReturnType<typeof listRetroLogs>>,
-    TError = UnauthorizedResponse,
+    TError = Error | UnauthorizedResponse,
 >(
     queryClient: QueryClient,
+    params?: ListRetroLogsParams,
     options?: {
         query?: Partial<UseQueryOptions<Awaited<ReturnType<typeof listRetroLogs>>, TError, TData>>;
         request?: SecondParameter<typeof customInstance>;
     }
 ): Promise<QueryClient> => {
-    const queryOptions = getListRetroLogsQueryOptions(options);
+    const queryOptions = getListRetroLogsQueryOptions(params, options);
 
     await queryClient.prefetchQuery(queryOptions);
 
