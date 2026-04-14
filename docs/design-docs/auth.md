@@ -25,6 +25,7 @@
 - `useSignupForm.ts`
     - 회원가입 입력 상태와 필드 검증 담당
     - payload 변환 전의 폼 로직에 집중
+    - 아이디 중복 확인 같은 비동기 검사는 페이지 레벨에서 조합
 
 - `api.ts`
     - 로그인/회원가입/프로필 응답을 `AuthUser`로 매핑
@@ -56,6 +57,7 @@
 
 - 데모 로그인은 프론트에서 별도 user를 주입하지 않습니다.
 - `VITE_DEMO_LOGIN_ID`, `VITE_DEMO_LOGIN_PASSWORD`가 설정되면 해당 계정으로 실제 로그인 API를 호출합니다.
+- 회원가입의 로그인 아이디는 입력 단계에서 디바운스된 중복 확인 API를 호출하고, 결과를 helper text로 안내합니다.
 - 프로필 최신화는 `AuthLayout`에서 `useGetMyProfile` 결과를 받아 `updateUser`로 반영합니다.
 - `My` 페이지의 프로필/계정 영역은 `useMyProfileController`가 담당합니다.
 - 닉네임 저장은 프로필 캐시와 auth store를 먼저 갱신하는 낙관적 업데이트 기준으로 동작합니다.
