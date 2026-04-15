@@ -54,6 +54,16 @@ export const parseDate = (value: string, options: formatDateOptions = DATE_FORMA
     }
 };
 
+export const isValidApiDate = (value: string | null | undefined): value is string => {
+    if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        return false;
+    }
+
+    const parsedDate = parseDate(value);
+
+    return !Number.isNaN(parsedDate.getTime()) && formatDate(parsedDate, DATE_FORMAT.api) === value;
+};
+
 export const isSameDate = (a: Date | string, b: Date | string) => {
     const aDate = typeof a === 'string' ? new Date(a) : a;
     const bDate = typeof b === 'string' ? new Date(b) : b;
