@@ -25,7 +25,7 @@ import { SearchInput, SegmentedControl } from '@@/form';
 import { Container, SectionHeader, SidebarContentLayout } from '@@/layout';
 import { Badge, Button, Calendar, Icon, RetroCard } from '@@/ui';
 import { useInfiniteQuery, type InfiniteData } from '@tanstack/react-query';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useBeforeUnload, useNavigate, useSearchParams } from 'react-router-dom';
 
 const RETRO_LOG_PAGE_SIZE = 10;
@@ -378,6 +378,41 @@ export default function Retro() {
         return isDirty;
     };
 
+    const renderHighlightedSearchText = (text: string, keyword: string): ReactNode => {
+        const normalizedKeyword = keyword.trim().toLowerCase();
+
+        if (!normalizedKeyword) {
+            return text;
+        }
+
+        const normalizedText = text.toLowerCase();
+        const nodes: ReactNode[] = [];
+        let searchStartIndex = 0;
+        let matchIndex = normalizedText.indexOf(normalizedKeyword, searchStartIndex);
+
+        while (matchIndex !== -1) {
+            if (matchIndex > searchStartIndex) {
+                nodes.push(text.slice(searchStartIndex, matchIndex));
+            }
+
+            const matchEndIndex = matchIndex + normalizedKeyword.length;
+            nodes.push(
+                <strong key={`${matchIndex}-${matchEndIndex}`} className='font-bold text-black'>
+                    {text.slice(matchIndex, matchEndIndex)}
+                </strong>
+            );
+
+            searchStartIndex = matchEndIndex;
+            matchIndex = normalizedText.indexOf(normalizedKeyword, searchStartIndex);
+        }
+
+        if (searchStartIndex < text.length) {
+            nodes.push(text.slice(searchStartIndex));
+        }
+
+        return nodes.length > 0 ? nodes : text;
+    };
+
     const getDirtyCategories = () => {
         return Object.keys(contentRef.current).filter((category) => isCategoryContentDirty(category));
     };
@@ -643,7 +678,6 @@ export default function Retro() {
         const retro = visibleRetroArr.find((retro) => {
             if (retro.retro_date) return isSameDate(new Date(retro.retro_date), date);
         });
-        console.log('CALENDAR retro', retro);
 
         if (retro && retro.retros && retro.template_types?.length) {
             selectedRetroRef.current = retro;
@@ -654,7 +688,6 @@ export default function Retro() {
             setSelectedCategory(nextCategory);
 
             const mapped = getRetroContentMap(retro.retros);
-            console.log('mapped', mapped);
 
             resetContentState(mapped);
 
@@ -1327,6 +1360,7 @@ ${selectedCategoryContent[key] ?? ''}
 
     const RetroSearchResultCard = ({ searchItem }: { searchItem: RetroLogSearchItem }) => {
         const templateType = searchItem.template_type?.toLowerCase();
+        const contentPreview = searchItem.content_preview?.trim();
         const isSelected =
             !!searchItem.id &&
             selectedRetro?.retros?.some((retro) => retro.id === searchItem.id) &&
@@ -1357,7 +1391,9 @@ ${selectedCategoryContent[key] ?? ''}
                 </div>
 
                 <p className='text-sm leading-5 text-neutral-darker'>
-                    {searchItem.content_preview?.trim() || '미리보기 내용이 없습니다.'}
+                    {contentPreview
+                        ? renderHighlightedSearchText(contentPreview, trimmedSearchKeyword)
+                        : '미리보기 내용이 없습니다.'}
                 </p>
             </button>
         );

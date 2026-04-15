@@ -19,7 +19,7 @@ import {
     useSearchDailyLogs,
 } from '@/api/generated/daily-logs/daily-logs';
 import { queryClient } from '@/api/queryClient';
-import { DATE_FORMAT, formatDate, isValidApiDate, parseDate } from '@/utils';
+import { DATE_FORMAT, formatDate, getTodayDate, isValidApiDate, parseDate } from '@/utils';
 import type { DailyLog, DailyLogSummary, PaginatedDailyLogsResponse } from '@/api/generated/model';
 import { isSameDate } from '@/utils/dateUtils';
 
@@ -30,6 +30,12 @@ type DailyLogInfiniteData = InfiniteData<PaginatedDailyLogsResponse, number>;
 
 type SaveDailyLogOptions = {
     background?: boolean;
+};
+
+const getInitialSelectedDate = (searchParams: URLSearchParams) => {
+    const routeDate = searchParams.get('date');
+
+    return parseDate(isValidApiDate(routeDate) ? routeDate : getTodayDate());
 };
 
 export default function DailyLog() {
@@ -50,7 +56,7 @@ export default function DailyLog() {
     const [autoSaveState, setAutoSaveState] = useState<'' | 'writing' | 'saving' | 'saved' | 'error'>('');
     const [isSaveProgresing, setIsSaveProgresing] = useState(false);
     const [isOpenCalendar, setIsOpenCalendar] = useState(false);
-    const [selectedDate, setSelectedDate] = useState<Date>(() => (routeDateKey ? parseDate(routeDateKey) : new Date()));
+    const [selectedDate, setSelectedDate] = useState<Date>(() => getInitialSelectedDate(searchParams));
     const [selectedLog, setSelectedLog] = useState<DailyLogSummary>();
     const [pendingDeleteIds, setPendingDeleteIds] = useState<string[]>([]);
     const trimmedSearchKeyword = searchKeyword.trim();
@@ -379,7 +385,6 @@ export default function DailyLog() {
         }
 
         let isCurrent = true;
-
         const nextDate = parseDate(routeDateKey);
 
         selectedDateRef.current = nextDate;
