@@ -1,28 +1,36 @@
 import { Input, SearchInput } from '@/components/form';
 import MdEditor, { type MdEditorHandle } from '@/features/log/components/MdEditor';
+import { useDailyLogSaveStatusStore } from '@/features/log/stores/dailyLogSaveStatus';
 import { Container, SectionHeader, SidebarContentLayout } from '@/components/layout';
 import { Badge, Button, DailyLogCard, Icon } from '@/components/ui';
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useBeforeUnload, useNavigate, useSearchParams } from 'react-router-dom';
+import { useInfiniteQuery, type InfiniteData } from '@tanstack/react-query';
 import { Calendar } from '@@/ui';
 import { useModal, useToast } from '@/hooks';
 import {
-    getDailyLog,
+    createDailyLog as createDailyLogRequest,
     getAllDailyLogs,
     getGetAllDailyLogsQueryKey,
-    useCreateDailyLog,
-    useUpdateDailyLog,
+    getDailyLog,
+    getGetDailyLogQueryKey,
+    updateDailyLog as updateDailyLogRequest,
     useDeleteDailyLog,
     useSearchDailyLogs,
 } from '@/api/generated/daily-logs/daily-logs';
 import { queryClient } from '@/api/queryClient';
 import { DATE_FORMAT, formatDate, isValidApiDate, parseDate } from '@/utils';
-import type { DailyLog, DailyLogSummary } from '@/api/generated/model';
+import type { DailyLog, DailyLogSummary, PaginatedDailyLogsResponse } from '@/api/generated/model';
 import { isSameDate } from '@/utils/dateUtils';
 
 const DAILY_LOG_PAGE_SIZE = 10;
 const LOG_AUTO_SAVE_DURATION = 5000;
+
+type DailyLogInfiniteData = InfiniteData<PaginatedDailyLogsResponse, number>;
+
+type SaveDailyLogOptions = {
+    background?: boolean;
+};
 
 export default function DailyLog() {
     const navigate = useNavigate();
@@ -47,11 +55,13 @@ export default function DailyLog() {
     const [pendingDeleteIds, setPendingDeleteIds] = useState<string[]>([]);
     const trimmedSearchKeyword = searchKeyword.trim();
     const isSearchMode = trimmedSearchKeyword.length > 0;
+    const isBackgroundDailyLogSaving = useDailyLogSaveStatusStore((state) => state.isBackgroundSaving);
 
     const dailyLogsQueryKey = getGetAllDailyLogsQueryKey({ limit: DAILY_LOG_PAGE_SIZE });
     const {
         data: dailyLogsResponse,
         isLoading,
+        isFetching: isDailyLogsFetching,
         isFetchingNextPage,
         hasNextPage,
         fetchNextPage,
@@ -70,8 +80,6 @@ export default function DailyLog() {
             return currentPage < totalPages ? currentPage + 1 : undefined;
         },
     });
-    const { mutateAsync: createDailyLog } = useCreateDailyLog();
-    const { mutateAsync: updateDailyLog } = useUpdateDailyLog();
     const { mutateAsync: deleteDailyLog } = useDeleteDailyLog();
     const { data: searchLogs = [], isLoading: isSearchLoading } = useSearchDailyLogs(
         { q: trimmedSearchKeyword },
@@ -92,9 +100,24 @@ export default function DailyLog() {
     const mdEditorRef = useRef<MdEditorHandle | null>(null);
     const contentRef = useRef(content);
     const lastSavedContentRef = useRef(content);
+    const titleRef = useRef(title);
+    const selectedDateRef = useRef(selectedDate);
+    const selectedLogRef = useRef<DailyLogSummary | undefined>(selectedLog);
     const isContentDirtyRef = useRef(isContentDirty);
+    const isSaveProgresingRef = useRef(isSaveProgresing);
+    const savePromiseRef = useRef<Promise<boolean> | null>(null);
+    const isMountedRef = useRef(false);
     const initialTodayLogSelectedRef = useRef(false);
+    const initialTodayLogDetailFetchRef = useRef(false);
     const deleteTimerMapRef = useRef<Record<string, number>>({});
+
+    useEffect(() => {
+        isMountedRef.current = true;
+
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
 
     useEffect(() => {
         if (!isOpenCalendar) {
@@ -119,8 +142,24 @@ export default function DailyLog() {
     }, [content]);
 
     useEffect(() => {
+        titleRef.current = title;
+    }, [title]);
+
+    useEffect(() => {
+        selectedDateRef.current = selectedDate;
+    }, [selectedDate]);
+
+    useEffect(() => {
+        selectedLogRef.current = selectedLog;
+    }, [selectedLog]);
+
+    useEffect(() => {
         isContentDirtyRef.current = isContentDirty;
     }, [isContentDirty]);
+
+    useEffect(() => {
+        isSaveProgresingRef.current = isSaveProgresing;
+    }, [isSaveProgresing]);
 
     useEffect(() => {
         const target = loadMoreRef.current;
@@ -177,8 +216,10 @@ export default function DailyLog() {
     const totalCount = dailyLogsResponse?.pages[0]?.meta?.total_count ?? 0;
     const displayTotalCount = isSearchMode ? displayLogs.length : totalCount;
     const emptyLogMessage = isSearchMode ? '검색 결과가 없습니다.' : '아직 작성된 로그가 없습니다.';
+    const displayedAutoSaveState = isBackgroundDailyLogSaving ? 'saving' : autoSaveState;
+    const displayedAutoSaveText = isBackgroundDailyLogSaving ? '저장중...' : autoSaveText;
 
-    const toDailyLogSummary = (log: DailyLog): DailyLogSummary => ({
+    const toDailyLogSummary = (log: DailyLog | DailyLogSummary): DailyLogSummary => ({
         id: log.id,
         log_date: log.log_date,
         updated_at: log.updated_at,
@@ -186,6 +227,97 @@ export default function DailyLog() {
         content: log.content,
         tags: log.tags,
     });
+
+    const mergeDailyLogSummary = (log: DailyLog, baseLog?: DailyLogSummary): DailyLogSummary => ({
+        ...baseLog,
+        ...toDailyLogSummary(log),
+    });
+
+    const upsertDailyLogDetailCache = (log: DailyLog) => {
+        if (!log.log_date) return;
+
+        queryClient.setQueryData<DailyLog>(getGetDailyLogQueryKey({ date: log.log_date }), log);
+    };
+
+    const upsertDailyLogListCache = (log: DailyLog) => {
+        if (!log.log_date) return;
+
+        queryClient.setQueryData<DailyLogInfiniteData>(dailyLogsQueryKey, (current) => {
+            const nextLog = mergeDailyLogSummary(log);
+
+            if (!current) {
+                return {
+                    pageParams: [1],
+                    pages: [
+                        {
+                            data: [nextLog],
+                            meta: {
+                                current_page: 1,
+                                limit: DAILY_LOG_PAGE_SIZE,
+                                total_count: 1,
+                                total_pages: 1,
+                            },
+                        },
+                    ],
+                };
+            }
+
+            let didUpdate = false;
+            const pages = current.pages.map((page) => {
+                const logs = page.data ?? [];
+                let didUpdatePage = false;
+
+                const nextLogs = logs.map((item) => {
+                    const isSameLog = (log.id && item.id === log.id) || item.log_date === log.log_date;
+
+                    if (!isSameLog) return item;
+
+                    didUpdate = true;
+                    didUpdatePage = true;
+                    return mergeDailyLogSummary(log, item);
+                });
+
+                return didUpdatePage ? { ...page, data: nextLogs } : page;
+            });
+
+            if (didUpdate) {
+                return { ...current, pages };
+            }
+
+            const [firstPage, ...restPages] = pages;
+            const pageSize = firstPage?.meta?.limit ?? DAILY_LOG_PAGE_SIZE;
+            const firstLogs = firstPage?.data ?? [];
+            const totalCount = (firstPage?.meta?.total_count ?? firstLogs.length) + 1;
+            const totalPages = Math.max(firstPage?.meta?.total_pages ?? 1, Math.ceil(totalCount / pageSize));
+            const nextFirstLogs = [nextLog, ...firstLogs].sort((left, right) =>
+                (right.log_date ?? '').localeCompare(left.log_date ?? '')
+            );
+
+            return {
+                ...current,
+                pageParams: current.pageParams.length ? current.pageParams : [1],
+                pages: [
+                    {
+                        ...(firstPage ?? {}),
+                        data: nextFirstLogs,
+                        meta: {
+                            ...firstPage?.meta,
+                            current_page: firstPage?.meta?.current_page ?? 1,
+                            limit: pageSize,
+                            total_count: totalCount,
+                            total_pages: totalPages,
+                        },
+                    },
+                    ...restPages,
+                ],
+            };
+        });
+    };
+
+    const syncSavedDailyLogCaches = (log: DailyLog) => {
+        upsertDailyLogDetailCache(log);
+        upsertDailyLogListCache(log);
+    };
 
     const routeDateListLog = useMemo(() => {
         if (!routeDateKey) {
@@ -199,18 +331,25 @@ export default function DailyLog() {
         contentRef.current = nextContent;
         lastSavedContentRef.current = nextContent;
         setContent(nextContent);
+        isContentDirtyRef.current = false;
         setIsContentDirty(false);
     };
 
     const applyDailyLogState = (log: DailyLog | DailyLogSummary) => {
-        setSelectedLog(toDailyLogSummary(log));
-        setTitle(log.title ?? '');
+        const nextLog = toDailyLogSummary(log);
+
+        selectedLogRef.current = nextLog;
+        titleRef.current = log.title ?? '';
+        setSelectedLog(nextLog);
+        setTitle(titleRef.current);
         resetContentState(log.content ?? '');
         setAutoSaveState(log.updated_at ? 'saved' : '');
         setAutoSaveText(formatLastSaved(log.updated_at ?? ''));
     };
 
     const clearDailyLogState = () => {
+        selectedLogRef.current = undefined;
+        titleRef.current = '';
         setSelectedLog(undefined);
         setTitle('');
         resetContentState('');
@@ -223,7 +362,10 @@ export default function DailyLog() {
             return;
         }
 
-        setSelectedDate(parseDate(routeDateKey));
+        const nextDate = parseDate(routeDateKey);
+
+        selectedDateRef.current = nextDate;
+        setSelectedDate(nextDate);
         setIsOpenCalendar(false);
 
         if (routeDateListLog && !isContentDirtyRef.current) {
@@ -238,7 +380,10 @@ export default function DailyLog() {
 
         let isCurrent = true;
 
-        setSelectedDate(parseDate(routeDateKey));
+        const nextDate = parseDate(routeDateKey);
+
+        selectedDateRef.current = nextDate;
+        setSelectedDate(nextDate);
         setIsOpenCalendar(false);
 
         const syncRouteDate = async () => {
@@ -267,15 +412,20 @@ export default function DailyLog() {
     }, [routeDateKey]);
 
     const restoreLastSavedState = () => {
-        const lastSavedText = selectedLog?.updated_at ? formatLastSaved(selectedLog.updated_at) : '';
+        const lastSavedText = selectedLogRef.current?.updated_at
+            ? formatLastSaved(selectedLogRef.current.updated_at)
+            : '';
 
         setAutoSaveState(lastSavedText ? 'saved' : '');
         setAutoSaveText(lastSavedText);
     };
 
     const markContentSaved = (savedContent: string) => {
+        const isDirty = contentRef.current !== savedContent;
+
         lastSavedContentRef.current = savedContent;
-        setIsContentDirty(contentRef.current !== savedContent);
+        isContentDirtyRef.current = isDirty;
+        setIsContentDirty(isDirty);
     };
 
     const handleContentChange = (value: string | undefined) => {
@@ -283,7 +433,9 @@ export default function DailyLog() {
 
         contentRef.current = nextContent;
         setContent(nextContent);
-        setIsContentDirty(nextContent !== lastSavedContentRef.current);
+        const isDirty = nextContent !== lastSavedContentRef.current;
+        isContentDirtyRef.current = isDirty;
+        setIsContentDirty(isDirty);
 
         if (nextContent === lastSavedContentRef.current) {
             if (contentChangeTimerRef.current) {
@@ -304,75 +456,170 @@ export default function DailyLog() {
         }
 
         contentChangeTimerRef.current = setTimeout(() => {
-            saveContent();
+            void saveDailyLogContent();
         }, LOG_AUTO_SAVE_DURATION);
     };
 
-    const saveContent = async () => {
+    const saveDailyLogContent = async (options: SaveDailyLogOptions = {}) => {
+        const isBackgroundSave = options.background ?? false;
+        const canUpdateUi = () => !isBackgroundSave && isMountedRef.current;
+
         if (contentChangeTimerRef.current) {
             clearTimeout(contentChangeTimerRef.current);
+            contentChangeTimerRef.current = null;
         }
 
         const contentToSave = contentRef.current;
 
         if (contentToSave === lastSavedContentRef.current) {
-            setIsContentDirty(false);
-            restoreLastSavedState();
-            return;
+            if (canUpdateUi()) {
+                setIsContentDirty(false);
+                restoreLastSavedState();
+            }
+
+            return true;
         }
 
-        setAutoSaveState('saving');
-        setAutoSaveText('저장중...');
+        if (canUpdateUi()) {
+            setAutoSaveState('saving');
+            setAutoSaveText('저장중...');
+        }
 
-        setIsSaveProgresing(true);
+        isSaveProgresingRef.current = true;
+        if (canUpdateUi()) {
+            setIsSaveProgresing(true);
+        }
 
-        const nextTitle = title == '' ? `${formatDate(selectedDate, DATE_FORMAT.display)} 로그` : title;
+        const dateToSave = formatDate(selectedDateRef.current, DATE_FORMAT.api);
+        const nextTitle =
+            titleRef.current == ''
+                ? `${formatDate(selectedDateRef.current, DATE_FORMAT.display)} 로그`
+                : titleRef.current;
 
-        if (selectedLog?.id) {
-            await updateDailyLog({
-                id: selectedLog.id,
-                data: {
-                    title: nextTitle,
-                    content: contentRef.current,
-                    is_dirty: false,
-                },
-            }).then((res) => {
-                console.log('res', res);
-                setSelectedLog(toDailyLogSummary(res));
-                markContentSaved(contentToSave);
-                void queryClient.invalidateQueries({
-                    queryKey: dailyLogsQueryKey,
+        const savePromise = (async () => {
+            try {
+                const savedLog = selectedLogRef.current?.id
+                    ? await updateDailyLogRequest(selectedLogRef.current.id, {
+                          title: nextTitle,
+                          content: contentToSave,
+                          is_dirty: false,
+                      })
+                    : await createDailyLogRequest({
+                          log_date: dateToSave,
+                          title: nextTitle,
+                          content: contentToSave,
+                      });
+                const savedSummary = toDailyLogSummary(savedLog);
+
+                syncSavedDailyLogCaches(savedLog);
+                selectedLogRef.current = savedSummary;
+                lastSavedContentRef.current = contentToSave;
+                titleRef.current = savedLog.title ?? nextTitle;
+
+                if (canUpdateUi()) {
+                    setSelectedLog(savedSummary);
+                    setTitle(titleRef.current);
+                    markContentSaved(contentToSave);
+                }
+
+                void Promise.all([
+                    queryClient.invalidateQueries({
+                        queryKey: dailyLogsQueryKey,
+                    }),
+                    savedLog.log_date
+                        ? queryClient.invalidateQueries({
+                              queryKey: getGetDailyLogQueryKey({ date: savedLog.log_date }),
+                          })
+                        : Promise.resolve(),
+                ]).catch(() => undefined);
+
+                if (canUpdateUi()) {
+                    setAutoSaveState('saved');
+                    setAutoSaveText('마지막 저장 방금 전');
+                }
+
+                return true;
+            } catch {
+                if (canUpdateUi()) {
+                    setAutoSaveState('error');
+                    setAutoSaveText('저장에 실패했어요');
+                }
+
+                showToast({
+                    iconName: 'error',
+                    message: '데일리로그 저장에 실패했어요.',
+                    duration: 3000,
                 });
 
-                setAutoSaveState('saved');
-                setAutoSaveText('마지막 저장 방금 전');
+                return false;
+            } finally {
+                isSaveProgresingRef.current = false;
+                if (canUpdateUi()) {
+                    setIsSaveProgresing(false);
+                }
+            }
+        })();
 
-                setIsSaveProgresing(false);
-            });
+        savePromiseRef.current = savePromise;
+        void savePromise.finally(() => {
+            if (savePromiseRef.current === savePromise) {
+                savePromiseRef.current = null;
+            }
+        });
 
+        return savePromise;
+    };
+
+    const flushPendingDailyLogSave = async (options: SaveDailyLogOptions = {}) => {
+        if (contentChangeTimerRef.current) {
+            clearTimeout(contentChangeTimerRef.current);
+            contentChangeTimerRef.current = null;
+        }
+
+        if (savePromiseRef.current) {
+            const saved = await savePromiseRef.current;
+
+            if (!saved) {
+                return false;
+            }
+        }
+
+        if (contentRef.current === lastSavedContentRef.current) {
+            return true;
+        }
+
+        return saveDailyLogContent(options);
+    };
+
+    const saveContent = async () => {
+        await flushPendingDailyLogSave();
+    };
+
+    useBeforeUnload((event) => {
+        if (
+            contentRef.current === lastSavedContentRef.current &&
+            !isSaveProgresingRef.current &&
+            !useDailyLogSaveStatusStore.getState().isBackgroundSaving
+        ) {
             return;
         }
 
-        await createDailyLog({
-            data: {
-                log_date: formatDate(selectedDate, DATE_FORMAT.api),
-                title: nextTitle,
-                content: contentRef.current,
-            },
-        }).then((res) => {
-            console.log('res', res);
-            setSelectedLog(toDailyLogSummary(res));
-            markContentSaved(contentToSave);
-            void queryClient.invalidateQueries({
-                queryKey: dailyLogsQueryKey,
-            });
+        event.preventDefault();
+        event.returnValue = '';
+    });
 
-            setAutoSaveState('saved');
-            setAutoSaveText('마지막 저장 방금 전');
+    useEffect(() => {
+        return () => {
+            if (contentRef.current === lastSavedContentRef.current && !savePromiseRef.current) {
+                return;
+            }
 
-            setIsSaveProgresing(false);
-        });
-    };
+            const { beginBackgroundSave, endBackgroundSave } = useDailyLogSaveStatusStore.getState();
+
+            beginBackgroundSave();
+            void flushPendingDailyLogSave({ background: true }).finally(endBackgroundSave);
+        };
+    }, []);
 
     const relativeDate = (targetDate: string): string => {
         const now = new Date();
@@ -457,10 +704,14 @@ export default function DailyLog() {
     };
 
     const handleLogClick = (log: DailyLogSummary): void => {
+        selectedLogRef.current = log;
         setSelectedLog(log);
+        titleRef.current = log.title ?? '';
         resetContentState(log.content ?? '');
         setTitle(log.title ?? '');
-        setSelectedDate(new Date(`${log.log_date}T00:00:00`));
+        const nextDate = new Date(`${log.log_date}T00:00:00`);
+        selectedDateRef.current = nextDate;
+        setSelectedDate(nextDate);
         const lastSaved = formatLastSaved(log.updated_at ?? '');
         setAutoSaveText(lastSaved);
     };
@@ -499,7 +750,9 @@ export default function DailyLog() {
 
         setPendingDeleteIds((prev) => [...prev, id]);
 
+        selectedLogRef.current = undefined;
         setSelectedLog(undefined);
+        titleRef.current = '';
         setTitle('');
         resetContentState('');
         setAutoSaveText('');
@@ -550,20 +803,25 @@ export default function DailyLog() {
         console.log(log);
 
         if (log) {
+            selectedLogRef.current = log;
             setSelectedLog(log);
+            titleRef.current = log.title ?? '';
             setTitle(log.title ?? '');
             resetContentState(log.content ?? '');
 
             const lastSaved = formatLastSaved(log.updated_at ?? '');
             setAutoSaveText(lastSaved);
         } else {
+            selectedLogRef.current = undefined;
             setSelectedLog(undefined);
+            titleRef.current = '';
             setTitle('');
             resetContentState('');
 
             setAutoSaveText('');
         }
 
+        selectedDateRef.current = date;
         setSelectedDate(date);
         setIsOpenCalendar(false);
     };
@@ -580,18 +838,90 @@ export default function DailyLog() {
             return;
         }
 
+        const selectTodayLog = (log: DailyLogSummary) => {
+            initialTodayLogSelectedRef.current = true;
+            selectedLogRef.current = log;
+            titleRef.current = log.title ?? '';
+            setSelectedLog(log);
+            setTitle(log.title ?? '');
+            resetContentState(log.content ?? '');
+            setAutoSaveText(formatLastSaved(log.updated_at ?? ''));
+        };
+
         const todayLog = visibleLogs.find((log) => log.log_date === todayDateKey);
 
-        if (!todayLog) {
+        if (todayLog) {
+            selectTodayLog(todayLog);
             return;
         }
 
-        initialTodayLogSelectedRef.current = true;
-        setSelectedLog(todayLog);
-        setTitle(todayLog.title ?? '');
-        resetContentState(todayLog.content ?? '');
-        setAutoSaveText(formatLastSaved(todayLog.updated_at ?? ''));
-    }, [isContentDirty, isLoading, isSearchMode, selectedDate, selectedLog, todayDateKey, visibleLogs]);
+        if (isLoading || isDailyLogsFetching || initialTodayLogDetailFetchRef.current) {
+            return;
+        }
+
+        initialTodayLogDetailFetchRef.current = true;
+        let isCurrent = true;
+
+        const fetchTodayLog = async () => {
+            try {
+                const fetchedTodayLog = await getDailyLog({ date: todayDateKey });
+
+                if (!isCurrent) {
+                    return;
+                }
+
+                selectTodayLog(toDailyLogSummary(fetchedTodayLog));
+            } catch {
+                if (isCurrent) {
+                    initialTodayLogDetailFetchRef.current = false;
+                }
+            }
+        };
+
+        void fetchTodayLog();
+
+        return () => {
+            isCurrent = false;
+            if (!initialTodayLogSelectedRef.current) {
+                initialTodayLogDetailFetchRef.current = false;
+            }
+        };
+    }, [
+        isContentDirty,
+        isDailyLogsFetching,
+        isLoading,
+        isSearchMode,
+        selectedDate,
+        selectedLog,
+        todayDateKey,
+        visibleLogs,
+    ]);
+
+    useEffect(() => {
+        if (
+            !selectedLog ||
+            isLoading ||
+            isDailyLogsFetching ||
+            isSearchMode ||
+            contentRef.current !== lastSavedContentRef.current
+        ) {
+            return;
+        }
+
+        const selectedDateKey = formatDate(selectedDate, DATE_FORMAT.api);
+        const latestLog = visibleLogs.find((log) => log.log_date === selectedDateKey);
+
+        if (!latestLog || (latestLog.content ?? '') === contentRef.current) {
+            return;
+        }
+
+        selectedLogRef.current = latestLog;
+        titleRef.current = latestLog.title ?? '';
+        setSelectedLog(latestLog);
+        setTitle(latestLog.title ?? '');
+        resetContentState(latestLog.content ?? '');
+        setAutoSaveText(formatLastSaved(latestLog.updated_at ?? ''));
+    }, [isDailyLogsFetching, isLoading, isSearchMode, selectedDate, selectedLog, visibleLogs]);
 
     const moveSelectedDate = (days: number) => {
         const nextDate = new Date(selectedDate);
@@ -759,12 +1089,12 @@ export default function DailyLog() {
                                     </button>
                                 </div>
                                 <div className='flex items-center text-neutral text-sm whitespace-nowrap'>
-                                    {autoSaveState === 'saving' ? (
+                                    {displayedAutoSaveState === 'saving' ? (
                                         <div className='animate-spin h-4 w-4 border-3 border-gray-300 border-t-primary rounded-full mr-1' />
                                     ) : (
                                         ''
                                     )}
-                                    {autoSaveText}
+                                    {displayedAutoSaveText}
                                 </div>
 
                                 {isOpenCalendar ? (
@@ -782,7 +1112,10 @@ export default function DailyLog() {
                                 className='mt-5 mb-3'
                                 placeholder='제목을 입력해 주세요'
                                 value={title}
-                                onChange={(e) => setTitle(e.target.value)}
+                                onChange={(e) => {
+                                    titleRef.current = e.target.value;
+                                    setTitle(e.target.value);
+                                }}
                                 onKeyDown={handleTitleKeyDown}
                             />
                             <MdEditor
