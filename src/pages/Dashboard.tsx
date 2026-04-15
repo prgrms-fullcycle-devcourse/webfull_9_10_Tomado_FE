@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState, type KeyboardEvent } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import { useGetDailyLog } from '@/api/generated/daily-logs/daily-logs';
 import { useGetRetroLog } from '@/api/generated/retro-logs/retro-logs';
@@ -10,7 +11,7 @@ import {
 } from '@/api/generated/stats/stats';
 import { useGetMyProfile } from '@/api/generated/users/users';
 import type { DailyFocusStat, RetroLogTemplateType } from '@/api/generated/model';
-import { DATE_FORMAT, formatDate, getTodayDate, parseDate } from '@/utils';
+import { DATE_FORMAT, formatDate, getTodayDate, isValidApiDate, parseDate } from '@/utils';
 import { Container, SectionHeader, DoubleColumnLayout } from '@@/layout';
 import { SegmentedControl } from '@@/form';
 import { Icon, Tag } from '@@/ui';
@@ -34,6 +35,7 @@ const detailCardClassName = 'rounded-xl border border-neutral-lighter px-5 py-4'
 const detailCardHeaderClassName = 'mb-3 flex items-start justify-between gap-3';
 const detailLogTitleClassName = 'mb-2 text-sm font-semibold text-neutral-darker';
 const detailLogDescriptionClassName = 'text-xs text-neutral-darker line-clamp-3';
+const detailActionCardClassName = `${detailCardClassName} text-left transition-colors hover:cursor-pointer hover:border-primary-subtle hover:bg-neutral-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30`;
 const retroTagListClassName = 'flex flex-wrap gap-1.5';
 const retroTagMap = [
     { label: '기술', iconName: 'tech', className: '!border-danger !text-danger' },
@@ -41,6 +43,8 @@ const retroTagMap = [
     { label: '소통', iconName: 'communication', className: '!border-info !text-info' },
     { label: '감정', iconName: 'emotion', className: 'border-success-darker text-success-darker' },
 ] as const;
+type DashboardView = 'calendar' | 'history';
+
 const retroTemplateLabelMap: Record<RetroLogTemplateType, (typeof retroTagMap)[number]> = {
     Tech: retroTagMap[0],
     Decision: retroTagMap[1],
@@ -82,13 +86,30 @@ const hasFocusDate = (value: DailyFocusStat): value is DailyFocusStat & { focus_
     return typeof value.focus_date === 'string' && value.focus_date.length > 0;
 };
 
+const isDashboardView = (value: string | null): value is DashboardView => value === 'calendar' || value === 'history';
+
+const getDashboardViewFromParams = (searchParams: URLSearchParams): DashboardView => {
+    const view = searchParams.get('view');
+
+    return isDashboardView(view) ? view : 'calendar';
+};
+
+const getDashboardDateFromParams = (searchParams: URLSearchParams) => {
+    const date = searchParams.get('date');
+
+    return isValidApiDate(date) ? date : getTodayDate();
+};
+
 const isRetroTag = (tag: (typeof retroTagMap)[number] | null): tag is (typeof retroTagMap)[number] => {
     return Boolean(tag);
 };
 
 export default function Dashboard() {
-    const [view, setView] = useState<'calendar' | 'history'>('calendar');
-    const [selectedDate, setSelectedDate] = useState(getTodayDate());
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const searchParamString = searchParams.toString();
+    const [view, setView] = useState<DashboardView>(() => getDashboardViewFromParams(searchParams));
+    const [selectedDate, setSelectedDate] = useState(() => getDashboardDateFromParams(searchParams));
     const selectedDateObject = parseDate(selectedDate);
     const { data: profile } = useGetMyProfile();
     const { data: statsOverview } = useGetStatsOverview();
@@ -129,6 +150,26 @@ export default function Dashboard() {
         { label: '데일리로그', value: `${statsOverview?.total_daily_logs ?? 0}건` },
         { label: '회고', value: `${statsOverview?.total_retro_logs ?? 0}건` },
     ];
+
+    useEffect(() => {
+        const nextSearchParams = new URLSearchParams(searchParamString);
+
+        setView(getDashboardViewFromParams(nextSearchParams));
+        setSelectedDate(getDashboardDateFromParams(nextSearchParams));
+    }, [searchParamString]);
+
+    const navigateToLogPage = (path: '/dailylog' | '/retro') => {
+        navigate(`${path}?date=${selectedDate}`);
+    };
+
+    const handleDetailCardKeyDown = (event: KeyboardEvent<HTMLElement>, action: () => void) => {
+        if (event.key !== 'Enter' && event.key !== ' ') {
+            return;
+        }
+
+        event.preventDefault();
+        action();
+    };
 
     return (
         <main>
@@ -217,7 +258,15 @@ export default function Dashboard() {
                             <div className={detailPanelClassName}>
                                 <h2 className='font-semibold'>{formatDate(selectedDate, DATE_FORMAT.display)}</h2>
 
-                                <article className={detailCardClassName}>
+                                <article
+                                    className={detailActionCardClassName}
+                                    role='button'
+                                    tabIndex={0}
+                                    onClick={() => navigateToLogPage('/dailylog')}
+                                    onKeyDown={(event) =>
+                                        handleDetailCardKeyDown(event, () => navigateToLogPage('/dailylog'))
+                                    }
+                                >
                                     <div className={detailCardHeaderClassName}>
                                         <h3 className='font-bold'>데일리로그</h3>
                                         <Icon name='arrow_right' size={16} />
@@ -237,7 +286,15 @@ export default function Dashboard() {
                                     )}
                                 </article>
 
-                                <article className={detailCardClassName}>
+                                <article
+                                    className={detailActionCardClassName}
+                                    role='button'
+                                    tabIndex={0}
+                                    onClick={() => navigateToLogPage('/retro')}
+                                    onKeyDown={(event) =>
+                                        handleDetailCardKeyDown(event, () => navigateToLogPage('/retro'))
+                                    }
+                                >
                                     <div className={detailCardHeaderClassName}>
                                         <h3 className='font-bold'>회고</h3>
                                         <Icon name='arrow_right' size={16} />
