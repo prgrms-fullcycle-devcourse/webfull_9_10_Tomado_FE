@@ -5,10 +5,11 @@ import type {
     RetroLogSearchItem,
 } from '@/api/generated/model';
 import {
+    createRetroLog as createRetroLogRequest,
     getRetroLog,
+    getGetRetroLogQueryKey,
     getListRetroLogsQueryKey,
-    useCreateRetroLog,
-    useUpdateRetroLog,
+    updateRetroLog as updateRetroLogRequest,
     useDeleteRetroLog,
     useSearchRetroLogs,
 } from '@/api/generated/retro-logs/retro-logs';
@@ -16,15 +17,16 @@ import { customInstance } from '@/api/mutator/custom-instance';
 import { queryClient } from '@/api/queryClient';
 import RetroItem from '@/features/log/components/RetroItem';
 import { RETRO_CATEGORY_NAME, RETRO_FORM } from '@/features/log/retroConstants';
+import { useRetroSaveStatusStore } from '@/features/log/stores/retroSaveStatus';
 import { useToast } from '@/hooks';
 import { DATE_FORMAT, formatDate, getTodayDate, isValidApiDate, parseDate } from '@/utils';
 import { isSameDate } from '@/utils/dateUtils';
 import { SearchInput, SegmentedControl } from '@@/form';
 import { Container, SectionHeader, SidebarContentLayout } from '@@/layout';
 import { Badge, Button, Calendar, Icon, RetroCard } from '@@/ui';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, type InfiniteData } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useBeforeUnload, useNavigate, useSearchParams } from 'react-router-dom';
 
 const RETRO_LOG_PAGE_SIZE = 10;
 
@@ -40,9 +42,15 @@ type RetroLogListResponse = {
     has_next?: boolean;
 };
 
+type RetroLogInfiniteData = InfiniteData<RetroLogListResponse, number>;
+
 type RetroLogListParams = {
     page: number;
     page_size: number;
+};
+
+type SaveCategoryContentOptions = {
+    background?: boolean;
 };
 
 const getRetroLogListPage = (params: RetroLogListParams, options?: RequestInit) => {
@@ -93,6 +101,12 @@ const isSameRetroContent = (left: RetroContent = {}, right: RetroContent = {}) =
     return Array.from(keys).every((key) => (left[key] ?? '') === (right[key] ?? ''));
 };
 
+const isSameRetroContentMap = (left: RetroContentMap = {}, right: RetroContentMap = {}) => {
+    const keys = new Set([...Object.keys(left), ...Object.keys(right)]);
+
+    return Array.from(keys).every((key) => isSameRetroContent(left[key], right[key]));
+};
+
 const getInitialSelectedDate = (searchParams: URLSearchParams) => {
     const routeDate = searchParams.get('date');
 
@@ -113,7 +127,7 @@ export default function Retro() {
     const [searchKeyword, setSearchKeyword] = useState('');
     const [selectedDate, setSelectedDate] = useState<Date>(() => getInitialSelectedDate(searchParams));
     const [isOpenCalendar, setIsOpenCalendar] = useState(false);
-    const [content, setContent] = useState<RetroContentMap>({});
+    const [content, setContent] = useState<RetroContentMap>(() => createEmptyRetroContent());
     const [selectedCategory, setSelectedCategory] = useState(RETRO_CATEGORY_NAME.TECH);
     const [selectedRetro, setSelectedRetro] = useState<RetroLogListItem>();
     const [isSelectedCategoryDirty, setIsSelectedCategoryDirty] = useState(false);
@@ -126,11 +140,13 @@ export default function Retro() {
     const [pendingDeleteRetroIds, setPendingDeleteRetroIds] = useState<string[]>([]);
     const trimmedSearchKeyword = searchKeyword.trim();
     const isSearchMode = trimmedSearchKeyword.length > 0;
+    const isBackgroundRetroSaving = useRetroSaveStatusStore((state) => state.isBackgroundSaving);
 
     const retroLogsQueryKey = [...getListRetroLogsQueryKey(), { page_size: RETRO_LOG_PAGE_SIZE }] as const;
     const {
         data: retroLogsResponse,
         isLoading: isRetroLogsLoading,
+        isFetching: isRetroLogsFetching,
         isFetchingNextPage,
         hasNextPage,
         fetchNextPage,
@@ -161,8 +177,6 @@ export default function Retro() {
             },
         }
     );
-    const { mutateAsync: createRetroLog } = useCreateRetroLog();
-    const { mutateAsync: updateRetroLog } = useUpdateRetroLog();
     const { mutateAsync: deleteRetroLog } = useDeleteRetroLog();
 
     const { showToast } = useToast();
@@ -175,12 +189,21 @@ export default function Retro() {
     const lastSavedContentRef = useRef<RetroContentMap>({});
     const isSelectedCategoryDirtyRef = useRef(isSelectedCategoryDirty);
     const selectedCategoryRef = useRef(selectedCategory);
+    const selectedDateRef = useRef(selectedDate);
     const selectedRetroRef = useRef<RetroLogListItem | undefined>(selectedRetro);
+    const isSaveProgresingRef = useRef(isSaveProgresing);
+    const savePromiseRef = useRef<Promise<boolean> | null>(null);
+    const isMountedRef = useRef(false);
     const initialTodayRetroSelectedRef = useRef(false);
+    const initialTodayRetroDetailFetchRef = useRef(false);
     const deleteTimerMapRef = useRef<Record<string, number>>({});
 
     useEffect(() => {
-        initContent();
+        isMountedRef.current = true;
+
+        return () => {
+            isMountedRef.current = false;
+        };
     }, []);
 
     useEffect(() => {
@@ -196,8 +219,16 @@ export default function Retro() {
     }, [selectedCategory]);
 
     useEffect(() => {
+        selectedDateRef.current = selectedDate;
+    }, [selectedDate]);
+
+    useEffect(() => {
         selectedRetroRef.current = selectedRetro;
     }, [selectedRetro]);
+
+    useEffect(() => {
+        isSaveProgresingRef.current = isSaveProgresing;
+    }, [isSaveProgresing]);
 
     useEffect(() => {
         const target = loadMoreRef.current;
@@ -269,6 +300,8 @@ export default function Retro() {
     const displayTotalCount = isSearchMode ? visibleSearchResults.length : totalRetroCount;
     const emptyRetroMessage = isSearchMode ? '검색 결과가 없습니다.' : '아직 작성된 회고가 없습니다.';
     const selectedCategoryHasContent = Object.values(content[selectedCategory] ?? {}).some((value) => value?.trim());
+    const displayedAutoSaveState = isBackgroundRetroSaving ? 'saving' : autoSaveState;
+    const displayedAutoSaveText = isBackgroundRetroSaving ? '저장중...' : autoSaveText;
 
     const findRetroListItemByRetroId = (retroId: string, retroList: RetroLogListItem[]) => {
         return getVisibleRetroList(retroList).find((retro) => retro.retros?.some((item) => item.id === retroId));
@@ -378,6 +411,10 @@ export default function Retro() {
         }
 
         return nodes.length > 0 ? nodes : text;
+    };
+
+    const getDirtyCategories = () => {
+        return Object.keys(contentRef.current).filter((category) => isCategoryContentDirty(category));
     };
 
     const buildRetroListItem = (retros: RetroLog[], retroDate: string): RetroLogListItem | undefined => {
@@ -507,7 +544,11 @@ export default function Retro() {
         };
     }, [routeDateKey]);
 
-    const mergeRetroLogIntoSelectedRetro = (retroLog: RetroLog, baseRetro?: RetroLogListItem): RetroLogListItem => {
+    const mergeRetroLogIntoRetroListItem = (
+        retroLog: RetroLog,
+        baseRetro: RetroLogListItem | undefined,
+        retroDate: string
+    ): RetroLogListItem => {
         const nextRetros = baseRetro?.retros?.some((item) => retroLog.id && item.id === retroLog.id)
             ? baseRetro.retros.map((item) => (item.id === retroLog.id ? retroLog : item))
             : [...(baseRetro?.retros?.filter((item) => item.template_type !== retroLog.template_type) ?? []), retroLog];
@@ -526,12 +567,107 @@ export default function Retro() {
 
         return {
             ...baseRetro,
-            retro_date: retroLog.retro_date ?? baseRetro?.retro_date ?? formatDate(selectedDate, DATE_FORMAT.api),
+            retro_date: retroLog.retro_date ?? baseRetro?.retro_date ?? retroDate,
             template_types: templateTypes,
             count: nextRetros.length,
             latest_created_at: baseRetro?.latest_created_at ?? retroLog.created_at,
             retros: nextRetros,
         };
+    };
+
+    const mergeRetroLogIntoSelectedRetro = (retroLog: RetroLog, baseRetro?: RetroLogListItem): RetroLogListItem => {
+        return mergeRetroLogIntoRetroListItem(
+            retroLog,
+            baseRetro,
+            formatDate(selectedDateRef.current, DATE_FORMAT.api)
+        );
+    };
+
+    const upsertRetroLogDetailCache = (retroLog: RetroLog, retroDate: string) => {
+        queryClient.setQueryData<RetroLog[]>(getGetRetroLogQueryKey({ date: retroDate }), (currentRetros = []) => {
+            const existingIndex = currentRetros.findIndex((item) => {
+                if (retroLog.id && item.id === retroLog.id) return true;
+
+                return item.template_type === retroLog.template_type;
+            });
+
+            if (existingIndex === -1) {
+                return [...currentRetros, retroLog];
+            }
+
+            return currentRetros.map((item, index) => (index === existingIndex ? retroLog : item));
+        });
+    };
+
+    const upsertRetroLogListCache = (retroLog: RetroLog, retroDate: string) => {
+        queryClient.setQueryData<RetroLogInfiniteData>(retroLogsQueryKey, (current) => {
+            const nextListItem = mergeRetroLogIntoRetroListItem(retroLog, undefined, retroDate);
+
+            if (!current) {
+                return {
+                    pageParams: [1],
+                    pages: [
+                        {
+                            items: [nextListItem],
+                            page: 1,
+                            page_size: RETRO_LOG_PAGE_SIZE,
+                            total_count: 1,
+                            total_pages: 1,
+                            has_next: false,
+                        },
+                    ],
+                };
+            }
+
+            let didUpdate = false;
+            const pages = current.pages.map((page) => {
+                const items = page.items ?? [];
+                let didUpdatePage = false;
+
+                const nextItems = items.map((item) => {
+                    if (item.retro_date !== retroDate) return item;
+
+                    didUpdate = true;
+                    didUpdatePage = true;
+                    return mergeRetroLogIntoRetroListItem(retroLog, item, retroDate);
+                });
+
+                return didUpdatePage ? { ...page, items: nextItems } : page;
+            });
+
+            if (didUpdate) {
+                return { ...current, pages };
+            }
+
+            const [firstPage, ...restPages] = pages;
+            const pageSize = firstPage?.page_size ?? RETRO_LOG_PAGE_SIZE;
+            const firstItems = firstPage?.items ?? [];
+            const totalCount = (firstPage?.total_count ?? firstItems.length) + 1;
+            const totalPages = Math.max(firstPage?.total_pages ?? 1, Math.ceil(totalCount / pageSize));
+            const nextFirstItems = [nextListItem, ...firstItems].sort((left, right) =>
+                (right.retro_date ?? '').localeCompare(left.retro_date ?? '')
+            );
+            const nextFirstPage: RetroLogListResponse = {
+                ...(firstPage ?? {}),
+                items: nextFirstItems,
+                page: firstPage?.page ?? 1,
+                page_size: pageSize,
+                total_count: totalCount,
+                total_pages: totalPages,
+                has_next: firstPage?.has_next ?? totalCount > pageSize,
+            };
+
+            return {
+                ...current,
+                pageParams: current.pageParams.length ? current.pageParams : [1],
+                pages: [nextFirstPage, ...restPages],
+            };
+        });
+    };
+
+    const syncSavedRetroLogCaches = (retroLog: RetroLog, retroDate: string) => {
+        upsertRetroLogDetailCache(retroLog, retroDate);
+        upsertRetroLogListCache(retroLog, retroDate);
     };
 
     const handleCalendarDateSelect = (date: Date) => {
@@ -672,24 +808,63 @@ export default function Retro() {
             return;
         }
 
+        const selectTodayRetro = (retro: RetroLogListItem) => {
+            if (!retro.retros || !retro.template_types?.length) return;
+
+            const nextCategory = retro.template_types[0].toLowerCase();
+
+            initialTodayRetroSelectedRef.current = true;
+            selectedRetroRef.current = retro;
+            selectedCategoryRef.current = nextCategory;
+            setSelectedRetro(retro);
+            resetContentState(getRetroContentMap(retro.retros));
+            setSelectedDate(new Date(`${retro.retro_date}T00:00:00`));
+            setSelectedCategory(nextCategory);
+            restoreCategorySaveState(nextCategory);
+        };
+
         const todayRetro = visibleRetroArr.find((retro) => retro.retro_date === todayDateKey);
 
-        if (!todayRetro?.retros || !todayRetro.template_types?.length) {
+        if (todayRetro?.retros && todayRetro.template_types?.length) {
+            selectTodayRetro(todayRetro);
             return;
         }
 
-        const nextCategory = todayRetro.template_types[0].toLowerCase();
+        if (isRetroLogsLoading || isRetroLogsFetching || initialTodayRetroDetailFetchRef.current) {
+            return;
+        }
 
-        initialTodayRetroSelectedRef.current = true;
-        selectedRetroRef.current = todayRetro;
-        selectedCategoryRef.current = nextCategory;
-        setSelectedRetro(todayRetro);
-        resetContentState(getRetroContentMap(todayRetro.retros));
-        setSelectedDate(new Date(`${todayRetro.retro_date}T00:00:00`));
-        setSelectedCategory(nextCategory);
-        restoreCategorySaveState(nextCategory);
+        initialTodayRetroDetailFetchRef.current = true;
+        let isCurrent = true;
+
+        const fetchTodayRetro = async () => {
+            try {
+                const dateRetros = await getRetroLog({ date: todayDateKey });
+                const fetchedTodayRetro = buildRetroListItem(dateRetros, todayDateKey);
+
+                if (!isCurrent || !fetchedTodayRetro?.retros || !fetchedTodayRetro.template_types?.length) {
+                    return;
+                }
+
+                selectTodayRetro(fetchedTodayRetro);
+            } catch {
+                if (isCurrent) {
+                    initialTodayRetroDetailFetchRef.current = false;
+                }
+            }
+        };
+
+        void fetchTodayRetro();
+
+        return () => {
+            isCurrent = false;
+            if (!initialTodayRetroSelectedRef.current) {
+                initialTodayRetroDetailFetchRef.current = false;
+            }
+        };
     }, [
         isRetroLogsLoading,
+        isRetroLogsFetching,
         isSearchMode,
         isSelectedCategoryDirty,
         selectedDate,
@@ -697,6 +872,43 @@ export default function Retro() {
         todayDateKey,
         visibleRetroArr,
     ]);
+
+    useEffect(() => {
+        if (
+            !selectedRetro ||
+            isRetroLogsLoading ||
+            isRetroLogsFetching ||
+            isSearchMode ||
+            getDirtyCategories().length > 0
+        ) {
+            return;
+        }
+
+        const selectedDateKey = formatDate(selectedDate, DATE_FORMAT.api);
+        const latestRetro = visibleRetroArr.find((retro) => retro.retro_date === selectedDateKey);
+
+        if (!latestRetro?.retros || !latestRetro.template_types?.length) {
+            return;
+        }
+
+        const latestContentMap = getRetroContentMap(latestRetro.retros);
+
+        if (isSameRetroContentMap(latestContentMap, contentRef.current)) {
+            return;
+        }
+
+        const currentCategory = selectedCategoryRef.current;
+        const nextCategory = latestRetro.template_types.some((type) => type.toLowerCase() === currentCategory)
+            ? currentCategory
+            : latestRetro.template_types[0].toLowerCase();
+
+        selectedRetroRef.current = latestRetro;
+        selectedCategoryRef.current = nextCategory;
+        setSelectedRetro(latestRetro);
+        resetContentState(latestContentMap);
+        setSelectedCategory(nextCategory);
+        restoreCategorySaveState(nextCategory);
+    }, [isRetroLogsFetching, isRetroLogsLoading, isSearchMode, selectedDate, selectedRetro, visibleRetroArr]);
 
     const handleChangeSearchInput = (value: string) => {
         setSearch(value);
@@ -780,7 +992,7 @@ export default function Retro() {
         }
 
         contentChangeTimerRef.current = setTimeout(() => {
-            saveContent();
+            void saveCategoryContent(type);
         }, RETRO_AUTO_SAVE_DURATION);
     };
 
@@ -816,86 +1028,165 @@ ${selectedCategoryContent[key] ?? ''}
         syncCategorySaveState(value);
     };
 
-    const saveContent = async () => {
+    const saveCategoryContent = async (categoryToSave: string, options: SaveCategoryContentOptions = {}) => {
+        const isBackgroundSave = options.background ?? false;
+        const canUpdateUi = () => !isBackgroundSave && isMountedRef.current;
+
         if (contentChangeTimerRef.current) {
             clearTimeout(contentChangeTimerRef.current);
+            contentChangeTimerRef.current = null;
         }
 
-        const categoryToSave = selectedCategory;
         const contentToSave = { ...(contentRef.current[categoryToSave] ?? {}) };
 
         if (!isCategoryContentDirty(categoryToSave)) {
-            if (selectedCategoryRef.current === categoryToSave) {
+            if (canUpdateUi() && selectedCategoryRef.current === categoryToSave) {
                 setIsSelectedCategoryDirty(false);
                 restoreCategorySaveState(categoryToSave);
             }
 
-            return;
+            return true;
         }
 
-        if (selectedCategoryRef.current === categoryToSave) {
+        if (canUpdateUi() && selectedCategoryRef.current === categoryToSave) {
             setAutoSaveState('saving');
             setAutoSaveText('저장중...');
         }
 
-        setIsSaveProgresing(true);
+        isSaveProgresingRef.current = true;
+        if (canUpdateUi()) {
+            setIsSaveProgresing(true);
+        }
 
-        let currentRetro = selectedRetro?.retros?.find((item) => item.template_type?.toLowerCase() == categoryToSave);
+        const savePromise = (async () => {
+            try {
+                const currentRetro = selectedRetroRef.current?.retros?.find(
+                    (item) => item.template_type?.toLowerCase() === categoryToSave
+                );
+                const savedRetro = currentRetro?.id
+                    ? await updateRetroLogRequest(currentRetro.id, {
+                          content: contentToSave,
+                      })
+                    : await createRetroLogRequest({
+                          retro_date: formatDate(selectedDateRef.current, DATE_FORMAT.api),
+                          template_type: capitalize(categoryToSave) as CreateRetroLogRequestTemplateType,
+                          content: contentToSave,
+                      });
+                const savedRetroDate = savedRetro.retro_date ?? formatDate(selectedDateRef.current, DATE_FORMAT.api);
 
-        // 업데이트
-        if (currentRetro?.id) {
-            await updateRetroLog({
-                id: currentRetro.id,
-                data: {
-                    content: contentToSave,
-                },
-            }).then((res) => {
-                setSelectedRetro((prev) => {
-                    const nextRetro = mergeRetroLogIntoSelectedRetro(res, prev);
-                    selectedRetroRef.current = nextRetro;
-                    return nextRetro;
-                });
-                markCategoryContentSaved(categoryToSave, contentToSave);
-                void queryClient.invalidateQueries({
-                    queryKey: retroLogsQueryKey,
-                });
+                syncSavedRetroLogCaches(savedRetro, savedRetroDate);
 
-                if (selectedCategoryRef.current === categoryToSave) {
+                if (canUpdateUi()) {
+                    setSelectedRetro((prev) => {
+                        const nextRetro = mergeRetroLogIntoSelectedRetro(savedRetro, prev);
+                        selectedRetroRef.current = nextRetro;
+                        return nextRetro;
+                    });
+                    markCategoryContentSaved(categoryToSave, contentToSave);
+                }
+
+                void Promise.all([
+                    queryClient.invalidateQueries({
+                        queryKey: retroLogsQueryKey,
+                    }),
+                    queryClient.invalidateQueries({
+                        queryKey: getGetRetroLogQueryKey({ date: savedRetroDate }),
+                    }),
+                ]).catch(() => undefined);
+
+                if (canUpdateUi() && selectedCategoryRef.current === categoryToSave) {
                     setAutoSaveState('saved');
                     setAutoSaveText('마지막 저장 방금 전');
                 }
 
-                setIsSaveProgresing(false);
-            });
+                return true;
+            } catch {
+                if (canUpdateUi() && selectedCategoryRef.current === categoryToSave) {
+                    setAutoSaveState('error');
+                    setAutoSaveText('저장에 실패했어요');
+                }
 
+                showToast({
+                    iconName: 'error',
+                    message: '회고 저장에 실패했어요.',
+                    duration: 3000,
+                });
+
+                return false;
+            } finally {
+                isSaveProgresingRef.current = false;
+                if (canUpdateUi()) {
+                    setIsSaveProgresing(false);
+                }
+            }
+        })();
+
+        savePromiseRef.current = savePromise;
+        void savePromise.finally(() => {
+            if (savePromiseRef.current === savePromise) {
+                savePromiseRef.current = null;
+            }
+        });
+
+        return savePromise;
+    };
+
+    const flushPendingRetroSave = async (options: SaveCategoryContentOptions = {}) => {
+        if (contentChangeTimerRef.current) {
+            clearTimeout(contentChangeTimerRef.current);
+            contentChangeTimerRef.current = null;
+        }
+
+        if (savePromiseRef.current) {
+            const saved = await savePromiseRef.current;
+
+            if (!saved) {
+                return false;
+            }
+        }
+
+        const dirtyCategories = getDirtyCategories();
+
+        for (const category of dirtyCategories) {
+            const saved = await saveCategoryContent(category, options);
+
+            if (!saved) {
+                return false;
+            }
+        }
+
+        return true;
+    };
+
+    const saveContent = async () => {
+        await flushPendingRetroSave();
+    };
+
+    useBeforeUnload((event) => {
+        if (
+            getDirtyCategories().length === 0 &&
+            !isSaveProgresingRef.current &&
+            !useRetroSaveStatusStore.getState().isBackgroundSaving
+        ) {
             return;
         }
 
-        await createRetroLog({
-            data: {
-                retro_date: formatDate(selectedDate, DATE_FORMAT.api),
-                template_type: capitalize(categoryToSave) as CreateRetroLogRequestTemplateType,
-                content: contentToSave,
-            },
-        }).then((res) => {
-            setSelectedRetro((prev) => {
-                const nextRetro = mergeRetroLogIntoSelectedRetro(res, prev);
-                selectedRetroRef.current = nextRetro;
-                return nextRetro;
-            });
-            markCategoryContentSaved(categoryToSave, contentToSave);
-            void queryClient.invalidateQueries({
-                queryKey: retroLogsQueryKey,
-            });
+        event.preventDefault();
+        event.returnValue = '';
+    });
 
-            if (selectedCategoryRef.current === categoryToSave) {
-                setAutoSaveState('saved');
-                setAutoSaveText('마지막 저장 방금 전');
+    useEffect(() => {
+        return () => {
+            if (getDirtyCategories().length === 0 && !savePromiseRef.current) {
+                return;
             }
 
-            setIsSaveProgresing(false);
-        });
-    };
+            const { beginBackgroundSave, endBackgroundSave } = useRetroSaveStatusStore.getState();
+
+            beginBackgroundSave();
+            void flushPendingRetroSave({ background: true }).finally(endBackgroundSave);
+        };
+    }, []);
 
     const openDeleteModal = (retro: RetroLogListItem) => {
         if (!retro.retros?.length) {
@@ -1249,12 +1540,12 @@ ${selectedCategoryContent[key] ?? ''}
                                     </button>
                                 </div>
                                 <div className='flex items-center text-neutral text-sm whitespace-nowrap'>
-                                    {autoSaveState === 'saving' ? (
+                                    {displayedAutoSaveState === 'saving' ? (
                                         <div className='animate-spin h-4 w-4 border-3 border-gray-300 border-t-primary rounded-full mr-1' />
                                     ) : (
                                         ''
                                     )}
-                                    {autoSaveText}
+                                    {displayedAutoSaveText}
                                 </div>
 
                                 {isOpenCalendar ? (
