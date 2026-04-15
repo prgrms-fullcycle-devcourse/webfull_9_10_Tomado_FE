@@ -24,9 +24,9 @@ import { isSameDate } from '@/utils/dateUtils';
 import { SearchInput, SegmentedControl } from '@@/form';
 import { Container, SectionHeader, SidebarContentLayout } from '@@/layout';
 import { Badge, Button, Calendar, Icon, RetroCard } from '@@/ui';
-import { useInfiniteQuery } from '@tanstack/react-query';
+import { useInfiniteQuery, type InfiniteData } from '@tanstack/react-query';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useBeforeUnload, useNavigate, useSearchParams } from 'react-router-dom';
 
 const RETRO_LOG_PAGE_SIZE = 10;
 
@@ -99,6 +99,12 @@ const isSameRetroContent = (left: RetroContent = {}, right: RetroContent = {}) =
     const keys = new Set([...Object.keys(left), ...Object.keys(right)]);
 
     return Array.from(keys).every((key) => (left[key] ?? '') === (right[key] ?? ''));
+};
+
+const isSameRetroContentMap = (left: RetroContentMap = {}, right: RetroContentMap = {}) => {
+    const keys = new Set([...Object.keys(left), ...Object.keys(right)]);
+
+    return Array.from(keys).every((key) => isSameRetroContent(left[key], right[key]));
 };
 
 const getInitialSelectedDate = (searchParams: URLSearchParams) => {
@@ -183,6 +189,7 @@ export default function Retro() {
     const lastSavedContentRef = useRef<RetroContentMap>({});
     const isSelectedCategoryDirtyRef = useRef(isSelectedCategoryDirty);
     const selectedCategoryRef = useRef(selectedCategory);
+    const selectedDateRef = useRef(selectedDate);
     const selectedRetroRef = useRef<RetroLogListItem | undefined>(selectedRetro);
     const isSaveProgresingRef = useRef(isSaveProgresing);
     const savePromiseRef = useRef<Promise<boolean> | null>(null);
@@ -502,7 +509,11 @@ export default function Retro() {
         };
     }, [routeDateKey]);
 
-    const mergeRetroLogIntoSelectedRetro = (retroLog: RetroLog, baseRetro?: RetroLogListItem): RetroLogListItem => {
+    const mergeRetroLogIntoRetroListItem = (
+        retroLog: RetroLog,
+        baseRetro: RetroLogListItem | undefined,
+        retroDate: string
+    ): RetroLogListItem => {
         const nextRetros = baseRetro?.retros?.some((item) => retroLog.id && item.id === retroLog.id)
             ? baseRetro.retros.map((item) => (item.id === retroLog.id ? retroLog : item))
             : [...(baseRetro?.retros?.filter((item) => item.template_type !== retroLog.template_type) ?? []), retroLog];
