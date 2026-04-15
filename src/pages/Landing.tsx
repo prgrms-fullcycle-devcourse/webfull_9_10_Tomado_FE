@@ -244,7 +244,7 @@ export default function Landing() {
                                                 >
                                                     <Icon
                                                         color={item.checked ? 'color-primary' : 'color-neutral-subtle'}
-                                                        name={item.checked ? 'unchecked' : 'checked'}
+                                                        name={item.checked ? 'checked' : 'unchecked'}
                                                         size={20}
                                                     />
                                                     <div className='h-3 flex-1 rounded-full bg-white' />
