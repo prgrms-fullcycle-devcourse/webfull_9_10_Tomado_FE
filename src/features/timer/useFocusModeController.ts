@@ -71,6 +71,7 @@ export const useFocusModeController = ({
 
     return {
         isTodoExpanded,
+        handleClose: onClose,
         handleToggleTodo,
         focusModeBackgrounds,
         backgroundSlideClassNames,

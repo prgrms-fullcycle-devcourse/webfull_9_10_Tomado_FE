@@ -19,14 +19,14 @@ import RetroItem from '@/features/log/components/RetroItem';
 import { RETRO_CATEGORY_NAME, RETRO_FORM } from '@/features/log/retroConstants';
 import { useRetroSaveStatusStore } from '@/features/log/stores/retroSaveStatus';
 import { useToast } from '@/hooks';
-import { DATE_FORMAT, formatDate } from '@/utils';
+import { DATE_FORMAT, formatDate, getTodayDate, isValidApiDate, parseDate } from '@/utils';
 import { isSameDate } from '@/utils/dateUtils';
 import { SearchInput, SegmentedControl } from '@@/form';
 import { Container, SectionHeader, SidebarContentLayout } from '@@/layout';
 import { Badge, Button, Calendar, Icon, RetroCard } from '@@/ui';
-import { useInfiniteQuery, type InfiniteData } from '@tanstack/react-query';
-import { useEffect, useRef, useState } from 'react';
-import { useBeforeUnload } from 'react-router-dom';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const RETRO_LOG_PAGE_SIZE = 10;
 
@@ -101,13 +101,17 @@ const isSameRetroContent = (left: RetroContent = {}, right: RetroContent = {}) =
     return Array.from(keys).every((key) => (left[key] ?? '') === (right[key] ?? ''));
 };
 
-const isSameRetroContentMap = (left: RetroContentMap = {}, right: RetroContentMap = {}) => {
-    const keys = new Set([...Object.keys(left), ...Object.keys(right)]);
+const getInitialSelectedDate = (searchParams: URLSearchParams) => {
+    const routeDate = searchParams.get('date');
 
-    return Array.from(keys).every((key) => isSameRetroContent(left[key], right[key]));
+    return parseDate(isValidApiDate(routeDate) ? routeDate : getTodayDate());
 };
 
 export default function Retro() {
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const routeDate = searchParams.get('date');
+    const routeDateKey = isValidApiDate(routeDate) ? routeDate : null;
     const today = new Date();
     const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
     const todayDateKey = formatDate(todayStart, DATE_FORMAT.api);
@@ -115,7 +119,7 @@ export default function Retro() {
 
     const [search, setSearch] = useState('');
     const [searchKeyword, setSearchKeyword] = useState('');
-    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+    const [selectedDate, setSelectedDate] = useState<Date>(() => getInitialSelectedDate(searchParams));
     const [isOpenCalendar, setIsOpenCalendar] = useState(false);
     const [content, setContent] = useState<RetroContentMap>(() => createEmptyRetroContent());
     const [selectedCategory, setSelectedCategory] = useState(RETRO_CATEGORY_NAME.TECH);
@@ -176,8 +180,8 @@ export default function Retro() {
     const loadMoreRef = useRef<HTMLDivElement | null>(null);
     const contentChangeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const contentRef = useRef(content);
-    const lastSavedContentRef = useRef<RetroContentMap>(cloneRetroContentMap(content));
-    const selectedDateRef = useRef(selectedDate);
+    const lastSavedContentRef = useRef<RetroContentMap>({});
+    const isSelectedCategoryDirtyRef = useRef(isSelectedCategoryDirty);
     const selectedCategoryRef = useRef(selectedCategory);
     const selectedRetroRef = useRef<RetroLogListItem | undefined>(selectedRetro);
     const isSaveProgresingRef = useRef(isSaveProgresing);
@@ -198,6 +202,10 @@ export default function Retro() {
     useEffect(() => {
         contentRef.current = content;
     }, [content]);
+
+    useEffect(() => {
+        isSelectedCategoryDirtyRef.current = isSelectedCategoryDirty;
+    }, [isSelectedCategoryDirty]);
 
     useEffect(() => {
         selectedCategoryRef.current = selectedCategory;
@@ -272,8 +280,11 @@ export default function Retro() {
             .filter((retro): retro is RetroLogListItem => retro !== null);
     };
 
-    const retroLogs = retroLogsResponse?.pages.flatMap((page) => page.items ?? []) ?? [];
-    const visibleRetroArr = getVisibleRetroList(retroLogs);
+    const retroLogs = useMemo(
+        () => retroLogsResponse?.pages.flatMap((page) => page.items ?? []) ?? [],
+        [retroLogsResponse]
+    );
+    const visibleRetroArr = useMemo(() => getVisibleRetroList(retroLogs), [retroLogs, pendingDeleteRetroIds]);
     const visibleSearchResults = retroSearchResults.filter(
         (retro) => !retro.id || !pendingDeleteRetroIds.includes(retro.id)
     );
@@ -397,17 +408,101 @@ export default function Retro() {
         };
     };
 
-    const initContent = () => {
-        console.log('INIT CONTENT');
+    const routeDateListRetro = useMemo(() => {
+        if (!routeDateKey) {
+            return undefined;
+        }
 
+        return visibleRetroArr.find((retro) => retro.retro_date && isSameDate(retro.retro_date, routeDateKey));
+    }, [routeDateKey, visibleRetroArr]);
+
+    const initContent = () => {
         resetContentState(createEmptyRetroContent());
     };
 
-    const mergeRetroLogIntoRetroListItem = (
-        retroLog: RetroLog,
-        baseRetro: RetroLogListItem | undefined,
-        retroDate: string
-    ): RetroLogListItem => {
+    const clearRetroState = () => {
+        selectedRetroRef.current = undefined;
+        selectedCategoryRef.current = RETRO_CATEGORY_NAME.TECH;
+        setSelectedRetro(undefined);
+        setSelectedCategory(RETRO_CATEGORY_NAME.TECH);
+        initContent();
+        setAutoSaveState('');
+        setAutoSaveText('');
+    };
+
+    const applyRetroState = (retro: RetroLogListItem) => {
+        if (!retro.retros || !retro.template_types?.length) {
+            clearRetroState();
+            return;
+        }
+
+        const nextCategory = retro.template_types[0].toLowerCase();
+
+        selectedRetroRef.current = retro;
+        selectedCategoryRef.current = nextCategory;
+        setSelectedRetro(retro);
+        setSelectedCategory(nextCategory);
+        resetContentState(getRetroContentMap(retro.retros));
+        restoreCategorySaveState(nextCategory);
+    };
+
+    useEffect(() => {
+        if (!routeDateKey) {
+            return;
+        }
+
+        setSelectedDate(parseDate(routeDateKey));
+        setIsOpenCalendar(false);
+
+        if (routeDateListRetro && !isSelectedCategoryDirtyRef.current) {
+            applyRetroState(routeDateListRetro);
+        }
+    }, [routeDateKey, routeDateListRetro]);
+
+    useEffect(() => {
+        if (!routeDateKey) {
+            return;
+        }
+
+        let isCurrent = true;
+        const nextSelectedDate = parseDate(routeDateKey);
+
+        setSelectedDate(nextSelectedDate);
+        setIsOpenCalendar(false);
+
+        const syncRouteDate = async () => {
+            try {
+                const dateRetros = await getRetroLog({ date: routeDateKey });
+
+                if (!isCurrent || isSelectedCategoryDirtyRef.current) {
+                    return;
+                }
+
+                const matchedRetro = buildRetroListItem(dateRetros, routeDateKey);
+
+                if (!matchedRetro?.retros || !matchedRetro.template_types?.length) {
+                    clearRetroState();
+                    return;
+                }
+
+                applyRetroState(matchedRetro);
+            } catch {
+                if (!isCurrent || isSelectedCategoryDirtyRef.current) {
+                    return;
+                }
+
+                clearRetroState();
+            }
+        };
+
+        void syncRouteDate();
+
+        return () => {
+            isCurrent = false;
+        };
+    }, [routeDateKey]);
+
+    const mergeRetroLogIntoSelectedRetro = (retroLog: RetroLog, baseRetro?: RetroLogListItem): RetroLogListItem => {
         const nextRetros = baseRetro?.retros?.some((item) => retroLog.id && item.id === retroLog.id)
             ? baseRetro.retros.map((item) => (item.id === retroLog.id ? retroLog : item))
             : [...(baseRetro?.retros?.filter((item) => item.template_type !== retroLog.template_type) ?? []), retroLog];
@@ -786,6 +881,10 @@ export default function Retro() {
 
     const searchRetroList = () => {
         setSearchKeyword(search.trim());
+    };
+
+    const handleDashboardCalendarClick = () => {
+        navigate(`/dashboard?view=calendar&date=${formatDate(selectedDate, DATE_FORMAT.api)}`);
     };
 
     const handleSearchRetroClick = async (searchItem: RetroLogSearchItem) => {
@@ -1352,7 +1451,7 @@ ${selectedCategoryContent[key] ?? ''}
                                 <div ref={loadMoreRef} className='h-1 shrink-0' />
                             </div>
 
-                            <Button fullWidth={true} variant='outline'>
+                            <Button fullWidth={true} variant='outline' onClick={handleDashboardCalendarClick}>
                                 캘린더에서 보기
                             </Button>
                         </section>

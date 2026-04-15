@@ -71,7 +71,7 @@ export const CheckBox = ({
             style={{ width: size, height: size }}
             type={type}
         >
-            <Icon className={checkboxIconClassName} name={isChecked ? 'unchecked' : 'checked'} size={size} />
+            <Icon className={checkboxIconClassName} name={isChecked ? 'checked' : 'unchecked'} size={size} />
         </button>
     );
 };

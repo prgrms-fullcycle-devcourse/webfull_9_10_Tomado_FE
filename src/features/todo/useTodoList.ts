@@ -20,6 +20,22 @@ export const TODO_MAX_CHARS = 30;
 const TODO_LIMIT_TOAST_MESSAGE = '입력 가능한 글자 수를 초과하였습니다.';
 const TODO_DELETE_UNDO_DURATION = 3000;
 
+const getOptimisticSortOrder = (prevOrder?: number, nextOrder?: number) => {
+    if (prevOrder != null && nextOrder != null) {
+        return (prevOrder + nextOrder) / 2;
+    }
+
+    if (prevOrder != null) {
+        return prevOrder + 1;
+    }
+
+    if (nextOrder != null) {
+        return nextOrder - 1;
+    }
+
+    return 1;
+};
+
 interface UseTodoListOptions {
     assignedDate?: string;
 }
@@ -166,6 +182,7 @@ export const useTodoList = ({ assignedDate = getTodayDate() }: UseTodoListOption
 
     const handleUpdateTodoChecked = useCallback(
         async (id: string, checked: boolean) => {
+            await queryClient.cancelQueries({ queryKey: todosQueryKey });
             const previousTodos = queryClient.getQueryData<TodoDto[]>(todosQueryKey) ?? [];
 
             queryClient.setQueryData<TodoDto[]>(todosQueryKey, (current = []) => {
@@ -182,13 +199,16 @@ export const useTodoList = ({ assignedDate = getTodayDate() }: UseTodoListOption
             });
 
             try {
-                await toggleTodoComplete({
+                const updatedTodo = await toggleTodoComplete({
                     id,
                     data: {
                         completed: checked,
                     },
                 });
-                await invalidateTodoQueries();
+
+                queryClient.setQueryData<TodoDto[]>(todosQueryKey, (current = []) => {
+                    return current.map((todo) => (todo.id === id ? updatedTodo : todo));
+                });
             } catch {
                 queryClient.setQueryData(todosQueryKey, previousTodos);
                 showToast({
@@ -287,11 +307,13 @@ export const useTodoList = ({ assignedDate = getTodayDate() }: UseTodoListOption
             const movedTodo = reorderedTodos[movedIndex];
             const prevTodo = reorderedTodos[movedIndex - 1];
             const nextTodo = reorderedTodos[movedIndex + 1];
+            const optimisticSortOrder = getOptimisticSortOrder(prevTodo?.sortOrder, nextTodo?.sortOrder);
+            await queryClient.cancelQueries({ queryKey: todosQueryKey });
             const previousTodos = queryClient.getQueryData<TodoDto[]>(todosQueryKey) ?? [];
             const todoMap = new Map(previousTodos.map((todo) => [todo.id, todo]));
 
             queryClient.setQueryData<TodoDto[]>(todosQueryKey, () => {
-                return orderedIds.reduce<TodoDto[]>((nextTodos, id, index) => {
+                return orderedIds.reduce<TodoDto[]>((nextTodos, id) => {
                     const todo = todoMap.get(id);
 
                     if (!todo) {
@@ -300,7 +322,7 @@ export const useTodoList = ({ assignedDate = getTodayDate() }: UseTodoListOption
 
                     nextTodos.push({
                         ...todo,
-                        sort_order: index + 1,
+                        sort_order: todo.id === movedTodo.id ? optimisticSortOrder : todo.sort_order,
                     });
 
                     return nextTodos;
@@ -308,14 +330,17 @@ export const useTodoList = ({ assignedDate = getTodayDate() }: UseTodoListOption
             });
 
             try {
-                await reorderTodo({
+                const updatedTodo = await reorderTodo({
                     id: movedTodo.id,
                     data: {
                         prev_order: prevTodo?.sortOrder,
                         next_order: nextTodo?.sortOrder,
                     },
                 });
-                await invalidateTodoQueries();
+
+                queryClient.setQueryData<TodoDto[]>(todosQueryKey, (current = []) => {
+                    return current.map((todo) => (todo.id === movedTodo.id ? updatedTodo : todo));
+                });
             } catch {
                 queryClient.setQueryData(todosQueryKey, previousTodos);
                 showToast({
@@ -325,7 +350,7 @@ export const useTodoList = ({ assignedDate = getTodayDate() }: UseTodoListOption
                 });
             }
         },
-        [invalidateTodoQueries, reorderTodo, showToast, visibleTodos]
+        [reorderTodo, showToast, todosQueryKey, visibleTodos]
     );
 
     return {

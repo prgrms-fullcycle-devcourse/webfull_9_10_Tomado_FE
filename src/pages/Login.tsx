@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { useLoginForm } from '@@@/auth';
@@ -16,6 +17,11 @@ export default function Login() {
     const navigate = useNavigate();
     const { values, isFormValid, canLoginAsDemo, isPending, showAuthError, setFieldValue, submit, loginAsDemo } =
         useLoginForm();
+    const userIdInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        userIdInputRef.current?.focus();
+    }, []);
 
     const handleSubmit = async () => {
         if (await submit()) {
@@ -45,6 +51,7 @@ export default function Login() {
 
                             <div className={fieldsClassName}>
                                 <Input
+                                    ref={userIdInputRef}
                                     label='아이디'
                                     onChange={(event) => setFieldValue('userId', event.target.value)}
                                     placeholder='아이디를 입력해 주세요'

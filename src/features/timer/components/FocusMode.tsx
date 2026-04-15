@@ -111,7 +111,7 @@ export const FocusMode = ({
                         <Button
                             className={mainButtonClassName}
                             icon={<Icon color='white' name='fullscreen_close' />}
-                            onClick={onClose}
+                            onClick={controller.handleClose}
                             size='md'
                             variant='outline'
                         >
