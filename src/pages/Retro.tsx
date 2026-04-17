@@ -95,6 +95,19 @@ const cloneRetroContentMap = (contentMap: RetroContentMap): RetroContentMap => {
     return Object.fromEntries(Object.entries(contentMap).map(([category, fields]) => [category, { ...fields }]));
 };
 
+const normalizeRetroContentByCategory = (category: string, categoryContent: RetroContent = {}): RetroContent => {
+    const categoryForm = RETRO_FORM[category.toUpperCase() as keyof typeof RETRO_FORM];
+
+    if (!categoryForm) {
+        return { ...categoryContent };
+    }
+
+    return Object.keys(categoryForm).reduce<RetroContent>((normalizedContent, key) => {
+        normalizedContent[key] = categoryContent[key] ?? '';
+        return normalizedContent;
+    }, {});
+};
+
 const isSameRetroContent = (left: RetroContent = {}, right: RetroContent = {}) => {
     const keys = new Set([...Object.keys(left), ...Object.keys(right)]);
 
@@ -1037,7 +1050,7 @@ ${selectedCategoryContent[key] ?? ''}
             contentChangeTimerRef.current = null;
         }
 
-        const contentToSave = { ...(contentRef.current[categoryToSave] ?? {}) };
+        const contentToSave = normalizeRetroContentByCategory(categoryToSave, contentRef.current[categoryToSave]);
 
         if (!isCategoryContentDirty(categoryToSave)) {
             if (canUpdateUi() && selectedCategoryRef.current === categoryToSave) {
